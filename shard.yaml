@@ -1,6 +1,7 @@
-version: "1.0.0"
+shard-spec: "0.1.0"
+version: "0.1.0"
 name: Knap
 shorthand: k
 description: Shard authoring toolkit. Templates for all shard file types, shard manifest schema, CLI commands, and workflows for creating, iterating, and publishing shards.
 depends:
-  - f
+  - NUU-Cognition/shard-flint

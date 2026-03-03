@@ -4,13 +4,14 @@
    See [[knw-k-manifest]] for the complete field reference. */
 
 ```yaml
-version: "[semver version, e.g. 1.0.0]"
+shard-spec: "0.1.0"
+version: "[semver version, e.g. 0.1.0]"
 name: [Shard Name in Title Case]
 shorthand: [2-4 character lowercase identifier]
 description: [Brief description of what the shard does, one sentence]
 depends:
-  - f
-  - [other dependency shorthands]
+  - NUU-Cognition/shard-flint
+  - [other dependency in full owner/repo]
   - (continue)
 
 /* Optional: files to install outside Shards/ folder.
@@ -41,10 +42,11 @@ repos:
 
 ## Rules
 
+- `shard-spec`: Always `"0.1.0"` — declares which spec version this shard conforms to
 - `version`: Start at `"1.0.0"` for release, `"0.1.0"` for development
 - `name`: Title Case, becomes the installed folder name
 - `shorthand`: Lowercase, used in all file names (init-X.md, sk-X-name.md)
-- `depends`: List shard shorthands, not names. Almost always include `f`
+- `depends`: Use `owner/repo` format (e.g., `NUU-Cognition/shard-flint`). Almost always include the Flint core shard
 - `install.once`: Default behavior — skip if destination exists
 - `install.force`: Use sparingly — overwrites user customizations on every sync
 - `folders`: Created empty if they don't exist

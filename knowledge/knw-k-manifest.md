@@ -6,16 +6,17 @@ Complete reference for the `shard.yaml` manifest file — the configuration that
 
 ```yaml
 # Required fields
+shard-spec: "0.1.0"                  # Shard spec version (conformance level)
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
 name: Shard Name                     # Title Case display name
 shorthand: sh                        # 2-4 char lowercase identifier
 description: What the shard does     # Brief description (1 sentence)
 
 # Optional fields
-depends:                             # Shard shorthands this shard requires
-  - f                                # Almost always include Flint/Core
-  - ld                               # Other dependencies
-  - proj
+depends:                             # Dependencies in owner/repo format
+  - NUU-Cognition/shard-flint        # Almost always include Flint (core)
+  - NUU-Cognition/shard-notepad      # Other dependencies
+  - NUU-Cognition/shard-projects
 
 install:                             # Files to install outside Shards/ folder
   - source: (Dashboard) Backlog.md   # Filename in install/ folder
@@ -36,6 +37,12 @@ repos:                               # Git repositories to clone into (System) R
 ```
 
 ## Field Reference
+
+### `shard-spec` (required)
+
+The shard spec version this manifest conforms to. Declares which version of the shard packaging specification this shard follows. Currently `"0.1.0"`.
+
+All shards should include this field. It allows tooling to handle backwards compatibility when the spec evolves.
 
 ### `version` (required)
 
@@ -75,17 +82,17 @@ A brief, single-sentence description of what the shard provides. Used in CLI out
 
 ### `depends` (optional)
 
-Array of shard shorthands that must be installed before this shard. Dependencies are installed first and their capabilities are available to this shard.
+Array of shard dependencies in `owner/repo` format. Dependencies are auto-installed when this shard is installed.
 
 ```yaml
 depends:
-  - f        # Flint/Core — almost always needed
-  - ld       # Living Documents
-  - proj     # Projects
+  - NUU-Cognition/shard-flint       # Flint (core) — almost always needed
+  - NUU-Cognition/shard-notepad     # Notepad
+  - NUU-Cognition/shard-projects    # Projects
 ```
 
 **Rules:**
-- Use shorthands, not display names
+- Use `owner/repo` format (e.g., `NUU-Cognition/shard-flint`), not shorthands or display names
 - Dependencies are transitive (if A depends on B, and B depends on C, A gets C too)
 - Circular dependencies are not allowed
 
@@ -165,12 +172,13 @@ These are useful for Obsidian templates and system files that need unique IDs or
 A shard that primarily provides dashboards:
 
 ```yaml
+shard-spec: "0.1.0"
 version: "1.0.0"
 name: My Dashboard
 shorthand: md
 description: Provides tracking dashboards
 depends:
-  - f
+  - NUU-Cognition/shard-flint
 install:
   - source: (Dashboard) Overview.md
     dest: Mesh/(Dashboard) Overview.md
@@ -182,13 +190,14 @@ install:
 A shard that manages a new artifact type:
 
 ```yaml
+shard-spec: "0.1.0"
 version: "1.0.0"
 name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 depends:
-  - f
-  - ld
+  - NUU-Cognition/shard-flint
+  - NUU-Cognition/shard-notepad
 install:
   - source: (Dashboard) Backlog.md
     dest: Mesh/(Dashboard) Backlog.md
@@ -203,12 +212,13 @@ folders:
 A shard with no install files or folders:
 
 ```yaml
+shard-spec: "0.1.0"
 version: "1.0.0"
 name: Living Documents
 shorthand: ld
 description: Track document lifecycle (living vs dead)
 depends:
-  - f
+  - NUU-Cognition/shard-flint
 ```
 
 ### Shard with Obsidian Templates
@@ -216,13 +226,14 @@ depends:
 A shard that ships human-facing templates for Obsidian:
 
 ```yaml
+shard-spec: "0.1.0"
 version: "1.0.0"
 name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 depends:
-  - f
-  - ld
+  - NUU-Cognition/shard-flint
+  - NUU-Cognition/shard-notepad
 install:
   - source: (Dashboard) Backlog.md
     dest: Mesh/(Dashboard) Backlog.md
@@ -239,12 +250,13 @@ folders:
 A shard that needs an external codebase cloned:
 
 ```yaml
+shard-spec: "0.1.0"
 version: "1.0.0"
 name: My Integration
 shorthand: mi
 description: Integrates with an external service
 depends:
-  - f
+  - NUU-Cognition/shard-flint
 repos:
   - name: service-sdk
     url: https://github.com/org/service-sdk.git
@@ -254,11 +266,12 @@ repos:
 ## Validation Rules
 
 A valid `shard.yaml` must have:
+- [ ] `shard-spec` — valid semver string (currently `"0.1.0"`)
 - [ ] `version` — valid semver string
 - [ ] `name` — non-empty, Title Case
 - [ ] `shorthand` — 2-4 lowercase characters
 - [ ] `description` — non-empty string
-- [ ] All `depends` entries reference valid shard shorthands
+- [ ] All `depends` entries use valid `owner/repo` format
 - [ ] All `install.source` files exist in the `install/` folder
 - [ ] All `install.dest` paths are relative to flint root
 - [ ] No circular dependencies

@@ -26,7 +26,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 3. **Check file naming.** Verify all files follow naming conventions:
    - [ ] Skills: `sk-<sh>-<name>.md`
    - [ ] Workflows: `wkfl-<sh>-<name>.md`
-   - [ ] Templates: `tmp-<sh>-<name>.md`
+   - [ ] Templates: `tmp-<sh>-<name>-v<X.X>.md`
    - [ ] Knowledge: `knw-<sh>-<name>.md`
    - [ ] Assets: `ast-<sh>-<name>.<ext>`
    - [ ] Shorthand matches `shard.yaml`

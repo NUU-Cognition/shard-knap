@@ -16,13 +16,13 @@ Shards/(Dev) Knap/
     wkfl-k-create_shard.md         # Scaffold a new shard
     wkfl-k-iterate.md              # Add capabilities to existing shard
   templates/
-    tmp-k-shard_yaml.md            # shard.yaml manifest template
-    tmp-k-init.md                  # Init file template
-    tmp-k-skill.md                 # Skill file template
-    tmp-k-workflow.md              # Workflow file template
-    tmp-k-template.md              # Template file (meta-template)
-    tmp-k-knowledge.md             # Knowledge file template
-    tmp-k-script.md                # Script file template
+    tmp-k-shard_yaml-v0.1.md       # shard.yaml manifest template
+    tmp-k-init-v0.1.md             # Init file template
+    tmp-k-skill-v0.1.md            # Skill file template
+    tmp-k-workflow-v0.1.md         # Workflow file template
+    tmp-k-template-v0.1.md         # Template file (meta-template)
+    tmp-k-knowledge-v0.1.md        # Knowledge file template
+    tmp-k-script-v0.1.md           # Script file template
   knowledge/
     knw-k-architecture.md          # Shard architecture reference
     knw-k-manifest.md              # shard.yaml schema reference

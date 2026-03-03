@@ -207,10 +207,10 @@ Declared in `shard.yaml` under `install:`.
 Each shard handles one domain. Task management (proj), version tracking (inc), brainstorming (ntpd) — never multiple domains in one shard.
 
 ### Dependency Declaration
-If a shard needs another shard's artifacts or conventions, declare it in `depends`. Common dependencies:
-- `f` (Flint/Core) — almost always required
-- `ld` (Living Documents) — if the shard creates long-lived artifacts
-- `proj` (Projects) — if the shard interacts with tasks
+If a shard needs another shard's artifacts or conventions, declare it in `depends` using `owner/repo` format. Common dependencies:
+- `NUU-Cognition/shard-flint` (Flint/Core) — almost always required
+- `NUU-Cognition/shard-notepad` (Notepad) — if the shard creates long-lived artifacts
+- `NUU-Cognition/shard-projects` (Projects) — if the shard interacts with tasks
 
 ### Progressive Disclosure
 Init files give the overview. Skills/workflows give the instructions. Knowledge files give the depth. Templates give the structure. Agents load what they need, when they need it.

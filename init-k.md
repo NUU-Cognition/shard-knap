@@ -29,7 +29,7 @@ Shards/[Shard Name]/
 ├── workflows/              # Multi-stage tasks
 │   └── wkfl-<sh>-<name>.md
 ├── templates/              # Artifact structure guides
-│   └── tmp-<sh>-<name>.md
+│   └── tmp-<sh>-<name>-v<X.X>.md
 ├── knowledge/              # Deep reference material
 │   └── knw-<sh>-<name>.md
 ├── assets/                 # Non-markdown files
@@ -51,7 +51,7 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | Init | `init-<sh>.md` | `init-proj.md` |
 | Skill | `sk-<sh>-<name>.md` | `sk-proj-create_task.md` |
 | Workflow | `wkfl-<sh>-<name>.md` | `wkfl-proj-do_task.md` |
-| Template | `tmp-<sh>-<name>.md` | `tmp-proj-task.md` |
+| Template | `tmp-<sh>-<name>-v<X.X>.md` | `tmp-proj-task-v0.1.md` |
 | Knowledge | `knw-<sh>-<name>.md` | `knw-proj-lifecycle.md` |
 | Asset | `ast-<sh>-<name>.<ext>` | `ast-proj-diagram.svg` |
 | Obsidian Template | `otmp-<sh>-<name>.md` | `otmp-proj-task.md` |
@@ -69,8 +69,8 @@ name: Shard Name
 shorthand: sh
 description: What this shard does
 depends:
-  - f                       # Always depend on Flint (core)
-  - ld                      # Other shard shorthands
+  - NUU-Cognition/shard-flint        # Always depend on Flint (core)
+  - NUU-Cognition/shard-notepad      # Other dependencies (owner/repo format)
 install:
   - source: (Dashboard) X.md
     dest: Mesh/(Dashboard) X.md
@@ -143,13 +143,13 @@ repos:
 
 | Template | File | Purpose |
 |----------|------|---------|
-| Shard YAML | `tmp-k-shard_yaml.md` | shard.yaml manifest |
-| Init File | `tmp-k-init.md` | Shard init/context file |
-| Skill | `tmp-k-skill.md` | Skill file |
-| Workflow | `tmp-k-workflow.md` | Workflow file |
-| Template | `tmp-k-template.md` | Template file (meta-template) |
-| Knowledge | `tmp-k-knowledge.md` | Knowledge/reference file |
-| Script | `tmp-k-script.md` | Node.js CLI script |
+| Shard YAML | `tmp-k-shard_yaml-v0.1.md` | shard.yaml manifest |
+| Init File | `tmp-k-init-v0.1.md` | Shard init/context file |
+| Skill | `tmp-k-skill-v0.1.md` | Skill file |
+| Workflow | `tmp-k-workflow-v0.1.md` | Workflow file |
+| Template | `tmp-k-template-v0.1.md` | Template file (meta-template) |
+| Knowledge | `tmp-k-knowledge-v0.1.md` | Knowledge/reference file |
+| Script | `tmp-k-script-v0.1.md` | Node.js CLI script |
 
 ## Knowledge
 

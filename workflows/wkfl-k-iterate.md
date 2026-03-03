@@ -27,11 +27,11 @@ Present the plan to the user. Once confirmed, progress to the next stage.
 ## Stage 2: Create
 
 1. Create the new file(s) using the appropriate Knap template:
-   - Skill → [[tmp-k-skill]]
-   - Workflow → [[tmp-k-workflow]]
-   - Template → [[tmp-k-template]]
-   - Knowledge → [[tmp-k-knowledge]]
-   - Script → [[tmp-k-script]]
+   - Skill → [[tmp-k-skill-v0.1]]
+   - Workflow → [[tmp-k-workflow-v0.1]]
+   - Template → [[tmp-k-template-v0.1]]
+   - Knowledge → [[tmp-k-knowledge-v0.1]]
+   - Script → [[tmp-k-script-v0.1]]
 
 2. Follow naming conventions: `<type>-<sh>-<name>.md`
 
