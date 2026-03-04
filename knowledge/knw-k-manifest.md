@@ -21,10 +21,10 @@ depends:                             # Dependencies in owner/repo format
 install:                             # Files to install outside Shards/ folder
   - source: (Dashboard) Backlog.md   # Filename in install/ folder
     dest: Mesh/(Dashboard) Backlog.md  # Destination from flint root
-    once: true                       # Install only if not present (default)
+    mode: once                       # Install only if not present (default)
   - source: (System) Init.md
     dest: Mesh/(System) Init.md
-    force: true                      # Overwrite on every install/sync
+    mode: force                      # Overwrite on every install/sync
 
 folders:                             # Directories to create in flint root
   - Mesh/Types/Tasks/
@@ -104,7 +104,7 @@ Array of file mappings. Each entry copies a file from the shard's `install/` fol
 install:
   - source: (Dashboard) Backlog.md
     dest: Mesh/(Dashboard) Backlog.md
-    once: true
+    mode: once
 ```
 
 **Fields:**
@@ -113,12 +113,13 @@ install:
 |-------|------|---------|---------|
 | `source` | string | required | Filename in `install/` folder |
 | `dest` | string | required | Destination path from flint root |
-| `once` | boolean | `true` | Only install if dest doesn't exist |
-| `force` | boolean | `false` | Overwrite dest on every install/sync |
+| `mode` | `once` \| `force` | `once` | Install mode — controls overwrite behavior |
 
-**`once` vs `force`:**
-- `once: true` (default) — Install the file only if the destination doesn't exist. Users may customize it and the shard won't overwrite their changes.
-- `force: true` — Overwrite the destination on every install and sync. Use for files that must stay in sync with the shard (rare).
+**Install modes:**
+- `once` (default) — Install the file only if the destination doesn't exist. Users may customize it and the shard won't overwrite their changes.
+- `force` — Overwrite the destination on every install and sync. Use for files that must stay in sync with the shard (rare).
+
+> **Backward compat:** The legacy `once: true` and `force: true` boolean fields are still accepted. If present, they are resolved to the equivalent `mode` value. New manifests should use `mode`.
 
 ### `folders` (optional)
 
@@ -182,7 +183,7 @@ depends:
 install:
   - source: (Dashboard) Overview.md
     dest: Mesh/(Dashboard) Overview.md
-    once: true
+    mode: once
 ```
 
 ### Full Artifact Shard
@@ -201,7 +202,7 @@ depends:
 install:
   - source: (Dashboard) Backlog.md
     dest: Mesh/(Dashboard) Backlog.md
-    once: true
+    mode: once
 folders:
   - Mesh/Types/Tasks/
   - Mesh/Archive/Tasks/
@@ -237,10 +238,10 @@ depends:
 install:
   - source: (Dashboard) Backlog.md
     dest: Mesh/(Dashboard) Backlog.md
-    once: true
+    mode: once
   - source: otmp-proj-task.md
     dest: "Shards/(System) Obsidian Templates/otmp-proj-task.md"
-    once: true
+    mode: once
 folders:
   - Mesh/Types/Tasks/
 ```

@@ -1,4 +1,4 @@
-# Filename: tmp-[shorthand]-[name].md
+# Filename: tmp-[shorthand]-[name]-vX.X.md
 
 /* This is the meta-template — a template for creating templates.
    Templates define the structure of artifacts that agents create.
@@ -18,10 +18,8 @@ tags:
   - "#[type-tag]"
   - "#[shard-shorthand]/[artifact-type]"
 status: [status-option-1|status-option-2|...]
-/* If Increments shard is installed: */
-increment: [[parent increment hyperlink]]
-[agent]-sessions: /* replace [agent] with agent type (claude, codex, etc.) */
-template: tmp-[shorthand]-[name]
+[agent]-sessions: 
+template: "[[tmp-[shorthand]-[name]-vX.X]]"
 ---
 
 # [Section Name]
@@ -57,3 +55,4 @@ template: tmp-[shorthand]-[name]
 - Use `/* comments */` to explain non-obvious conventions to the agent
 - Use `[instruction]` placeholders that describe both what and how to generate
 - The `# Filename:` line shows the output path pattern
+- Templates are versioned. Each change increases version. Versions start at 0.1.
