@@ -138,6 +138,7 @@ repos:
 |----------|------|---------|
 | Create Shard | `wkfl-k-create_shard.md` | Scaffold a new shard from scratch |
 | Iterate | `wkfl-k-iterate.md` | Add capabilities to an existing shard |
+| Knap Shard | `wkfl-k-knap_shard.md` | Load a full shard into context and edit it collaboratively |
 
 ## Templates
 
