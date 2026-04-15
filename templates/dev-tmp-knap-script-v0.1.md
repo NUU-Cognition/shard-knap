@@ -1,15 +1,23 @@
-# Filename: [name].js
+---
+description: "Shard script file structure"
+---
+
+# Filename: scripts/dev-<name>.js  (installed: scripts/<name>.js)
 
 /* Scripts provide deterministic operations that agents invoke via CLI.
    Use scripts to replace fragile agent logic (counting files, finding patterns) with reliable commands.
 
-   Invocation: flint shard [shorthand] [script-name] [args...]
+   Scripts are auto-discovered from the scripts/ folder — NO shard.yaml declaration needed.
+   The command name is derived from the filename stem (dev- prefix stripped):
+     scripts/dev-new-task-number.js → flint shard <shorthand> new-task-number
+
+   Invocation: flint shard <shorthand> <name> [args...]
 */
 
 ```javascript
 #!/usr/bin/env node
 // [Brief description of what this script does]
-// Invocation: flint shard [shorthand] [script-name] [args...]
+// Invocation: flint shard <shorthand> <script-name> [args...]
 // Outputs: [describe the output format — single value, JSON, etc.]
 
 const fs = require('fs');

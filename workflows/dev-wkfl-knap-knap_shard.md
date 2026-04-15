@@ -1,4 +1,8 @@
-This workflow belongs to the Knap shard. Ensure you have [[init-k]] in context before continuing.
+---
+description: "Full shard creation workflow with review stages"
+---
+
+Run `flint shard start-dev knap` if you haven't already.
 
 # Workflow: Knap Shard
 
@@ -16,10 +20,11 @@ Edit and refine an existing shard by loading its full context and collaborating 
 Load the entire target shard into context.
 
 1. Read the shard's `shard.yaml` manifest
-2. Read the shard's `init-<sh>.md` context file
-3. List all files in the shard directory recursively
-4. Read every file in the shard — skills, workflows, templates, knowledge, scripts, install files, README
-5. If the shard has install files, read the installed copies in `Mesh/` as well to understand current state
+2. Read the shard's `init-<sh>.md` context file (and `hinit-<sh>.md` if it exists)
+3. Read the shard's `setup-<sh>.md` if the manifest declares `setup:`
+4. List all files in the shard directory **recursively** — `skills/`, `workflows/`, `templates/`, and `knowledge/` may contain arbitrary subfolder groupings
+5. Read every file in the shard — skills, workflows, templates, knowledge, scripts, install files, README
+6. If the shard has install files, read the installed copies in `Mesh/` as well to understand current state
 
 Present a summary to the user:
 - Shard name, version, shorthand
@@ -45,22 +50,24 @@ Rules during this stage:
 - Follow all Knap naming conventions and file patterns
 - When editing templates, preserve the template syntax (placeholders, comments, code fences)
 - When editing skills/workflows, maintain the established structure
-- Keep the init file's tables in sync with actual files
+- Every skill/workflow/template/knowledge file must have `description` YAML frontmatter — `flint shard start` uses it for the dynamic manifest
+- Keep the init file's `required-reading` YAML frontmatter in sync with actual knowledge files
 - Use [[wikilinks]] for all cross-references
 
 Continue working with the user until they indicate they are done. Once the user confirms work is complete, progress to the next stage.
 
 ## Stage 3: Finalize
 
-1. Update the shard's `init-<sh>.md` tables if any files were added, removed, or renamed
-2. Update `shard.yaml` if version, dependencies, install entries, or folders changed
-3. Update `README.md` if it exists and changes warrant it
-4. Run [[sk-k-validate]] to verify shard integrity
-5. Fix any validation issues
-6. Confirm with the user that the shard is in good shape
+1. Ensure all new or edited files have `description` YAML frontmatter
+2. If required reading changed, update the init file's `required-reading` YAML frontmatter
+3. Update `shard.yaml` if version, dependencies, install entries, or folders changed
+4. Update `README.md` if it exists and changes warrant it
+5. Run [[dev-sk-knap-validate]] to verify shard integrity
+6. Fix any validation issues
+7. Confirm with the user that the shard is in good shape
 
 # Output
 
 - Shard files edited per user direction
-- Init file and manifest in sync with actual contents
+- All files have `description` frontmatter
 - Shard validates cleanly

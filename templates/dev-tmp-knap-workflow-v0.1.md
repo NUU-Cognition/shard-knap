@@ -1,12 +1,25 @@
-# Filename: wkfl-[shorthand]-[name].md
+---
+description: "Shard workflow file structure"
+---
+
+# Filename: wkfl-[shorthand]-[name].md  (headless variant: hwkfl-[shorthand]-[name].md)
 
 /* Workflows are multi-stage tasks with human checkpoints between stages.
    Use a workflow (not a skill) when the task needs human review, approval, or iterative refinement.
    Each stage should have a clear completion condition.
-   The canonical transition phrase is: "Once [condition], progress to the next stage." */
+   The canonical transition phrase is: "Once [condition], progress to the next stage."
+   
+   Headless variants use the hwkfl- prefix. Everything below is identical EXCEPT:
+   - Context line at the top is `flint shard hstart [shorthand]` (not `start`)
+   - No human checkpoints — progress reported via Orbh session keys instead */
 
 ```markdown
-This workflow belongs to the [Shard Name] shard. Ensure you have [[init-[shorthand]]] in context before continuing.
+---
+description: "[One-line description of what this workflow accomplishes]"
+---
+
+Run `flint shard start [shorthand]` if you haven't already.
+/* For headless variants (hwkfl-*), use `flint shard hstart [shorthand]` instead. */
 
 # Workflow: [Workflow Name]
 

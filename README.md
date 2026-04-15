@@ -7,25 +7,30 @@ Named after flintknapping — the craft of shaping raw stone into tools.
 ## Structure
 
 ```
-Shards/(Dev) Knap/
-  shard.yaml                       # Manifest
-  init-k.md                        # Init — shard authoring context
+Shards/(Dev Remote) Knap/
+  shard.yaml                              # Manifest
+  init-knap.md                            # Init — installed copy source
+  dev-init-knap.md                        # Init — dev version with required-reading
   skills/
-    sk-k-validate.md               # Validate shard structure
+    dev-sk-knap-validate.md               # Validate shard structure
   workflows/
-    wkfl-k-create_shard.md         # Scaffold a new shard
-    wkfl-k-iterate.md              # Add capabilities to existing shard
+    dev-wkfl-knap-create_shard.md         # Scaffold a new shard
+    dev-wkfl-knap-iterate.md              # Add capabilities to existing shard
+    dev-wkfl-knap-knap_shard.md           # Load and edit a shard collaboratively
+    dev-wkfl-knap-upgrade_shard_spec.md   # Upgrade shard spec version
   templates/
-    tmp-k-shard_yaml-v0.1.md       # shard.yaml manifest template
-    tmp-k-init-v0.1.md             # Init file template
-    tmp-k-skill-v0.1.md            # Skill file template
-    tmp-k-workflow-v0.1.md         # Workflow file template
-    tmp-k-template-v0.1.md         # Template file (meta-template)
-    tmp-k-knowledge-v0.1.md        # Knowledge file template
-    tmp-k-script-v0.1.md           # Script file template
+    dev-tmp-knap-shard_yaml-v0.1.md       # shard.yaml manifest template
+    dev-tmp-knap-init-v0.1.md             # Init file template
+    dev-tmp-knap-skill-v0.1.md            # Skill file template
+    dev-tmp-knap-workflow-v0.1.md         # Workflow file template
+    dev-tmp-knap-template-v0.1.md         # Template file (meta-template)
+    dev-tmp-knap-knowledge-v0.1.md        # Knowledge file template
+    dev-tmp-knap-script-v0.1.md           # Script file template
   knowledge/
-    knw-k-architecture.md          # Shard architecture reference
-    knw-k-manifest.md              # shard.yaml schema reference
+    dev-knw-knap-architecture.md          # Shard architecture reference
+    dev-knw-knap-manifest.md              # shard.yaml schema reference
+  install/
+    type-knap-shard.md                    # Shard artifact type definition
 ```
 
 ## What This Shard Covers

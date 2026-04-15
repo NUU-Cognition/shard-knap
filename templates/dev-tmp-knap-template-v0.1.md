@@ -1,3 +1,7 @@
+---
+description: "Shard template file structure"
+---
+
 # Filename: tmp-[shorthand]-[name]-vX.X.md
 
 /* This is the meta-template — a template for creating templates.
@@ -18,8 +22,10 @@ tags:
   - "#[type-tag]"
   - "#[shard-shorthand]/[artifact-type]"
 status: [status-option-1|status-option-2|...]
-[agent]-sessions: 
+orbh-sessions: 
 template: "[[tmp-[shorthand]-[name]-vX.X]]"
+authors: /* from .flint/identity.json; omit if no identity set */
+  - "[[@Person Name]]"
 ---
 
 # [Section Name]
@@ -52,6 +58,7 @@ template: "[[tmp-[shorthand]-[name]-vX.X]]"
 - Always include `id`, `tags`, and `template` in frontmatter
 - Include `status` if the artifact has a lifecycle
 - Include `[agent]-sessions` for session tracking
+- Include `authors` for person attribution (reads from `.flint/identity.json`)
 - Use `/* comments */` to explain non-obvious conventions to the agent
 - Use `[instruction]` placeholders that describe both what and how to generate
 - The `# Filename:` line shows the output path pattern

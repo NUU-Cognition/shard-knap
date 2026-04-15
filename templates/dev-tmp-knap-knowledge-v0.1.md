@@ -1,3 +1,7 @@
+---
+description: "Shard knowledge file structure"
+---
+
 # Filename: knw-[shorthand]-[name].md
 
 /* Knowledge files provide deep reference material on a specific topic.
@@ -6,6 +10,10 @@
    Agents load these on demand when they need detailed understanding. */
 
 ```markdown
+---
+description: "[One-line description of what this knowledge file covers]"
+---
+
 # Knowledge: [Topic Name]
 
 [1-2 sentence overview of what this knowledge file covers and why it matters]
@@ -32,6 +40,7 @@
 
 ## Design Guidelines
 
+- Every knowledge file must have `description` in YAML frontmatter — `flint shard start` uses it for the manifest
 - One topic per file — "Shard Architecture" not "Everything About Shards"
 - Reference-oriented — optimize for looking things up, not reading cover-to-cover
 - Include practical examples alongside specifications
