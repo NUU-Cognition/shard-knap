@@ -62,7 +62,7 @@ Continue working with the user until they indicate they are done. Once the user 
 2. If required reading changed, update the init file's `required-reading` YAML frontmatter
 3. Update `shard.yaml` if version, dependencies, install entries, or folders changed
 4. Update `README.md` if it exists and changes warrant it
-5. Run [[dev-sk-knap-validate]] to verify shard integrity
+5. Run [[sk-knap-validate]] to verify shard integrity
 6. Fix any validation issues
 7. Confirm with the user that the shard is in good shape
 

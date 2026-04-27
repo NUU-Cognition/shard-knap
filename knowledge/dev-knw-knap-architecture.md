@@ -30,7 +30,9 @@ Every shard is in one of three lifecycle modes. The folder-name prefix signals t
 | `dev-remote` | `Shards/(Dev Remote) <Name>/` | Local dev copy with a git remote. Edits flow back to origin via `flint shard push`. |
 | `dev-local` | `Shards/(Dev Local) <Name>/` | Local dev copy, no remote. Use `flint shard dev <shorthand>` to promote to remote. |
 
-Dev shards coexist with installed copies. When both exist, `flint shard install --all-dev` (re)installs the dev sources into the `installed` folders. Dev-only commands (`rename`, `push`, `pull`, `dev`, `publish`, `release`) resolve to the dev shard first via `resolveShardFolder(..., { devOnly: true })`, so users don't need to disambiguate manually.
+Dev shards coexist with installed copies in **separate folders** — `Shards/(Dev Remote) Name/` (or `(Dev Local) Name/`) for the dev source, `Shards/Name/` (no prefix) for the installed deployment — and are declared on separate `flint.toml` lists (`[shards].dev-remote[]`, `[shards].dev-local[]`, `[shards].installed[]`). To re-deploy installed copies from their declared source, run `flint shard reinstall [<name>]` (no name → all installed shards). Dev-only commands (`rename`, `push`, `pull`, `dev`, `publish`, `release`) resolve to the dev shard first via `resolveShardFolder(..., { devOnly: true })`, so users don't need to disambiguate manually.
+
+`flint sync` runs four kernel features that converge each list against its on-disk state: `installed-shards` (drift kinds: `not-installed`, `version-mismatch`, `orphan`), `dev-remote-shards` and `dev-local-shards` (`not-cloned`/`not-scaffolded`, `damaged`, `orphan`, `outdated-spec`), and `shard-repos` (`converge` for `repos:` declarations).
 
 ## Dev Prefix Rules
 
@@ -116,12 +118,14 @@ The shard's interactive context file — what agents load when they need this sh
 ```yaml
 ---
 required-reading:
-  - knowledge/knw-<sh>-<name>.md
-  - knowledge/knw-<sh>-<name>.md
+  - "[[knw-<sh>-<name>]]"
+  - "[[knw-<sh>-<name>]]"
 ---
 ```
 
-`required-reading` lists knowledge files the agent must read after loading the init. Paths are relative to the shard root. `flint shard start` uses this to tell the agent what to read.
+`required-reading` lists files the agent must read after loading the init. **Use Obsidian-style wikilinks (`[[name]]`)** — the runtime resolves each wikilink against the shard tree, accepting either the canonical name or the dev-prefixed source so the same frontmatter works in both dev and installed copies. `flint shard start` uses this list to tell the agent what to read.
+
+**General rule for shards:** anywhere one shard file references another shard file — required-reading entries, body prose, knowledge cross-references, workflow callouts — use `[[name]]`, never a raw path. Wikilinks survive renames better, render in Obsidian, and let the runtime resolve to whichever copy (dev or installed) is loaded. Legacy relative-path form (`knowledge/knw-<sh>-<name>.md`) is still accepted by the parser for back-compat but should not be used in new files.
 
 **Design principles:**
 - No discovery tables — skills, workflows, templates, and knowledge are discovered dynamically by `flint shard start` from file `description` frontmatter
@@ -152,7 +156,7 @@ The shard's one-time setup instructions — what agents and humans follow to pre
 - Same tier as the init file — lives at the shard root, not in a subfolder
 - Dev-prefixed in dev folders (`dev-setup-<sh>.md`), installed as `setup-<sh>.md`
 - The setup file is the single source of truth for what needs to happen before the shard works
-- After completing setup, mark the state file's `setup` field as `completed`
+- After completing setup, run `flint shard setup <name> --complete` to flip the relevant state file(s) to `setup: completed` (defaults to the layers declared by `manifest.setup`; pass `--scope flint|local|both` to override). `--reset` flips back to `required` to force a re-setup pass. See [[knw-knap-manifest]] § `setup` for the full command surface.
 
 ### Skills (`sk-<sh>-<name>.md`)
 
@@ -240,7 +244,7 @@ Alternate workflow files used in headless Orbh sessions. Replace the interactive
 
 Structural guides for artifacts the shard creates.
 
-See [[dev-tmp-knap-template-v0.1]] for full template syntax reference.
+See [[tmp-knap-template-v0.1]] for full template syntax reference.
 
 **Design principles:**
 - `description` frontmatter is required
@@ -281,11 +285,17 @@ Non-markdown files that support the shard — images, SVGs, data files, configs.
 
 ### Install Files (`install/`)
 
-Files placed into the Flint workspace during installation, declared in `shard.yaml` under `install:`:
+Files placed into the Flint workspace during installation, declared in `shard.yaml` under `install:`. The `source` filename uses a shard-namespaced convention; the literal target name (e.g. `(Dashboard) Backlog.md`, `(System) Flint Init.md`) only appears in `dest`.
 
-- Dashboards: `(Dashboard) Name.md` → `Mesh/(Dashboard) Name.md`
-- System files: `(System) Name.md` → `Mesh/(System) Name.md`
-- Obsidian templates: `otmp-<sh>-<name>.md` → `Shards/(Shards) Obsidian Templates/`
+| Source pattern | Purpose | Example dest |
+|----------------|---------|--------------|
+| `inst-<sh>-<name>.md` | General install payload (dashboards, system files, folder anchors, etc.) | `Mesh/(Dashboard) Backlog.md`, `Mesh/(System) Flint Init.md` |
+| `type-<sh>-<type>[_<subtype>].md` | Type definition — auto-installed via `types:` declaration, not `install:` | `Mesh/Metadata/Types/(Type) Task (Projects Shard).md` |
+| `otmp-<sh>-<name>.md` | Obsidian template (human-facing) | `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` |
+
+**Rule:** every `install:` entry's `source` must start with `inst-<sh>-` or `otmp-<sh>-`. The only exception is `type-<sh>-*` files, which are never listed in `install:` — they are driven by `types:` declarations instead.
+
+Install files carry **no** `dev-` prefix in either dev or installed folders — they are literal payloads, not shard source files. The installer refuses `install/dev-*` files with an error.
 
 Install files support `{{uuid}}` and `{{date}}` placeholders resolved at install time.
 
@@ -303,13 +313,7 @@ The `migrations/` folder may be empty — an empty folder is valid and is skippe
 
 ## Types and Folders
 
-The `types` field declares the artifact types a shard manages. Each declared type installs a **type definition file** from `install/` to `Mesh/Metadata/Types/` with a shard-qualified filename:
-
-| Declaration | Shard | Destination |
-|-------------|-------|-------------|
-| `Task` | Projects | `(Type) Task (Projects Shard).md` |
-| `Report` | Reports | `(Type) Report (Reports Shard).md` |
-| `Note.Concept` | Flint | `(Type) Note . Concept (Flint Shard).md` |
+The `types:` field declares the artifact types a shard manages. Each declared type installs a **type definition file** from `install/` to `Mesh/Metadata/Types/` with a shard-qualified destination name. Authors do not write a separate `install:` entry for types — the installer derives both the source filename and the destination path from the `types:` string alone.
 
 `types:` does **not** create artifact storage folders. Artifact folders are declared explicitly via `folders:`:
 
@@ -321,11 +325,81 @@ folders:
   - Mesh/Archive/Tasks                # Creates archive folder
 ```
 
-See [[dev-knw-f-types]] for the complete type install convention.
+See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
+
+### Type Installation
+
+A `types:` entry is a single Title Case string. The installer resolves it to **two paths** at install time — a source filename and a destination path — using two different separators by design.
+
+**Source filename** — the file in `install/` to copy from:
+
+```
+install/type-<shorthand>-<lower_snake>.md
+```
+
+The Title Case string is lowercased; spaces become underscores; and for subtypes the `.` becomes `_`. So filenames carry one delimiter style (`_`) regardless of how the type is named.
+
+**Destination path** — where the file is written into the workspace:
+
+```
+Mesh/Metadata/Types/(Type) <Name> [. <Subname>] (<Shard Name> Shard).md
+```
+
+The Title Case string is preserved verbatim. Subtypes use ` . ` (space-dot-space) so the parent and child both stay readable. The `(<Shard Name> Shard)` suffix is the collision guard — two shards may both declare a `Task` type and their definition files won't clobber each other.
+
+**The two-separator asymmetry is deliberate.** Filenames use `_` because filesystems are awkward with dots and spaces; workspace paths use ` . ` because Obsidian and the Mesh browser render them as Title Case. The same type declaration takes three forms:
+
+| Manifest | Source file | Destination |
+|----------|-------------|-------------|
+| `Task` (proj) | `install/type-proj-task.md` | `Mesh/Metadata/Types/(Type) Task (Projects Shard).md` |
+| `Learning Report` (lrn) | `install/type-lrn-learning_report.md` | `Mesh/Metadata/Types/(Type) Learning Report (Learn Shard).md` |
+| `Note.Concept` (f) | `install/type-f-note_concept.md` | `Mesh/Metadata/Types/(Type) Note . Concept (Flint Shard).md` |
+
+The two derive functions (`resolveTypeSourceFilename`, `resolveTypeDestPath` in `packages/flint/src/domain/shards/installer.ts`) are the only place this mapping is encoded.
+
+**Naming rules** (parser-enforced):
+
+- Title Case, letters / numbers / spaces only on each segment.
+- Format: `Type`, `Multi Word Type`, or `Type.Subtype` — exactly one level of nesting.
+- Pattern: `/^[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*(?:\.[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*)?$/`
+
+**Install behaviour** (per type, every install or sync):
+
+1. Source file missing → **silently skipped**. The validate skill flags the gap separately; install never fails on this.
+2. Destination already exists → **skipped** unless `force` mode is set on the install (type definitions install with `mode: once` semantics).
+3. Source content is read; `{{uuid}}` and `{{date}}` placeholders are processed — the same template substitution that runs on regular `install/` entries.
+4. If overwriting an existing destination (force path), the destination's existing `id:` is preserved so wikilinks pointing at the type definition don't break.
+5. `#readonly` is injected into the destination's frontmatter when the shard is installing in `installed` mode; dev installs leave `#readonly` off so authors can edit freely.
+6. Parent directories are created as needed; the file is written.
+
+**Authoring workflow:**
+
+```
+shard.yaml                       install/                                Mesh/Metadata/Types/
+─────────                        ────────                                ────────────────────
+types:                           type-proj-task.md          ────────►   (Type) Task (Projects Shard).md
+  - Task                                                                 (#readonly injected on installed)
+  - Note.Concept                 type-proj-note_concept.md  ────────►   (Type) Note . Concept (Projects Shard).md
+```
+
+Add the entry to `types:`, drop the matching file in `install/`, run `flint sync` (or any install path). No `install:` wiring, no folder configuration. To add an artifact-storage folder for the type, declare it explicitly in `folders:`.
+
+## Workspace System Folders
+
+The shard installer ensures these four workspace-scoped folders exist on every install / `flint shard pull`. Shard authors don't create them — they're guaranteed by the runtime.
+
+| Folder | Purpose | Tracked? |
+|--------|---------|----------|
+| `Shards/(Shards) State/` | Committed setup-state files for shards declaring `setup: full` or `setup: flint` | Yes |
+| `Shards/(Shards) Local State/` | Per-machine setup-state files for shards declaring `setup: full` or `setup: local` | No (gitignored) |
+| `Shards/(Shards) Obsidian Templates/` | Destination for `otmp-<sh>-<name>.md` install entries | Yes |
+| `Shards/(Shards) Repos/` | External git repositories cloned via the manifest `repos:` field. One folder per declared `name` (Title Case). Pinned SHAs live in `flint.json#repos[]`. | Yes (the folder; clone contents may be partially gitignored depending on workspace policy) |
+
+Shards declare what goes into these folders via `setup:`, `install:`, and `repos:`. The folders themselves are infrastructure.
 
 ## Setup and State
 
-A shard that needs one-time setup declares `setup: full|flint|local` in `shard.yaml` and provides a `dev-setup-<sh>.md` lifecycle file (installed as `setup-<sh>.md`). The setup file contains human/agent-readable instructions — clone repos, run builds, authenticate, configure, whatever the shard needs.
+A shard that needs one-time setup declares `setup: full|flint|local` in `shard.yaml` and provides a `dev-setup-<sh>.md` lifecycle file (installed as `setup-<sh>.md`). The setup file contains human/agent-readable instructions — run builds, authenticate, configure, whatever the shard needs. (For declaring external git clones, prefer the `repos:` manifest field over manual setup steps — see [[knw-knap-manifest]].)
 
 **Setup scope:**
 
@@ -399,3 +473,33 @@ Follow naming conventions strictly. Conventions enable tooling, discovery, and i
 **Program-size shards** model entire domains (e.g. OrbCode covers codebase understanding end-to-end). They organize templates and knowledge into subfolders by concept cluster (see [[#Subfolder Groupings]]). Keep the init file concise — it must still load in a single read — and lean on required-reading and `flint shard start` to surface the breadth.
 
 Start minimal. Add capabilities as genuine needs emerge. A shard with one excellent skill is better than a shard with five mediocre ones.
+
+## Spec Versions
+
+A shard declares the version of the **shard packaging spec** it conforms to via `shard-spec` in `shard.yaml`. This is independent from the shard's own `version` (semver lifecycle) — `shard-spec` describes the rules of the packaging itself, `version` describes the shard's content.
+
+Current spec: `"0.2.0"`. Legacy spec: `"0.1.0"`.
+
+### What Changed: 0.1.0 → 0.2.0
+
+| Area | 0.1.0 | 0.2.0 |
+|------|-------|-------|
+| Init file body | Hard-coded `## Skills` / `## Workflows` / `## Templates` / `## Knowledge` discovery tables | Tables removed — `flint shard start` discovers them dynamically by scanning the shard tree |
+| Init file frontmatter | None | YAML `required-reading:` list of wikilinks (e.g. `"[[knw-<sh>-<name>]]"`) |
+| Required reading entries | Wikilinks listed in a markdown body section | Wikilinks (or relative paths, legacy) in the frontmatter list |
+| Skill / workflow context line | `Ensure you have [[init-<sh>]] in context before continuing.` | `Run \`flint shard start <sh>\` if you haven't already.` (`hstart` for `hwkfl-*`) |
+| Per-file frontmatter | None | Every `sk-*`, `wkfl-*`, `hwkfl-*`, `tmp-*`, `knw-*` MUST declare `description:` |
+| Setup mechanism | `state: true` boolean + `requires.cli` + `requires.workspace` blocks (and sometimes `repos:` mis-used as setup) | Single `setup: full \| flint \| local` field + companion `dev-setup-<sh>.md` lifecycle file |
+| Scripts | `scripts:` list declared in the manifest | Removed — auto-discovered from `scripts/*.js` (with `dev-` prefix on dev sources) |
+| Types | `types:` could imply folder creation | Declares the type-definition file only; storage folders require an explicit `folders:` entry |
+| Type install path | Varied per shard | Canonical: `Mesh/Metadata/Types/(Type) <Name> [. <Subname>] (<Shard> Shard).md` |
+| `install/` folder | Mixed prefix conventions | Literal payloads, NEVER `dev-` prefixed |
+| `scripts/`, `assets/`, `migrations/`, `skills/`, `workflows/`, `templates/`, `knowledge/` | Mixed prefix conventions | Dev sources MUST be `dev-` prefixed; installer strips on install |
+| Dev vs installed shards | Same folder, both copies stacked | Separate folders: `Shards/(Dev Remote\|Local) Name/` (dev) and `Shards/Name/` (installed) |
+| Manifest parser strictness | Tolerant of legacy fields (warnings only) | Legacy `state:` / `requires:` / explicit `scripts:` are HARD ERRORS at `shard-spec: "0.2.0"`; warnings only on `"0.1.0"` |
+
+### Migrating a 0.1.0 shard
+
+The mechanical pass is owned by [[wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]]. The bulk filename rename is automated by the `prefix-shard` script (`flint shard knap prefix-shard <path>`), which adds `dev-` to source files and strips it from `install/` payloads. The remaining edits — frontmatter, manifest field migration, init-file restructuring — are direct applications of this knowledge file plus [[knw-knap-manifest]].
+
+`flint sync` flags 0.1.0 manifests via the `outdated-spec` drift kind (report-only) on the `dev-remote-shards` and `dev-local-shards` features. Installed shards are not flagged because the install pipeline rejects 0.1.0 manifests outright.

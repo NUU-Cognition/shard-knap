@@ -31,13 +31,13 @@ Present the plan to the user. Once confirmed, progress to the next stage.
 ## Stage 2: Create
 
 1. Create the new file(s) using the appropriate Knap template:
-   - Skill → [[dev-tmp-knap-skill-v0.1]]
-   - Workflow → [[dev-tmp-knap-workflow-v0.1]]
-   - Headless workflow → [[dev-tmp-knap-workflow-v0.1]] (file uses `hwkfl-` prefix; context line at the top is `flint shard hstart <sh>`, not `start`)
-   - Template → [[dev-tmp-knap-template-v0.1]]
-   - Knowledge → [[dev-tmp-knap-knowledge-v0.1]]
-   - Script → [[dev-tmp-knap-script-v0.1]] as `scripts/dev-<name>.js` (auto-discovered; no manifest declaration)
-   - Type → add to `shard.yaml` under `types:` AND create the source file at `install/type-<sh>-<type>.md` (no `dev-` prefix) using [[dev-tmp-knap-type-v0.1]]. Subtypes use underscore in the filename: `install/type-<sh>-<type>_<subtype>.md`
+   - Skill → [[tmp-knap-skill-v0.1]]
+   - Workflow → [[tmp-knap-workflow-v0.1]]
+   - Headless workflow → [[tmp-knap-workflow-v0.1]] (file uses `hwkfl-` prefix; context line at the top is `flint shard hstart <sh>`, not `start`)
+   - Template → [[tmp-knap-template-v0.1]]
+   - Knowledge → [[tmp-knap-knowledge-v0.1]]
+   - Script → [[tmp-knap-script-v0.1]] as `scripts/dev-<name>.js` (auto-discovered; no manifest declaration)
+   - Type → add to `shard.yaml` under `types:` AND create the source file at `install/type-<sh>-<type>.md` (no `dev-` prefix) using [[tmp-knap-type-v0.1]]. Subtypes use underscore in the filename: `install/type-<sh>-<type>_<subtype>.md`
    - Migration → create `migrations/dev-mig-<sh>-<from>-to-<to>.md` (dev-prefix applies)
 
 2. Follow naming conventions: `dev-<type>-<sh>-<name>.md` for shard-source files, bare names for `install/` files
@@ -55,7 +55,7 @@ Once created, progress to the next stage.
 3. If the new file should be required reading, add its path to the init file's `required-reading` YAML frontmatter
 4. Update `README.md` if it exists
 5. If `shard.yaml` needs changes (new install entries, new folders, new types, new dependencies, new setup scope, version bump), update it. Scripts, skills, workflows, templates, and knowledge are NOT declared in the manifest — they are auto-discovered.
-6. Run [[dev-sk-knap-validate]] to verify everything is consistent
+6. Run [[sk-knap-validate]] to verify everything is consistent
 
 Confirm with the user that the iteration is complete.
 

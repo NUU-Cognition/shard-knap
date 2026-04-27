@@ -1,7 +1,7 @@
 ---
 required-reading:
-  - knowledge/dev-knw-knap-architecture.md
-  - knowledge/dev-knw-knap-manifest.md
+  - "[[knw-knap-architecture]]"
+  - "[[knw-knap-manifest]]"
 ---
 
 # Knap (Flintknapping)
@@ -38,7 +38,7 @@ Every shard is in one of three modes:
 | `dev-remote` | `Shards/(Dev Remote) <Name>/` | Yes — changes pushed to origin |
 | `dev-local` | `Shards/(Dev Local) <Name>/` | Yes — no remote |
 
-Source files inside dev folders are prefixed `dev-` (e.g., `dev-init-<sh>.md`). Dev and installed copies coexist in the same folder — the installer strips the `dev-` prefix and writes the installed file alongside the source (e.g., `dev-init-knap.md` → `init-knap.md` in the same directory). Files in `install/` are the exception: they are literal payloads and carry no dev prefix.
+Source files inside dev folders are prefixed `dev-` (e.g., `dev-init-<sh>.md`). Dev and installed copies live in **separate folders**: the dev source at `Shards/(Dev Remote\|Local) Name/`, the installed deployment at `Shards/Name/` (no prefix). The installer strips the `dev-` prefix when copying source files into the installed folder. Files in `install/` are the exception: they are literal payloads and carry no dev prefix in either location.
 
 ## Shard Structure
 
@@ -68,7 +68,7 @@ Shards/(Dev Remote) [Name]/
     └── *.md
 ```
 
-For complete architecture details, see [[dev-knw-knap-architecture]].
+For complete architecture details, see [[knw-knap-architecture]].
 
 ## File Naming
 
@@ -86,7 +86,9 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | Knowledge | `knw-<sh>-<name>.md` | `knw-proj-lifecycle.md` |
 | Asset | `ast-<sh>-<name>.<ext>` | `ast-proj-diagram.svg` |
 | Migration | `mig-<sh>-<from>-to-<to>.md` | `mig-proj-1.0.0-to-1.1.0.md` |
-| Obsidian Template | `otmp-<sh>-<name>.md` | `otmp-proj-task.md` |
+| Install Payload | `inst-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `inst-proj-backlog_dashboard.md` |
+| Obsidian Template | `otmp-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `otmp-proj-task.md` |
+| Type Definition | `type-<sh>-<type>[_<subtype>].md` (under `install/`, no `dev-` prefix) | `type-proj-task.md` |
 | Script | `<name>.js` (under `scripts/`, installed: `<name>.js`, dev source: `dev-<name>.js`) | `newtasknum.js` |
 
 Dev-mode files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast-proj-diagram.svg`, `dev-mig-proj-1.0.0-to-1.1.0.md`). The only exception is `install/` — its contents are user-facing artifacts and carry no dev prefix.
@@ -95,7 +97,7 @@ Dev-mode files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast
 
 The manifest defines identity, dependencies, setup lifecycle, and installation behavior.
 
-For the complete schema reference, see [[dev-knw-knap-manifest]].
+For the complete schema reference, see [[knw-knap-manifest]].
 
 ```yaml
 shard-spec: "0.2.0"
@@ -119,9 +121,9 @@ folders:
 
 ## Dev Shard Authoring
 
-Dev shards live at `Shards/(Dev Remote) <Name>/` or `Shards/(Dev Local) <Name>/` for live development and testing. They are fully functional — agents can load and use them immediately, and installed copies are kept in sync with `flint shard install --all-dev`.
+Dev shards live at `Shards/(Dev Remote) <Name>/` or `Shards/(Dev Local) <Name>/` for live development and testing. They are fully functional — agents can load and use them immediately. To re-deploy installed copies of declared shards from their source, run `flint shard reinstall [<name>]` (or `flint sync` — the kernel emits `not-installed` drift and applies it).
 
-To create a dev shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
+To create a dev shard, use [[wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
 
 ## Shard CLI
 
@@ -135,6 +137,9 @@ flint shard start <name>                   # Dynamic manifest (installed, intera
 flint shard start-dev <name>               # Dynamic manifest (dev, interactive)
 flint shard hstart <name>                  # Dynamic manifest (installed, headless — loads hinit-<sh>.md, prefers hwkfl-*)
 flint shard hstart-dev <name>              # Dynamic manifest (dev, headless)
+flint shard setup <name>                   # Inspect setup state (both layers)
+flint shard setup <name> --complete        # Mark setup completed (default scope from manifest.setup)
+flint shard setup <name> --reset           # Flip setup state back to required
 flint shard heal                           # Auto-repair dev shard issues (dev-only)
 ```
 
@@ -142,7 +147,7 @@ Install / update:
 
 ```bash
 flint shard install <source>               # Install from owner/repo or path
-flint shard install --all-dev              # (Re)install all dev shards
+flint shard reinstall [<name>]             # Re-deploy installed shards from declared source (no name → all)
 flint shard update                         # Update installed shards
 flint shard uninstall <shorthand>          # Remove shard and clean files
 ```

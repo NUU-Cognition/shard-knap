@@ -2,26 +2,21 @@
 description: "Shard type definition file structure"
 ---
 
-# Filename: install/type-<sh>-<type>.md  (subtypes: install/type-<sh>-<type>_<subtype>.md)
+# Naming and Placement
 
-/* Type definition file. Declared in `shard.yaml` under `types:` and placed in `install/`
-   with NO dev- prefix (install payloads are literal). The installer copies it to:
-   
-     Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md
-   
-   For subtypes, use an underscore in the source filename and a ". " separator in the
-   installed filename:
-   
-     install/type-proj-task_epic.md
-     → Mesh/Metadata/Types/(Type) Task . Epic (Projects Shard).md
-   
-   Declaring a type does NOT create an artifact storage folder. If artifacts of this type
-   need a home in the Mesh, also declare the folder under `folders:` in shard.yaml.
-   
-   The body of a type file is a SEMANTIC description — what the type IS, not how it is
-   implemented. Operational details (tag, folder paths, naming pattern, lifecycle, which
-   template produces it) belong in `shard.yaml`, template files, and knowledge files —
-   not here. */
+| | |
+|---|---|
+| Source path | `install/type-<sh>-<type>.md` (no `dev-` prefix — files under `install/` are literal payloads) |
+| Source path (subtype) | `install/type-<sh>-<type>_<subtype>.md` (`_` separator) |
+| Destination | `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` |
+| Destination (subtype) | `Mesh/Metadata/Types/(Type) <Parent> . <Child> (<Shard> Shard).md` (` . ` separator) |
+| Wikilink form | `[[(Type) <Name> (<Shard> Shard)]]` (the destination filename without `.md`) |
+
+**Declared via `types:`, not `install:`.** Type files are the one exception to the "everything in `install/` needs an explicit `install:` entry" rule. List the type in `shard.yaml#types[]` and the installer derives both the source filename and the destination path automatically. Authors do NOT write a separate `install:` entry. See [[knw-knap-architecture]] § Type Installation for the derivation rules and the asymmetric-separator reasoning.
+
+**Declaring a type does NOT create an artifact storage folder.** If artifacts of this type need a home in the Mesh (e.g. `Mesh/Types/Tasks (Task)/`), declare the folder explicitly under `shard.yaml#folders[]`.
+
+**The body is a semantic description** — what the type IS, not how it is implemented. Operational details (tag patterns, folder paths, naming conventions, lifecycle, which template produces it) belong in `shard.yaml`, template files, and knowledge files — not here.
 
 ```markdown
 ---

@@ -2,32 +2,43 @@
 description: "Shard init file structure"
 ---
 
-# Filename: init-[shorthand].md
+# Naming and Placement
 
-/* Shard context file. This is the entry point agents load when they need this shard's capabilities.
-   Keep it focused on what agents need to know to USE the shard — deep details go in knowledge files.
-   
-   In shard-spec 0.2.0, discovery sections (Skills, Workflows, Templates, Knowledge tables) are 
-   no longer in the init file. They are assembled dynamically by `flint shard start`.
-   
-   The init file provides:
-   - Required reading list (YAML frontmatter)
-   - Core domain concepts and models
-   - Lifecycle/state diagrams (if applicable)
-   - Dashboard references (if applicable)
-   - Script references (if applicable)
-   - Any domain-specific rules or conventions */
+| | |
+|---|---|
+| Dev source path | `dev-init-<sh>.md` (at the shard root) |
+| Installed path | `init-<sh>.md` (the installer strips `dev-`) |
+| Wikilink form | `[[init-<sh>]]` (canonical — no `dev-` prefix in the link) |
+| Headless variant | `dev-hinit-<sh>.md` → `hinit-<sh>.md`, loaded by `flint shard hstart` when present |
+
+**Every shard MUST have an init file.** This is the entry point agents load when they need the shard's capabilities. `flint shard start <name>` returns the init body plus a dynamically-assembled manifest of skills, workflows, templates, and knowledge files.
+
+**Keep it focused** on what agents need to know to USE the shard. Deep details go in knowledge files referenced via `required-reading:`.
+
+In shard-spec 0.2.0, the init file does **not** contain discovery sections (Skills, Workflows, Templates, Knowledge tables). Those are assembled by `flint shard start` from each file's `description:` frontmatter.
+
+The init file provides:
+- Required-reading list (YAML frontmatter, Obsidian wikilinks).
+- Core domain concepts and models.
+- Lifecycle / state diagrams (if applicable).
+- Dashboard, script, and CLI references (if applicable).
+- Any domain-specific rules or conventions.
 
 ```markdown
 ---
 required-reading:
-  - knowledge/knw-[shorthand]-[name].md
+  - "[[knw-[shorthand]-[name]]]"
   - (continue)
 ---
 
-/* required-reading: list of paths (relative to shard root) the agent must read after loading this init.
-   These typically point to knowledge files with conventions the agent needs before doing work. 
-   Omit this field if the shard has no mandatory reading. */
+/* required-reading: list of Obsidian-style wikilinks ([[name]]) pointing at files
+   the agent must read after loading this init. The runtime resolves each
+   wikilink to a file inside the shard (it accepts both the canonical name
+   and the dev- prefixed source — the resolver finds either). Use wikilinks
+   anywhere a shard file references another shard file — never raw paths.
+   Omit this field if the shard has no mandatory reading.
+   Legacy form: `knowledge/knw-[shorthand]-[name].md` (relative path) is still
+   accepted, but new manifests should use the wikilink form. */
 
 # [Shard Name]
 

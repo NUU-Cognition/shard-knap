@@ -18,7 +18,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] `shard-spec` — non-empty string (warning if not `"0.2.0"`)
    - [ ] `version` — valid semver string (`major.minor.patch`)
    - [ ] `name` — non-empty, Title Case (warning otherwise)
-   - [ ] `shorthand` — 2-4 lowercase alphabetic characters
+   - [ ] `shorthand` — lowercase-letters-only string (any length, pattern `^[a-z]+$`)
    - [ ] `description` — non-empty single-line string
    - [ ] `dependencies` — if present, each entry has `source` in `owner/repo` format
    - [ ] `setup` — if present, value is `full`, `flint`, or `local`
@@ -44,7 +44,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] If `setup` is declared but setup file is missing — **error**, not warning
    - [ ] If setup file exists but `setup` is not declared in manifest — warning
 
-5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In dev shards, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
+5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In dev shards, `dev-` prefix rules apply per location — see [[knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
    - [ ] Skills: `dev-sk-<sh>-<name>.md` / installed `sk-<sh>-<name>.md`
    - [ ] Workflows: `dev-wkfl-<sh>-<name>.md` (and `dev-hwkfl-` for headless)
    - [ ] Templates: `dev-tmp-<sh>-<name>-v<X.X>.md`
@@ -88,7 +88,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
     - [ ] `types:` no longer implies artifact folder creation — folders must be declared explicitly in `folders:` if needed
     - [ ] `folders[]` entries are relative to flint root, not absolute
     - [ ] Destination for type files is `Mesh/Metadata/Types/(Type) <Name> [. <Subname>] (<Shard Display Name> Shard).md`
-    - See [[dev-knw-f-types]] for the complete convention
+    - See [[knw-f-types]] for the complete convention
 
 11. **Check scripts.**
     - [ ] Every `.js` file in `scripts/` follows the naming convention (`dev-<name>.js` in dev shards, `<name>.js` in installed)

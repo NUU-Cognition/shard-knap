@@ -2,17 +2,26 @@
 description: "Shard script file structure"
 ---
 
-# Filename: scripts/dev-<name>.js  (installed: scripts/<name>.js)
+# Naming and Placement
 
-/* Scripts provide deterministic operations that agents invoke via CLI.
-   Use scripts to replace fragile agent logic (counting files, finding patterns) with reliable commands.
+| | |
+|---|---|
+| Dev source path | `scripts/dev-<name>.js` |
+| Installed path | `scripts/<name>.js` (the installer strips `dev-`) |
+| `<name>` | kebab-case verb or verb-phrase: `new-task-number`, `next-id`, `find-active` |
+| Invocation | `flint shard <shorthand> <name> [args...]` |
+| Env vars provided | `FLINT_ROOT` (workspace root), `FLINT_SHARD` (folder name of the calling shard) |
 
-   Scripts are auto-discovered from the scripts/ folder — NO shard.yaml declaration needed.
-   The command name is derived from the filename stem (dev- prefix stripped):
-     scripts/dev-new-task-number.js → flint shard <shorthand> new-task-number
+**Note: scripts do NOT carry the shorthand in their filename.** Other shard files include the shorthand (`sk-<sh>-<name>`, `wkfl-<sh>-<name>`, `knw-<sh>-<name>`); scripts do not. The shorthand appears in the *invocation* (`flint shard <sh> <name>`), not the filename. This is because scripts are namespaced by the shard folder they live in, so the filename only needs to disambiguate within that one shard.
 
-   Invocation: flint shard <shorthand> <name> [args...]
-*/
+**Auto-discovered.** Scripts are picked up from `scripts/*.js` automatically. Do NOT declare them in `shard.yaml` — there is no `scripts:` field in the modern manifest. The command name is derived from the filename stem with `dev-` stripped:
+
+```
+scripts/dev-new-task-number.js   → flint shard <sh> new-task-number
+scripts/dev-next-id.js           → flint shard <sh> next-id
+```
+
+Names containing CLI-invalid characters are rejected with a warning and skipped. Stick to lowercase letters, digits, and hyphens.
 
 ```javascript
 #!/usr/bin/env node
@@ -24,7 +33,7 @@ const fs = require('fs');
 const path = require('path');
 
 const flintRoot = process.env.FLINT_ROOT || process.cwd();
-const targetDir = path.join(flintRoot, '[path to target directory]');
+const targetDir = path.join(flintRoot, '[path to target directory, e.g. "Mesh/Types/Tasks (Task)"]');
 
 function main() {
   // [Implementation]

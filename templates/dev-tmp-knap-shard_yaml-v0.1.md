@@ -2,16 +2,20 @@
 description: "Shard manifest (shard.yaml) file structure"
 ---
 
-# Filename: shard.yaml
+# Naming and Placement
 
-/* Shard manifest file. Defines the shard's identity, dependencies, setup scope, and installation behavior.
-   See [[dev-knw-knap-manifest]] for the complete field reference. */
+| | |
+|---|---|
+| Path | `shard.yaml` (at the shard root, NEVER prefixed, never under `install/`) |
+| Required | Yes — every shard MUST have one |
+
+The manifest defines the shard's identity, dependencies, setup scope, and installation behaviour. See [[knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
 
 ```yaml
 shard-spec: "0.2.0"
 version: "[semver version, e.g. 1.0.0]"
 name: [Shard Name in Title Case]
-shorthand: [2-4 character lowercase identifier]
+shorthand: [lowercase-letters-only identifier, any length]
 description: [Brief description of what the shard does, one sentence]
 
 /* Optional: shard dependencies. Each entry is an object with required `source` and optional `version` floor. */
@@ -72,21 +76,21 @@ install:
 
 ## Rules
 
-- `shard-spec`: Currently `"0.2.0"`. Mismatches produce a warning, not an error.
+- `shard-spec`: Currently `"0.2.0"`. A `"0.1.0"` manifest still parses (with a deprecation warning); `flint sync` flags it via the `outdated-spec` drift kind. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are HARD ERRORS at `"0.2.0"`.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
-- `name`: Title Case, becomes the installed folder name.
-- `shorthand`: 2-4 lowercase letters, used in all file names.
+- `name`: Title Case, becomes the installed folder name (`Shards/<Name>/`).
+- `shorthand`: lowercase letters only, any length. Pick the shortest unambiguous form. Used in every file name and as the key under `flint.json#shards[<sh>]`.
 - `dependencies[].source`: `owner/repo` format. Almost always include `NUU-Cognition/shard-flint`.
 - `dependencies[].version`: Optional minimum semver floor.
-- `setup`: `full`, `flint`, or `local`. Requires a companion `dev-setup-<sh>.md` file.
-- `types[]`: Title Case, `Type` or `Type.Subtype`. Installs type definition file only. See [[dev-knw-f-types]].
+- `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Authors mark setup complete via `flint shard setup <name> --complete`.
+- `types[]`: Title Case, `Type` or `Type.Subtype`. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[knw-knap-architecture]] § Type Installation.
 - `folders[]`: Explicit folder paths. `types:` does NOT auto-create artifact folders.
 - `install[]`: `source` must NOT start with `dev-` — `install/` files are literal payloads.
 - `install[].mode`: `once` (default, skip if destination exists) or `force` (overwrite on every sync).
 
 ## Quoting
 
-YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.2.0"`, `"1.0.0"`) and anything starting with a YAML metacharacter. See [[dev-knw-knap-manifest]] § YAML Quoting Guide.
+YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.2.0"`, `"1.0.0"`) and anything starting with a YAML metacharacter. See [[knw-knap-manifest]] § YAML Quoting Guide.
 
 ## Not Declared Here
 

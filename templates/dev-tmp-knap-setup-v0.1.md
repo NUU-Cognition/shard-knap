@@ -2,18 +2,17 @@
 description: "Shard setup lifecycle file structure"
 ---
 
-# Filename: setup-[shorthand].md
+# Naming and Placement
 
-/* Setup lifecycle file. This is a first-class shard file at the same tier as init-<sh>.md.
-   It contains human/agent-readable setup instructions — everything needed to prepare
-   the shard for use on a new machine or workspace.
-   
-   Required when shard.yaml declares `setup: full|flint|local`.
-   
-   In dev folders: `dev-setup-<sh>.md` (prefix stripped on install to `setup-<sh>.md`).
-   
-   This file is NOT a type, NOT in install/, NOT in a subfolder.
-   It lives at the shard root alongside the init file. */
+| | |
+|---|---|
+| Dev source path | `dev-setup-<sh>.md` (at the shard root, alongside `dev-init-<sh>.md`) |
+| Installed path | `setup-<sh>.md` (the installer strips `dev-`) |
+| Wikilink form | `[[setup-<sh>]]` (canonical) |
+
+**Required when** `shard.yaml` declares `setup: full | flint | local`. The installer **refuses to install** a shard that declares `setup:` without this file. Shards with no `setup:` field do not need it.
+
+**Not a type. Not in `install/`. Not in a subfolder.** This file is a first-class shard file at the same tier as the init file. Setup instructions are human/agent-readable — everything needed to prepare the shard for use on a new machine or workspace.
 
 ```markdown
 # Setup [Shard Name]
@@ -44,14 +43,14 @@ One-time setup actions for [Shard Name].
 - [Verification step — what to check]
 - (continue)
 
-/* After all actions and verification pass, update the shard state file:
+/* After all actions and verification pass, mark setup complete:
    
-   For flint scope: Shards/(Shards) State/(Shard) [Name].md
-   For local scope: Shards/(Shards) Local State/(Shard) [Name] (Local).md
+     flint shard setup <name> --complete
    
-   Set the frontmatter `setup` field to `completed`:
-   
-   setup: completed */
+   The default scope is derived from `manifest.setup`: `'full'` → both layers,
+   `'flint'` → committed layer only, `'local'` → local layer only. Pass
+   `--scope flint|local|both` to override. To reset, pass `--reset`.
+   See [[knw-knap-manifest]] § `setup` for the full command surface. */
 ```
 
 ## State File Structure

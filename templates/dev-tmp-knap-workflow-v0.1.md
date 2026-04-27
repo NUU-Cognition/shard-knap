@@ -2,16 +2,24 @@
 description: "Shard workflow file structure"
 ---
 
-# Filename: wkfl-[shorthand]-[name].md  (headless variant: hwkfl-[shorthand]-[name].md)
+# Naming and Placement
 
-/* Workflows are multi-stage tasks with human checkpoints between stages.
-   Use a workflow (not a skill) when the task needs human review, approval, or iterative refinement.
-   Each stage should have a clear completion condition.
-   The canonical transition phrase is: "Once [condition], progress to the next stage."
-   
-   Headless variants use the hwkfl- prefix. Everything below is identical EXCEPT:
-   - Context line at the top is `flint shard hstart [shorthand]` (not `start`)
-   - No human checkpoints — progress reported via Orbh session keys instead */
+| | Interactive | Headless |
+|---|---|---|
+| Dev source path | `workflows/dev-wkfl-<sh>-<name>.md` | `workflows/dev-hwkfl-<sh>-<name>.md` |
+| Installed path | `workflows/wkfl-<sh>-<name>.md` | `workflows/hwkfl-<sh>-<name>.md` |
+| Wikilink form | `[[wkfl-<sh>-<name>]]` | `[[hwkfl-<sh>-<name>]]` |
+| Context line (top) | `Run \`flint shard start <sh>\` if you haven't already.` | `Run \`flint shard hstart <sh>\` if you haven't already.` |
+| `<name>` | snake_case noun phrase: `create_shard`, `migrate_spec`, `archive_completed` | same |
+
+**When to author each variant:**
+
+- **`wkfl-*` (interactive)** — multi-stage tasks where a human reviews or approves between stages. The default choice when authoring a workflow.
+- **`hwkfl-*` (headless)** — same task running under Orbh / autonomous mode. No human checkpoints; progress reported via Orbh session keys. Author this when the workflow needs to run without a person in the loop.
+- A workflow MAY ship both variants. When both exist, `flint shard start` shows only `wkfl-*`; `flint shard hstart` shows only `hwkfl-*`.
+- If the task has no checkpoints at all and no need for staging, author it as a **skill** instead (`[[sk-<sh>-<name>]]`).
+
+Each stage should have a clear completion condition. Canonical transition phrase: `"Once [condition], progress to the next stage."` Subfolder groupings under `workflows/` are allowed; the filename convention does not change.
 
 ```markdown
 ---
@@ -65,10 +73,10 @@ Run `flint shard start [shorthand]` if you haven't already.
 
 ## Design Guidelines
 
-- Name stages descriptively: "Design", "Create", "Review", "Finalize"
-- Every workflow needs at least one human checkpoint
-- Use "Once [condition], progress to the next stage" consistently
-- Reference skills for sub-tasks: `[[sk-[shorthand]-[name]]]`
-- Reference templates for artifact creation: `[[tmp-[shorthand]-[name]]]`
-- State transitions (status changes) happen at stage boundaries
-- Stages can invoke skills for atomic sub-tasks
+- Name stages descriptively: "Design", "Create", "Review", "Finalize".
+- Interactive variants (`wkfl-*`) need at least one human checkpoint between stages. Headless variants (`hwkfl-*`) have none.
+- Use "Once [condition], progress to the next stage" consistently.
+- The `description:` frontmatter line is **required** — `flint shard start` reads it for the dynamic manifest.
+- Reference skills for sub-tasks: `[[sk-<sh>-<name>]]`. Reference templates for artifact creation: `[[tmp-<sh>-<name>-vX.Y]]`. Wikilinks use the canonical form (no `dev-` prefix in the link).
+- State transitions (status changes) happen at stage boundaries.
+- Stages can invoke skills for atomic sub-tasks.
