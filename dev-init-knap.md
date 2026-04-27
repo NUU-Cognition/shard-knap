@@ -2,6 +2,7 @@
 required-reading:
   - "[[knw-knap-architecture]]"
   - "[[knw-knap-manifest]]"
+  - "[[knw-knap-cli]]"
 ---
 
 # Knap (Flintknapping)
@@ -127,62 +128,9 @@ To create a dev shard, use [[wkfl-knap-create_shard]]. Run `flint shard start-de
 
 ## Shard CLI
 
-Lifecycle and discovery:
+`flint shard` is the only supported way to mutate shard state. Every authoring action — create, rename, install, reinstall, run scripts, migrate, publish — has a CLI command. Always use the CLI; do not edit `flint.toml#[shards]` or rename folders by hand.
 
-```bash
-flint shard list                           # List installed + dev shards
-flint shard info <shorthand>               # Show detailed shard info
-flint shard status <shorthand>             # Status + pending migrations
-flint shard start <name>                   # Dynamic manifest (installed, interactive — loads init-<sh>.md)
-flint shard start-dev <name>               # Dynamic manifest (dev, interactive)
-flint shard hstart <name>                  # Dynamic manifest (installed, headless — loads hinit-<sh>.md, prefers hwkfl-*)
-flint shard hstart-dev <name>              # Dynamic manifest (dev, headless)
-flint shard setup <name>                   # Inspect setup state (both layers)
-flint shard setup <name> --complete        # Mark setup completed (default scope from manifest.setup)
-flint shard setup <name> --reset           # Flip setup state back to required
-flint shard heal                           # Auto-repair dev shard issues (dev-only)
-```
-
-Install / update:
-
-```bash
-flint shard install <source>               # Install from owner/repo or path
-flint shard reinstall [<name>]             # Re-deploy installed shards from declared source (no name → all)
-flint shard update                         # Update installed shards
-flint shard uninstall <shorthand>          # Remove shard and clean files
-```
-
-Dev authoring:
-
-```bash
-flint shard create                         # Scaffold a new Dev Local shard
-flint shard clone <owner/repo>             # Clone as Dev Remote (no install)
-flint shard dev <shorthand>                # Promote Dev Local → Dev Remote (resolves to dev shard when both exist)
-flint shard rename <shorthand> <new>       # Rename title or shorthand (resolves to dev shard when both exist)
-flint shard <shorthand> pull               # Git pull on dev remote (resolves to dev shard when both exist)
-flint shard push <shorthand>               # Commit + push dev shard (resolves to dev shard when both exist)
-```
-
-Versioning and publishing:
-
-```bash
-flint shard versions <shorthand>           # List remote versions
-flint shard pin <shorthand> <version>      # Lock shard to version
-flint shard unpin <shorthand>              # Remove version lock
-flint shard release <shorthand>            # Tag + publish a new version (resolves to dev shard when both exist)
-flint shard publish <shorthand>            # Register shard in NUU Registry (resolves to dev shard when both exist)
-flint shard unpublish <shorthand>          # Remove from registry
-flint shard published                      # List your published shards
-```
-
-Migrations and scripts:
-
-```bash
-flint shard migrate list <shorthand>       # Pending migrations
-flint shard migrate run <shorthand>        # Run next migration
-flint shard scripts <shorthand>            # List executable scripts
-flint shard <shorthand> <script> [args]    # Run declared script
-```
+For the full command surface, resolution rules (dev vs installed), authoring flow, and anti-patterns, see [[knw-knap-cli]].
 
 ## Obsidian Templates
 
