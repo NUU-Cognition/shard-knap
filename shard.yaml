@@ -1,5 +1,5 @@
 shard-spec: "0.2.0"
-version: "1.1.1"
+version: "1.1.2"
 name: Knap
 shorthand: knap
 description: Shard authoring toolkit. Templates for all shard file types, shard manifest schema, CLI commands, and workflows for creating, iterating, and publishing shards.
