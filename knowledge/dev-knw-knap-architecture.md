@@ -168,6 +168,8 @@ Atomic, single-purpose tasks that run to completion without human checkpoints.
 description: "One-line description of what this skill does"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start <shorthand>` if you haven't already.
 
 # Skill: [Name]
@@ -186,10 +188,11 @@ Run `flint shard start <shorthand>` if you haven't already.
 
 **Design principles:**
 - `description` in YAML frontmatter is required — `flint shard start` uses it for the manifest
+- The action banner (`> [!important] THIS FILE IS AN INSTRUCTION...`) is required as the first body line — see [[#Action Banner]] below
 - One clear purpose — if it needs human review, use a workflow
 - Clear input/output contract
 - Reference templates via `[[tmp-<sh>-<name>]]`
-- Always start with the `flint shard start` reminder line
+- The `flint shard start` reminder line follows the banner
 
 ### Workflows (`wkfl-<sh>-<name>.md`)
 
@@ -200,6 +203,8 @@ Multi-stage tasks with human checkpoints between stages.
 ---
 description: "One-line description of what this workflow accomplishes"
 ---
+
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
 
 Run `flint shard start <shorthand>` if you haven't already.
 
@@ -227,6 +232,7 @@ Run `flint shard start <shorthand>` if you haven't already.
 
 **Design principles:**
 - `description` frontmatter is required
+- The action banner is required as the first body line — see [[#Action Banner]] below
 - Clear stages with explicit completion conditions
 - Human checkpoints between stages (review, approval, feedback)
 - "Once X, progress to the next stage" is the canonical transition phrase
@@ -237,8 +243,38 @@ Alternate workflow files used in headless Orbh sessions. Replace the interactive
 
 - Auto-discovered alongside regular workflows
 - Same `description` frontmatter requirement
+- The action banner is required as the first body line, identical to interactive workflows — see [[#Action Banner]] below
 - The context line at the top of every `hwkfl-*` file is `flint shard hstart <sh>` (not `flint shard start`) — this is how agents know they're in headless mode
 - Emitted by `flint shard hstart <sh>` in place of the interactive `wkfl-*` counterpart when both exist; hidden from `flint shard start` output
+
+## Action Banner
+
+Every skill (`sk-*`), workflow (`wkfl-*`), and headless workflow (`hwkfl-*`) file declares its own pragmatic force on its first body line via a verbatim Obsidian callout:
+
+```
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+```
+
+**Placement.** Immediately after the closing frontmatter `---`, separated by a blank line, before the `Run \`flint shard start <sh>\`` reminder line.
+
+**Why.** When an agent encounters a `[[sk-foo-bar]]` or `[[wkfl-foo-bar]]` reference inside another file (a note body, a task description, a notepad turn), the resolution of "is this a citation or a directive?" is ambiguous. The banner removes the ambiguity at the read site: any agent that opens the file sees a self-announcing declaration that the contents are imperative, not descriptive.
+
+**Scope — banner-carrying file types:**
+
+| File type | Banner? | Why |
+|-----------|---------|-----|
+| `sk-<sh>-<name>.md` | Yes | Action file — load means execute |
+| `wkfl-<sh>-<name>.md` | Yes | Action file — load means execute the stages |
+| `hwkfl-<sh>-<name>.md` | Yes | Same as `wkfl-*`, headless variant |
+| `init-<sh>.md`, `hinit-<sh>.md` | No | Init files configure context, they don't produce actions |
+| `setup-<sh>.md` | No | Setup is human-driven lifecycle, not agent action |
+| `tmp-<sh>-<name>-v*.md` | No | Templates describe structure of artifacts; they are read for shape, not executed |
+| `knw-<sh>-<name>.md` | No | Knowledge is reference material |
+| `mig-<sh>-*-to-*.md` | No (today) | Migrations have their own driver; revisit if migrations grow imperative bodies |
+
+**Wording is verbatim.** `sk-knap-validate` errors if the line is missing, altered, or not the first body line. Tooling that reads these files for analysis (the validator, search indexers, the migration script when one exists) is a non-execution context — reading-as-text never triggers the banner's pragmatic force, just as reading source code in an IDE doesn't execute it.
+
+**Authoring helpers.** Both [[tmp-knap-skill-v0.1]] and [[tmp-knap-workflow-v0.1]] include the banner in their body template. New skills and workflows generated from these templates carry it automatically.
 
 ### Templates (`tmp-<sh>-<name>-v<X.X>.md`)
 

@@ -2,6 +2,8 @@
 description: "Iterate on an existing shard with improvements"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start-dev knap` if you haven't already.
 
 # Workflow: Iterate on Shard

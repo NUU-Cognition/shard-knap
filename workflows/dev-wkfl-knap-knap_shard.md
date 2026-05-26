@@ -2,6 +2,8 @@
 description: "Full shard creation workflow with review stages"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start-dev knap` if you haven't already.
 
 # Workflow: Knap Shard

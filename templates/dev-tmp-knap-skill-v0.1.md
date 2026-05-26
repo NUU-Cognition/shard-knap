@@ -20,6 +20,8 @@ Skills are atomic, single-purpose tasks that run to completion without human che
 description: "[One-line description of what this skill does]"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start [shorthand]` if you haven't already.
 
 # Skill: [Skill Name]
@@ -65,6 +67,7 @@ Run `flint shard start [shorthand]` if you haven't already.
 - Clear input/output contract — what goes in, what comes out.
 - Steps should be concrete and sequential.
 - The `description:` frontmatter line is **required** — `flint shard start` reads it for the dynamic manifest. One line; no trailing period.
-- Always include the `flint shard start <sh>` reminder line as the first body line, before the `#` heading.
+- The **action banner** (`> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.`) is **required** as the first body line, immediately after the closing frontmatter `---`. It declares the file's pragmatic force: reading the file means executing it. Verbatim wording — `sk-knap-validate` checks for this exact line.
+- The `flint shard start <sh>` reminder line follows the banner, separated by a blank line.
 - Use `**Bold step name.**` followed by details for complex steps.
 - Reference related shard files using `[[wikilinks]]` in canonical form.

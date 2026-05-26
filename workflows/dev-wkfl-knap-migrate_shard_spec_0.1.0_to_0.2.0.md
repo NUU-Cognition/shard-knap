@@ -2,6 +2,8 @@
 description: "Upgrade a shard from shard-spec 0.1.0 to 0.2.0"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start knap` if you haven't already.
 
 # Workflow: Upgrade Shard Spec (0.1.0 → 0.2.0)

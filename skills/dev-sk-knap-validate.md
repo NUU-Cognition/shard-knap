@@ -2,6 +2,8 @@
 description: "Validate shard structure and manifest integrity"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start-dev knap` if you haven't already.
 
 # Skill: Validate Shard
@@ -64,13 +66,15 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 7. **Check skill structure.** For each skill file, verify:
    - [ ] Has `description` in YAML frontmatter
-   - [ ] Starts with `Run \`flint shard start <shorthand>\` if you haven't already.` (or `start-dev` for dev shards)
+   - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered
+   - [ ] Next non-blank line is `Run \`flint shard start <shorthand>\` if you haven't already.` (or `start-dev` for dev shards)
    - [ ] Has `# Skill: [Name]` heading
    - [ ] Has `# Input`, `# Actions`, `# Output` sections
 
 8. **Check workflow structure.** For each workflow (and headless workflow) file, verify:
    - [ ] Has `description` in YAML frontmatter
-   - [ ] Starts with the correct shard context line — `wkfl-*` uses `flint shard start <sh>`; `hwkfl-*` uses `flint shard hstart <sh>` (or `start-dev` / `hstart-dev` in dev shards)
+   - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered. Applies to both `wkfl-*` and `hwkfl-*`.
+   - [ ] Next non-blank line is the correct shard context line — `wkfl-*` uses `flint shard start <sh>`; `hwkfl-*` uses `flint shard hstart <sh>` (or `start-dev` / `hstart-dev` in dev shards)
    - [ ] Has `# Workflow: [Name]` heading
    - [ ] Has staged actions (`## Stage N:`)
    - [ ] Interactive workflows have at least one human checkpoint; headless workflows report via Orbh keys

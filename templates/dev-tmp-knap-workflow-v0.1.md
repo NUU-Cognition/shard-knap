@@ -26,6 +26,8 @@ Each stage should have a clear completion condition. Canonical transition phrase
 description: "[One-line description of what this workflow accomplishes]"
 ---
 
+> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
+
 Run `flint shard start [shorthand]` if you haven't already.
 /* For headless variants (hwkfl-*), use `flint shard hstart [shorthand]` instead. */
 
@@ -77,6 +79,7 @@ Run `flint shard start [shorthand]` if you haven't already.
 - Interactive variants (`wkfl-*`) need at least one human checkpoint between stages. Headless variants (`hwkfl-*`) have none.
 - Use "Once [condition], progress to the next stage" consistently.
 - The `description:` frontmatter line is **required** — `flint shard start` reads it for the dynamic manifest.
+- The **action banner** (`> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.`) is **required** as the first body line, immediately after the closing frontmatter `---`. Applies to both `wkfl-*` and `hwkfl-*`. Verbatim wording — `sk-knap-validate` checks for this exact line.
 - Reference skills for sub-tasks: `[[sk-<sh>-<name>]]`. Reference templates for artifact creation: `[[tmp-<sh>-<name>-vX.Y]]`. Wikilinks use the canonical form (no `dev-` prefix in the link).
 - State transitions (status changes) happen at stage boundaries.
 - Stages can invoke skills for atomic sub-tasks.
