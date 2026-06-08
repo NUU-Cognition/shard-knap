@@ -46,7 +46,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] If `setup` is declared but setup file is missing — **error**, not warning
    - [ ] If setup file exists but `setup` is not declared in manifest — warning
 
-5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In dev shards, `dev-` prefix rules apply per location — see [[knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
+5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In dev shards, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
    - [ ] Skills: `dev-sk-<sh>-<name>.md` / installed `sk-<sh>-<name>.md`
    - [ ] Workflows: `dev-wkfl-<sh>-<name>.md` (and `dev-hwkfl-` for headless)
    - [ ] Templates: `dev-tmp-<sh>-<name>-v<X.X>.md`

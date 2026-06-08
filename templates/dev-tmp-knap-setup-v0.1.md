@@ -8,7 +8,7 @@ description: "Shard setup lifecycle file structure"
 |---|---|
 | Dev source path | `dev-setup-<sh>.md` (at the shard root, alongside `dev-init-<sh>.md`) |
 | Installed path | `setup-<sh>.md` (the installer strips `dev-`) |
-| Wikilink form | `[[setup-<sh>]]` (canonical) |
+| Wikilink form | dev source: `[[dev-setup-<sh>]]` → installer strips to `[[setup-<sh>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
 
 **Required when** `shard.yaml` declares `setup: full | flint | local`. The installer **refuses to install** a shard that declares `setup:` without this file. Shards with no `setup:` field do not need it.
 
@@ -50,7 +50,7 @@ One-time setup actions for [Shard Name].
    The default scope is derived from `manifest.setup`: `'full'` → both layers,
    `'flint'` → committed layer only, `'local'` → local layer only. Pass
    `--scope flint|local|both` to override. To reset, pass `--reset`.
-   See [[knw-knap-manifest]] § `setup` for the full command surface. */
+   See [[dev-knw-knap-manifest]] § `setup` for the full command surface. */
 ```
 
 ## State File Structure

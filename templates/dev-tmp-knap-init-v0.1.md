@@ -8,7 +8,7 @@ description: "Shard init file structure"
 |---|---|
 | Dev source path | `dev-init-<sh>.md` (at the shard root) |
 | Installed path | `init-<sh>.md` (the installer strips `dev-`) |
-| Wikilink form | `[[init-<sh>]]` (canonical — no `dev-` prefix in the link) |
+| Wikilink form | dev source: `[[dev-init-<sh>]]` → installer strips to `[[init-<sh>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
 | Headless variant | `dev-hinit-<sh>.md` → `hinit-<sh>.md`, loaded by `flint shard hstart` when present |
 
 **Every shard MUST have an init file.** This is the entry point agents load when they need the shard's capabilities. `flint shard start <name>` returns the init body plus a dynamically-assembled manifest of skills, workflows, templates, and knowledge files.
@@ -27,18 +27,18 @@ The init file provides:
 ```markdown
 ---
 required-reading:
-  - "[[knw-[shorthand]-[name]]]"
+  - "[[dev-knw-[shorthand]-[name]]]"
   - (continue)
 ---
 
-/* required-reading: list of Obsidian-style wikilinks ([[name]]) pointing at files
-   the agent must read after loading this init. The runtime resolves each
-   wikilink to a file inside the shard (it accepts both the canonical name
-   and the dev- prefixed source — the resolver finds either). Use wikilinks
-   anywhere a shard file references another shard file — never raw paths.
-   Omit this field if the shard has no mandatory reading.
-   Legacy form: `knowledge/knw-[shorthand]-[name].md` (relative path) is still
-   accepted, but new manifests should use the wikilink form. */
+/* required-reading: list of Obsidian-style wikilinks pointing at files the agent
+   must read after loading this init. In a DEV source write them with the dev-
+   prefix — "[[dev-knw-<sh>-<name>]]" — so the link resolves to the real dev file
+   in Obsidian; the installer strips it to "[[knw-<sh>-<name>]]" on install. Use
+   wikilinks anywhere a shard file references another shard file — never raw paths.
+   Omit this field if the shard has no mandatory reading. See knw-knap-architecture
+   § Cross-Reference Links. Legacy relative-path form is still parsed but should
+   not be used. */
 
 # [Shard Name]
 

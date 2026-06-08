@@ -8,7 +8,7 @@ Run `flint shard start knap` if you haven't already.
 
 # Workflow: Upgrade Shard Spec (0.1.0 → 0.2.0)
 
-You should already have [[knw-knap-architecture]] and [[knw-knap-manifest]] in context (Knap's required reading). Those two files contain everything that defines a 0.2.0 shard — the manifest schema, file conventions, the `dev-` prefix rule, the setup lifecycle, the install model. The migration is mechanical: bring the target shard into compliance with that knowledge.
+You should already have [[dev-knw-knap-architecture]] and [[dev-knw-knap-manifest]] in context (Knap's required reading). Those two files contain everything that defines a 0.2.0 shard — the manifest schema, file conventions, the `dev-` prefix rule, the setup lifecycle, the install model. The migration is mechanical: bring the target shard into compliance with that knowledge.
 
 # Input
 
@@ -21,7 +21,7 @@ You should already have [[knw-knap-architecture]] and [[knw-knap-manifest]] in c
 
 1. Open the target shard. Read `shard.yaml`, the init file, and inventory the file tree.
 2. Confirm `shard-spec: "0.1.0"`.
-3. Walk the shard against [[knw-knap-manifest]] (manifest schema) and [[knw-knap-architecture]] (file conventions, prefix rules, setup lifecycle). Note every drift:
+3. Walk the shard against [[dev-knw-knap-manifest]] (manifest schema) and [[dev-knw-knap-architecture]] (file conventions, prefix rules, setup lifecycle). Note every drift:
    - Manifest fields that need to move (`state:`, `requires:`, `repos:`, `scripts:`) or be added (`setup:`, `description`).
    - Files missing the `description` frontmatter or carrying the legacy `Ensure you have [[init-x]] in context` line.
    - Filename prefix violations (any source file outside `install/` not starting with `dev-`; any `install/` file starting with `dev-`).
@@ -36,10 +36,10 @@ Make the shard match what Knap teaches. The order doesn't matter much; a reasona
 
 2. **Per-file frontmatter** — every `sk-*`, `wkfl-*`, `hwkfl-*`, `tmp-*`, `knw-*` file gets a `description:` frontmatter line. Replace any legacy `Ensure you have [[init-<sh>]] in context before continuing.` line with `Run `flint shard start <sh>` if you haven't already.` (use `hstart` for `hwkfl-*`).
 
-3. **Init file** — strip the discovery sections (`## Required Reading`, `## Skills`, `## Workflows`, `## Templates`, `## Knowledge`). Add YAML frontmatter `required-reading:` listing the old required-reading wikilinks (e.g. `"[[knw-<sh>-<name>]]"`). See [[knw-knap-architecture]] § Init File.
+3. **Init file** — strip the discovery sections (`## Required Reading`, `## Skills`, `## Workflows`, `## Templates`, `## Knowledge`). Add YAML frontmatter `required-reading:` listing the old required-reading wikilinks (e.g. `"[[knw-<sh>-<name>]]"`). See [[dev-knw-knap-architecture]] § Init File.
 
-4. **Manifest** — bring `shard.yaml` into line with [[knw-knap-manifest]]:
-   - Replace `state:` / `requires.cli` / `requires.workspace` / `repos:` (when used as a setup mechanism) with a single `setup:` field. Author a companion `dev-setup-<sh>.md` from [[tmp-knap-setup-v0.1]] that captures the old contents in prose.
+4. **Manifest** — bring `shard.yaml` into line with [[dev-knw-knap-manifest]]:
+   - Replace `state:` / `requires.cli` / `requires.workspace` / `repos:` (when used as a setup mechanism) with a single `setup:` field. Author a companion `dev-setup-<sh>.md` from [[dev-tmp-knap-setup-v0.1]] that captures the old contents in prose.
    - Drop any explicit `scripts:` block. Scripts are auto-discovered from `scripts/*.js`.
    - Add `folders:` for any artifact storage directories the old `types:` field implicitly created.
    - Verify each `types:` entry has a matching `install/type-<sh>-<snake>.md`.
@@ -66,10 +66,10 @@ Present the user with:
 
 ## Stage 5: Finalize
 
-If the workspace also needs an installed copy of the shard separate from the dev folder, declare it under `[shards].installed[]` and run `flint shard reinstall <name>` (or `flint sync`). Dev and installed are separate folders — see [[knw-knap-architecture]] § Lifecycle Modes.
+If the workspace also needs an installed copy of the shard separate from the dev folder, declare it under `[shards].installed[]` and run `flint shard reinstall <name>` (or `flint sync`). Dev and installed are separate folders — see [[dev-knw-knap-architecture]] § Lifecycle Modes.
 
 # Output
 
-- Target shard fully conforms to the conventions in [[knw-knap-architecture]] and [[knw-knap-manifest]].
+- Target shard fully conforms to the conventions in [[dev-knw-knap-architecture]] and [[dev-knw-knap-manifest]].
 - `shard-spec: "0.2.0"` in `shard.yaml`.
 - `flint sync` reports no `outdated-spec` drift.

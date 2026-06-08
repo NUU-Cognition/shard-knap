@@ -126,7 +126,7 @@ A typical shard creation flow leans on these commands in order:
 7. `flint shard release <sh>` and `flint shard publish <sh>` to ship
 8. `flint shard reinstall <sh>` whenever you want the installed copy of a dev shard refreshed from source
 
-Migration to `shard-spec: "0.2.0"` for an older shard is a separate flow — see [[wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]].
+Migration to `shard-spec: "0.2.0"` for an older shard is a separate flow — see [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]].
 
 ## Anti-Patterns
 

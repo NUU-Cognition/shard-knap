@@ -53,7 +53,7 @@ All shards must include this field. It allows tooling to handle backwards compat
 - `"0.1.0"` — Original spec. Init files contained hardcoded Skills/Workflows/Templates/Knowledge tables. Skill/workflow files started with `Ensure you have [[init-<sh>]] in context before continuing.`
 - `"0.2.0"` — Progressive disclosure. Init files strip discovery tables and declare `required-reading` in YAML frontmatter. Every skill/workflow/template/knowledge file has `description` YAML frontmatter. Skill/workflow context lines use `Run `flint shard start <shorthand>` if you haven't already.` — `flint shard start` assembles the manifest dynamically.
 
-A `shard-spec: "0.1.0"` manifest still parses, and `flint sync` flags it via the `outdated-spec` drift kind on `dev-remote-shards` and `dev-local-shards` features (report-only — never auto-applied). Use the [[wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow to migrate; that workflow invokes the `prefix-shard` script to handle the `dev-` filename rename pass automatically. Installed shards are not flagged because the install pipeline will not accept a 0.1.0 manifest in the first place.
+A `shard-spec: "0.1.0"` manifest still parses, and `flint sync` flags it via the `outdated-spec` drift kind on `dev-remote-shards` and `dev-local-shards` features (report-only — never auto-applied). Use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow to migrate; that workflow invokes the `prefix-shard` script to handle the `dev-` filename rename pass automatically. Installed shards are not flagged because the install pipeline will not accept a 0.1.0 manifest in the first place.
 
 ### `version` (required)
 
@@ -178,7 +178,7 @@ Naming rules (parser-enforced):
 - Format: `Type`, `Multi Word Type`, or `Type.Subtype` (one level of nesting).
 - Pattern: `/^[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*(?:\.[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*)?$/`
 
-**Source / destination resolution, the two-separator asymmetry, and install behaviour are documented authoritatively in [[knw-knap-architecture]] § Type Installation.** In short: source filenames use `_` (`type-<sh>-<lower_snake>.md`), destination paths preserve Title Case with ` . ` for subtypes, and authors never write a separate `install:` entry for types.
+**Source / destination resolution, the two-separator asymmetry, and install behaviour are documented authoritatively in [[dev-knw-knap-architecture]] § Type Installation.** In short: source filenames use `_` (`type-<sh>-<lower_snake>.md`), destination paths preserve Title Case with ` . ` for subtypes, and authors never write a separate `install:` entry for types.
 
 `types:` does **not** create artifact storage folders. Use `folders:` for that. See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
 
@@ -340,7 +340,7 @@ The legacy `state: true` boolean, the `requires: { cli, workspace }` block, and 
 | `scripts:` (explicit list) | **Hard error** | Warning. Scripts are auto-discovered from `scripts/*.js` regardless. |
 | `repos:` (when paired with the above legacy fields) | Allowed at the modern slot — see [`repos`](#repos-optional). The error is in pairing it with `state:` / `requires:` on the same manifest. | n/a |
 
-Migration path: bump `shard-spec` to `"0.2.0"`, delete the legacy blocks, add a `setup:` value, and ship a `dev-setup-<sh>.md` describing the steps that used to live under `requires:`. The [[wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow runs the full transition (the `prefix-shard` script handles the `dev-` filename pass).
+Migration path: bump `shard-spec` to `"0.2.0"`, delete the legacy blocks, add a `setup:` value, and ship a `dev-setup-<sh>.md` describing the steps that used to live under `requires:`. The [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow runs the full transition (the `prefix-shard` script handles the `dev-` filename pass).
 
 ## Install Placeholders
 

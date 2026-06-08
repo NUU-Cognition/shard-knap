@@ -12,7 +12,7 @@ description: "Shard type definition file structure"
 | Destination (subtype) | `Mesh/Metadata/Types/(Type) <Parent> . <Child> (<Shard> Shard).md` (` . ` separator) |
 | Wikilink form | `[[(Type) <Name> (<Shard> Shard)]]` (the destination filename without `.md`) |
 
-**Declared via `types:`, not `install:`.** Type files are the one exception to the "everything in `install/` needs an explicit `install:` entry" rule. List the type in `shard.yaml#types[]` and the installer derives both the source filename and the destination path automatically. Authors do NOT write a separate `install:` entry. See [[knw-knap-architecture]] § Type Installation for the derivation rules and the asymmetric-separator reasoning.
+**Declared via `types:`, not `install:`.** Type files are the one exception to the "everything in `install/` needs an explicit `install:` entry" rule. List the type in `shard.yaml#types[]` and the installer derives both the source filename and the destination path automatically. Authors do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation for the derivation rules and the asymmetric-separator reasoning.
 
 **Declaring a type does NOT create an artifact storage folder.** If artifacts of this type need a home in the Mesh (e.g. `Mesh/Types/Tasks (Task)/`), declare the folder explicitly under `shard.yaml#folders[]`.
 

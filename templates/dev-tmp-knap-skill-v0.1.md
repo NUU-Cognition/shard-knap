@@ -8,7 +8,7 @@ description: "Shard skill file structure"
 |---|---|
 | Dev source path | `skills/dev-sk-<sh>-<name>.md` |
 | Installed path | `skills/sk-<sh>-<name>.md` (the installer strips `dev-`) |
-| Wikilink form | `[[sk-<sh>-<name>]]` (canonical — no `dev-` prefix in the link) |
+| Wikilink form | dev source: `[[dev-sk-<sh>-<name>]]` → installer strips to `[[sk-<sh>-<name>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
 | `<name>` | snake_case verb or verb-phrase: `create_note`, `validate`, `sync`, `archive_tasks` |
 
 Skills are atomic, single-purpose tasks that run to completion without human checkpoints. If the task needs human review or approval, author it as a workflow instead. Subfolder groupings under `skills/` are allowed; the filename convention does not change.
@@ -47,13 +47,14 @@ Run `flint shard start [shorthand]` if you haven't already.
       - Sub-action
 */
 
-/* Cross-references inside a shard MUST be Obsidian-style wikilinks. Use the
-   canonical form (no `dev-` prefix in the link itself) — the runtime resolves
-   to either the dev source or the installed copy.
-     Templates:  [[tmp-<sh>-<name>-vX.Y]]   (templates carry a version suffix)
-     Skills:     [[sk-<sh>-<name>]]
-     Knowledge:  [[knw-<sh>-<name>]]
-     Workflows:  [[wkfl-<sh>-<name>]]  /  [[hwkfl-<sh>-<name>]] (headless) */
+/* Cross-references inside a shard MUST be Obsidian-style wikilinks. In a dev
+   source use the dev- prefix (the installer strips it to canonical on install,
+   and it stays clickable in Obsidian while you author). See knw-knap-architecture
+   § Cross-Reference Links.
+     Templates:  [[dev-tmp-<sh>-<name>-vX.Y]]   (templates carry a version suffix)
+     Skills:     [[dev-sk-<sh>-<name>]]
+     Knowledge:  [[dev-knw-<sh>-<name>]]
+     Workflows:  [[dev-wkfl-<sh>-<name>]]  /  [[dev-hwkfl-<sh>-<name>]] (headless) */
 
 # Output
 
@@ -70,4 +71,4 @@ Run `flint shard start [shorthand]` if you haven't already.
 - The **action banner** (`> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.`) is **required** as the first body line, immediately after the closing frontmatter `---`. It declares the file's pragmatic force: reading the file means executing it. Verbatim wording — `sk-knap-validate` checks for this exact line.
 - The `flint shard start <sh>` reminder line follows the banner, separated by a blank line.
 - Use `**Bold step name.**` followed by details for complex steps.
-- Reference related shard files using `[[wikilinks]]` in canonical form.
+- Reference related shard files using `[[dev-…]]` wikilinks in dev sources (installer strips to canonical).

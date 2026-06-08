@@ -8,7 +8,7 @@ description: "Shard knowledge file structure"
 |---|---|
 | Dev source path | `knowledge/dev-knw-<sh>-<name>.md` |
 | Installed path | `knowledge/knw-<sh>-<name>.md` (the installer strips `dev-`) |
-| Wikilink form | `[[knw-<sh>-<name>]]` (canonical — no `dev-` prefix in the link) |
+| Wikilink form | dev source: `[[dev-knw-<sh>-<name>]]` → installer strips to `[[knw-<sh>-<name>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
 | `<name>` | snake_case noun phrase: `architecture`, `manifest`, `templates`, `migrations` |
 
 Knowledge files provide deep reference material on a single topic. They complement the init file — init gives overview, knowledge gives depth. Reference-oriented, not tutorial-oriented. Agents load these on demand when they need detailed understanding, or eagerly via the init's `required-reading:` list. Subfolder groupings under `knowledge/` are allowed for large shards (group by domain); the filename convention does not change.
@@ -38,8 +38,8 @@ description: "[One-line description of what this knowledge file covers]"
    - Use diagrams (ASCII or text-based) for architecture and flows
    - Include "Common Patterns" or "Examples" sections for practical reference
    - Keep sections self-contained — agents may read individual sections
-   - Link to related knowledge files and shard files with [[wikilinks]] in
-     canonical form (no `dev-` prefix in the link)
+   - Link to related knowledge files and shard files with [[dev-…]] wikilinks
+     in dev sources (the installer strips dev- to canonical on install)
 */
 ```
 
@@ -50,5 +50,5 @@ description: "[One-line description of what this knowledge file covers]"
 - Reference-oriented — optimize for looking things up, not reading cover-to-cover.
 - Include practical examples alongside specifications.
 - Tables are better than prose for structured data (schemas, field references).
-- Link to related knowledge files for cross-referencing using canonical-form wikilinks: `[[knw-<sh>-<name>]]`.
+- Link to related knowledge files for cross-referencing using dev-prefixed wikilinks in dev sources: `[[dev-knw-<sh>-<name>]]` (installer strips to `[[knw-<sh>-<name>]]`).
 - Think: "What would an agent need to look up about this topic?"

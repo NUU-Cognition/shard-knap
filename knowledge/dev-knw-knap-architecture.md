@@ -114,18 +114,38 @@ The shard's interactive context file — what agents load when they need this sh
 - Document lifecycle, state management, dashboards
 - Provide enough context to use the shard without reading other files
 
-**YAML Frontmatter:**
+**YAML Frontmatter** (dev source — installer strips `dev-` on install):
 ```yaml
 ---
 required-reading:
-  - "[[knw-<sh>-<name>]]"
-  - "[[knw-<sh>-<name>]]"
+  - "[[dev-knw-<sh>-<name>]]"
+  - "[[dev-knw-<sh>-<name>]]"
 ---
 ```
 
-`required-reading` lists files the agent must read after loading the init. **Use Obsidian-style wikilinks (`[[name]]`)** — the runtime resolves each wikilink against the shard tree, accepting either the canonical name or the dev-prefixed source so the same frontmatter works in both dev and installed copies. `flint shard start` uses this list to tell the agent what to read.
+`required-reading` lists files the agent must read after loading the init. **Use Obsidian-style wikilinks; in a dev source write them with the `dev-` prefix** — e.g. `"[[dev-knw-<sh>-<name>]]"`. The installer rewrites them to canonical (`"[[knw-<sh>-<name>]]"`) on install — see [Cross-Reference Links](#cross-reference-links-dev--prefix) below. `flint shard start` uses this list to tell the agent what to read.
 
-**General rule for shards:** anywhere one shard file references another shard file — required-reading entries, body prose, knowledge cross-references, workflow callouts — use `[[name]]`, never a raw path. Wikilinks survive renames better, render in Obsidian, and let the runtime resolve to whichever copy (dev or installed) is loaded. Legacy relative-path form (`knowledge/knw-<sh>-<name>.md`) is still accepted by the parser for back-compat but should not be used in new files.
+See [Cross-Reference Links](#cross-reference-links-dev--prefix) for the full rule on how shard files link to each other.
+
+### Cross-Reference Links (`dev-` prefix)
+
+Anywhere one shard file references another shard file — required-reading entries, body prose, knowledge cross-references, workflow callouts — use an Obsidian wikilink, never a raw path. **In a dev source, write the link with the `dev-` prefix that matches the file on disk: `[[dev-<sh>-<name>]]`.** The installer canonicalizes it for you.
+
+When the installer produces the installed copy, for every dev source file `dev-<name>.md` it strips the `dev-` prefix from **both** the filename (→ `<name>.md`) **and** every `[[dev-<name>]]` wikilink in shard content (→ `[[<name>]]`):
+
+| In | You write | Resolves to |
+|----|-----------|-------------|
+| Dev source (authoring) | `[[dev-knw-<sh>-foo]]` | the real `dev-knw-<sh>-foo.md` — **clickable in Obsidian while you edit** |
+| Installed copy (ships) | `[[knw-<sh>-foo]]` | the installed `knw-<sh>-foo.md` |
+
+**Why prefer the `dev-` form over bare canonical in dev sources:** a canonical `[[knw-<sh>-foo]]` written inside a dev file resolves in Obsidian to the *installed* copy (or dangles when not installed), pulling you out of the shard you are editing. The `dev-` form keeps navigation inside the dev shard and still ships canonical.
+
+Two facts make this safe:
+
+- **The strip is targeted, not blanket.** Only `[[dev-X]]` links whose `dev-X.md` actually exists in the shard are rewritten. Placeholder/example links such as `[[dev-<sh>-<name>]]` (no such file) are left untouched — so docs and templates can show the form literally. Literal `dev-` text in prose or code spans is never altered.
+- **The runtime resolver accepts either form.** `flint shard start` resolves both `[[dev-X]]` and `[[X]]` against the shard tree, so a stray canonical link still works at runtime. The `dev-` form is about the Obsidian authoring experience and a clean published copy, not runtime resolution.
+
+(Legacy relative-path form `knowledge/knw-<sh>-<name>.md` is still parsed for back-compat but should not be used in new files.)
 
 **Design principles:**
 - No discovery tables — skills, workflows, templates, and knowledge are discovered dynamically by `flint shard start` from file `description` frontmatter
@@ -156,7 +176,7 @@ The shard's one-time setup instructions — what agents and humans follow to pre
 - Same tier as the init file — lives at the shard root, not in a subfolder
 - Dev-prefixed in dev folders (`dev-setup-<sh>.md`), installed as `setup-<sh>.md`
 - The setup file is the single source of truth for what needs to happen before the shard works
-- After completing setup, run `flint shard setup <name> --complete` to flip the relevant state file(s) to `setup: completed` (defaults to the layers declared by `manifest.setup`; pass `--scope flint|local|both` to override). `--reset` flips back to `required` to force a re-setup pass. See [[knw-knap-manifest]] § `setup` for the full command surface.
+- After completing setup, run `flint shard setup <name> --complete` to flip the relevant state file(s) to `setup: completed` (defaults to the layers declared by `manifest.setup`; pass `--scope flint|local|both` to override). `--reset` flips back to `required` to force a re-setup pass. See [[dev-knw-knap-manifest]] § `setup` for the full command surface.
 
 ### Skills (`sk-<sh>-<name>.md`)
 
@@ -274,13 +294,13 @@ Every skill (`sk-*`), workflow (`wkfl-*`), and headless workflow (`hwkfl-*`) fil
 
 **Wording is verbatim.** `sk-knap-validate` errors if the line is missing, altered, or not the first body line. Tooling that reads these files for analysis (the validator, search indexers, the migration script when one exists) is a non-execution context — reading-as-text never triggers the banner's pragmatic force, just as reading source code in an IDE doesn't execute it.
 
-**Authoring helpers.** Both [[tmp-knap-skill-v0.1]] and [[tmp-knap-workflow-v0.1]] include the banner in their body template. New skills and workflows generated from these templates carry it automatically.
+**Authoring helpers.** Both [[dev-tmp-knap-skill-v0.1]] and [[dev-tmp-knap-workflow-v0.1]] include the banner in their body template. New skills and workflows generated from these templates carry it automatically.
 
 ### Templates (`tmp-<sh>-<name>-v<X.X>.md`)
 
 Structural guides for artifacts the shard creates.
 
-See [[tmp-knap-template-v0.1]] for full template syntax reference.
+See [[dev-tmp-knap-template-v0.1]] for full template syntax reference.
 
 **Design principles:**
 - `description` frontmatter is required
@@ -435,7 +455,7 @@ Shards declare what goes into these folders via `setup:`, `install:`, and `repos
 
 ## Setup and State
 
-A shard that needs one-time setup declares `setup: full|flint|local` in `shard.yaml` and provides a `dev-setup-<sh>.md` lifecycle file (installed as `setup-<sh>.md`). The setup file contains human/agent-readable instructions — run builds, authenticate, configure, whatever the shard needs. (For declaring external git clones, prefer the `repos:` manifest field over manual setup steps — see [[knw-knap-manifest]].)
+A shard that needs one-time setup declares `setup: full|flint|local` in `shard.yaml` and provides a `dev-setup-<sh>.md` lifecycle file (installed as `setup-<sh>.md`). The setup file contains human/agent-readable instructions — run builds, authenticate, configure, whatever the shard needs. (For declaring external git clones, prefer the `repos:` manifest field over manual setup steps — see [[dev-knw-knap-manifest]].)
 
 **Setup scope:**
 
@@ -536,6 +556,6 @@ Current spec: `"0.2.0"`. Legacy spec: `"0.1.0"`.
 
 ### Migrating a 0.1.0 shard
 
-The mechanical pass is owned by [[wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]]. The bulk filename rename is automated by the `prefix-shard` script (`flint shard knap prefix-shard <path>`), which adds `dev-` to source files and strips it from `install/` payloads. The remaining edits — frontmatter, manifest field migration, init-file restructuring — are direct applications of this knowledge file plus [[knw-knap-manifest]].
+The mechanical pass is owned by [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]]. The bulk filename rename is automated by the `prefix-shard` script (`flint shard knap prefix-shard <path>`), which adds `dev-` to source files and strips it from `install/` payloads. The remaining edits — frontmatter, manifest field migration, init-file restructuring — are direct applications of this knowledge file plus [[dev-knw-knap-manifest]].
 
 `flint sync` flags 0.1.0 manifests via the `outdated-spec` drift kind (report-only) on the `dev-remote-shards` and `dev-local-shards` features. Installed shards are not flagged because the install pipeline rejects 0.1.0 manifests outright.

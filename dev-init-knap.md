@@ -1,8 +1,8 @@
 ---
 required-reading:
-  - "[[knw-knap-architecture]]"
-  - "[[knw-knap-manifest]]"
-  - "[[knw-knap-cli]]"
+  - "[[dev-knw-knap-architecture]]"
+  - "[[dev-knw-knap-manifest]]"
+  - "[[dev-knw-knap-cli]]"
 ---
 
 # Knap (Flintknapping)
@@ -69,7 +69,7 @@ Shards/(Dev Remote) [Name]/
     └── *.md
 ```
 
-For complete architecture details, see [[knw-knap-architecture]].
+For complete architecture details, see [[dev-knw-knap-architecture]].
 
 ## File Naming
 
@@ -98,7 +98,7 @@ Dev-mode files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast
 
 The manifest defines identity, dependencies, setup lifecycle, and installation behavior.
 
-For the complete schema reference, see [[knw-knap-manifest]].
+For the complete schema reference, see [[dev-knw-knap-manifest]].
 
 ```yaml
 shard-spec: "0.2.0"
@@ -124,13 +124,13 @@ folders:
 
 Dev shards live at `Shards/(Dev Remote) <Name>/` or `Shards/(Dev Local) <Name>/` for live development and testing. They are fully functional — agents can load and use them immediately. To re-deploy installed copies of declared shards from their source, run `flint shard reinstall [<name>]` (or `flint sync` — the kernel emits `not-installed` drift and applies it).
 
-To create a dev shard, use [[wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
+To create a dev shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
 
 ## Shard CLI
 
 `flint shard` is the only supported way to mutate shard state. Every authoring action — create, rename, install, reinstall, run scripts, migrate, publish — has a CLI command. Always use the CLI; do not edit `flint.toml#[shards]` or rename folders by hand.
 
-For the full command surface, resolution rules (dev vs installed), authoring flow, and anti-patterns, see [[knw-knap-cli]].
+For the full command surface, resolution rules (dev vs installed), authoring flow, and anti-patterns, see [[dev-knw-knap-cli]].
 
 ## Obsidian Templates
 

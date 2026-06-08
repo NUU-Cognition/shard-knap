@@ -8,7 +8,7 @@ description: "Shard template file structure"
 |---|---|
 | Dev source path | `templates/dev-tmp-<sh>-<name>-vX.Y.md` |
 | Installed path | `templates/tmp-<sh>-<name>-vX.Y.md` (the installer strips `dev-`) |
-| Wikilink form | `[[tmp-<sh>-<name>-vX.Y]]` (canonical — include the version suffix) |
+| Wikilink form | dev source: `[[dev-tmp-<sh>-<name>-vX.Y]]` → installer strips to `[[tmp-<sh>-<name>-vX.Y]]` (include the version suffix; see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
 | `<name>` | snake_case noun phrase: `task`, `note_concept`, `init`, `shard_yaml` |
 | `vX.Y` | template version, distinct from the shard's `version` |
 

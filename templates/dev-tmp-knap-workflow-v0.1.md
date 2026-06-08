@@ -8,7 +8,7 @@ description: "Shard workflow file structure"
 |---|---|---|
 | Dev source path | `workflows/dev-wkfl-<sh>-<name>.md` | `workflows/dev-hwkfl-<sh>-<name>.md` |
 | Installed path | `workflows/wkfl-<sh>-<name>.md` | `workflows/hwkfl-<sh>-<name>.md` |
-| Wikilink form | `[[wkfl-<sh>-<name>]]` | `[[hwkfl-<sh>-<name>]]` |
+| Wikilink form | dev source `[[dev-wkfl-<sh>-<name>]]` → installs `[[wkfl-<sh>-<name>]]` | dev source `[[dev-hwkfl-<sh>-<name>]]` → installs `[[hwkfl-<sh>-<name>]]` |
 | Context line (top) | `Run \`flint shard start <sh>\` if you haven't already.` | `Run \`flint shard hstart <sh>\` if you haven't already.` |
 | `<name>` | snake_case noun phrase: `create_shard`, `migrate_spec`, `archive_completed` | same |
 
@@ -80,6 +80,6 @@ Run `flint shard start [shorthand]` if you haven't already.
 - Use "Once [condition], progress to the next stage" consistently.
 - The `description:` frontmatter line is **required** — `flint shard start` reads it for the dynamic manifest.
 - The **action banner** (`> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.`) is **required** as the first body line, immediately after the closing frontmatter `---`. Applies to both `wkfl-*` and `hwkfl-*`. Verbatim wording — `sk-knap-validate` checks for this exact line.
-- Reference skills for sub-tasks: `[[sk-<sh>-<name>]]`. Reference templates for artifact creation: `[[tmp-<sh>-<name>-vX.Y]]`. Wikilinks use the canonical form (no `dev-` prefix in the link).
+- Reference skills for sub-tasks: `[[dev-sk-<sh>-<name>]]`. Reference templates for artifact creation: `[[dev-tmp-<sh>-<name>-vX.Y]]`. In dev sources use the `dev-` prefix; the installer strips it to canonical (see [[dev-knw-knap-architecture]] § Cross-Reference Links).
 - State transitions (status changes) happen at stage boundaries.
 - Stages can invoke skills for atomic sub-tasks.
