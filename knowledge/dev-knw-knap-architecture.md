@@ -37,7 +37,7 @@ Dev shards coexist with installed copies in **separate folders** — `Shards/(De
 | Feature | Records | Drift kinds (strategy) |
 |---------|---------|------------------------|
 | `installed-shards` | every record with a copy or a reference | `not-installed`, `version-mismatch`, `content-mismatch`, `payload-missing`, `moved`, `stale-record`, `reference-stale` (auto); `orphan`, `malformed-manifest`, `source-not-found`, `payload-source-missing`, `conversion-collision`, `migrations-pending`, `dependency-missing`, `dependency-below-floor` (report) |
-| `dev-remote-shards` | records with `edit = true` | `not-cloned`, `damaged`, `checkout-state` (auto); `damaged-checkout`, `orphan`, `malformed-manifest` (report); `outdated-spec`, `draft`, `behind`, `dirty` (notice) |
+| `dev-remote-shards` | records with `edit = true` | `not-cloned`, `damaged`, `checkout-state` (auto); `damaged-checkout` (a missing or unparseable manifest, or no init file), `orphan`, `malformed-manifest` (report); `outdated-spec`, `draft`, `behind`, `dirty` (notice) |
 | `dev-local-shards` | records whose source is a `(Dev Local)` folder | `damaged`, `checkout-state` (auto); `orphan`, `malformed-manifest`, `source-not-found` (report); `outdated-spec`, `draft`, `behind`, `dirty` (notice) |
 | `shard-repos` | `repos:` of every manifest | `converge` (auto); `deferred` (report) |
 
@@ -98,7 +98,15 @@ A reader that meets a record of a newer spec stops with the reason and `Upgrade 
 
 **References and forks.** `use = "reference"` installs no copy; `flint shard start` reads the source folder that `.flint/shards.json` names, and fails closed with `reference-missing` and `flint sync` when it is gone. `flint shard fork <source> --name "<Name>"` makes a new Dev Local with a new id and `of: { id, address }`.
 
-**Upgrade of an older Flint (as specified in the WP7 brief; not yet confirmed).** `flint migrate run` adds three steps to the migration `flint-0.6.0-to-0.7.0`: `s5` fills the ids (it writes an id into each Dev Local and edit checkout that has none, holds an id for an installed copy without one, and writes `id` into the `flint.toml` records); `s6` rewrites `flint.json#shards` into one record per id, moves the top-level `payloads`, the shard migrations, and the committed setup flags into the records, and removes `Shards/(Shards) State/`; `l4` moves the local setup flags into `.flint/shards.json` and removes `Shards/(Shards) Local State/`. Each step has a dry run and a backup, fills only absent values, and blocks on a present value that it does not understand.
+**Upgrade of an older Flint.** A Flint made before the entity model has `flint.json#shards = { <sh>: "<version>" }`, a top-level `payloads`, shard entries in the top-level `migrations` and `pending`, and the state folders. `flint migrate run` upgrades it with three steps of the migration `flint-0.6.0-to-0.7.0`:
+
+| Step | What it does |
+|------|--------------|
+| `s5` shard ids | Writes a new id below `shard-spec` into every Dev Local and edit checkout without one (also when the checkout is dirty or on a work branch), and the same id into its installed copy. A checkout whose installed copy already has an id takes that id. Writes `id` into the `flint.toml` records. Prints one line per manifest: `wrote id <id> into Shards/<folder>; commit it with flint shard push <alias>` (with the dirty, branch, or ahead state), or `wrote id <id> into Shards/<folder>` for a Dev Local that is not a Git repository. A record `id` that differs from the manifest id blocks. |
+| `s6` records by id | Makes one record per id with `upgradeShardRecords`: the alias from the toml key, the name and shorthand from the installed manifest, the address, the source of the `flint.toml` record (a `flint://` spelling becomes the address, with one `source spelling` line), the package hash and files, the payloads, and the setup flag of the state file (else `required` or `not-required` from the setup file, else `none`). A package without an id gets a held id here. `mig-<sh>-` ledger entries move into the record of that shorthand; `payloads` goes; the top level keeps the Flint steps. Removes `Shards/(Shards) State/`. |
+| `l4` local shard state | Moves the flags of `Shards/(Shards) Local State/` into `.flint/shards.json` per id and removes the folder. An optional local step: `flint sync` does not refuse while only `l4` is pending. |
+
+Every step plans first, runs inside the migration transaction (a journal and a backup), fills only absent values, and blocks with the reason on a value that it does not understand (a state file with other keys or text, an unknown payload kind). `flint migrate run --dry-run` changes no byte; `flint migrate rollback` restores the tree. A run records every step before a blocked one; only the blocked step stays pending. `flint sync` refuses with `flint migrate run` while `s5` or `s6` is pending. A new Flint is born in the new shape and needs none of the steps.
 
 ## Dev Prefix Rules
 

@@ -70,7 +70,7 @@ Role: replica
 Source: ./Shards/(Dev Local) Se Alpha
 ```
 
-`Role` is the role of the loaded folder: `canon` (a Dev Local), `draft` (a Dev Remote on a work branch, ahead, or dirty), `replica` (an installed copy, or a level Dev Remote), or `reference`. A held id prints as `Id: <id> (held)`.
+`Role` is the role of the loaded folder: `canon` (a Dev Local), `draft` (a Dev Remote on a work branch, ahead, or dirty), `replica` (an installed copy, or a level Dev Remote), or `reference`. `list`, `status`, and `info` use the same words. A held id prints as `Id: <id> (held)`.
 
 The start refuses and exits 1 when a setup layer is `required` (`FORCE SETUP`, the setup file, then `SETUP REQUIRED`), when shard migrations are pending, when the reference source is gone (`reference-missing`, next `flint sync`), and when the reference is `not-found` or `ambiguous`. With `--json` every end is one JSON value (see [--json Shapes](#--json-shapes)).
 
@@ -174,7 +174,7 @@ Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_
 |---------|---------|
 | `flint sync [--dry-run]` | Make the shards match the records. It installs a missing copy, heals a rename of the source (`moved`: the folder, the key, and the type files follow the new Title), refreshes a reference path, and records the checkout state. It reports a missing dependency or a floor fault as not current, and gives a notice for a draft, behind, or dirty checkout. Sync never changes a checkout. |
 | `flint resolve <address> [--json]` | Resolve a shard address (`@/flint/<flint>/shard/<alias>` or `@<uuid>`) to the entity and its presences on this machine. |
-| `flint migrate run [--dry-run]` | Run the pending Flint migration steps. The steps `s5`, `s6`, and `l4` upgrade a Flint with the legacy shard records (see [[dev-knw-knap-architecture]] § Records). |
+| `flint migrate run [--dry-run]` | Run the pending Flint migration steps. The steps `s5`, `s6`, and `l4` upgrade a Flint with the legacy shard records (see [[dev-knw-knap-architecture]] § Identity and Records). `flint migrate rollback` undoes a run. |
 
 ## --json Shapes
 
@@ -196,7 +196,7 @@ Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_
 | `held` | `true` for a client-held id. |
 | `alias`, `shorthand`, `name` | The key, the prefix, the Title. |
 | `address` | The entity address in this Flint. |
-| `role` | `installed`, `dev-local`, `dev-remote`, or `reference`. |
+| `role` | `canon` (a Dev Local), `draft` (an edit checkout whose recorded checkout state is a work branch, ahead, or dirty), `replica` (an installed copy, or a level edit checkout), or `reference`. The row reads the checkout state that `flint sync` recorded; `status` shows the live state. The folder kind is in `folders`. |
 | `source` | The source of the `flint.toml` record. |
 | `version` | The recorded version. |
 | `edit` | `true` for an edit checkout (`edit = true`). |
@@ -205,7 +205,6 @@ Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_
 | `setup` | `required`, `not-required`, `completed`, or `none`. |
 | `pending` | The queued shard migration steps. |
 
-> **As specified (WP7, not yet confirmed):** the brief of WP7 makes `ShardRow.role` and the `list` column use the presence words of the start header (`canon`, `replica`, `draft`, `reference`). The folder kind stays visible in `folders`.
 
 ## When to Use What — Authoring Flow
 
