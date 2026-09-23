@@ -12,26 +12,27 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 # Input
 
-- Path to the shard directory (e.g., `Shards/(Dev Remote) My Shard/`, `Shards/(Dev Local) My Shard/`, or `Shards/Projects/`)
+- Path to the shard directory (e.g., a source `Shards/(Source Remote) My Shard/` or `Shards/(Source Local) My Shard/`, or a shard `Shards/Projects/`)
 
 # Actions
 
 1. **Check shard.yaml.** Verify the manifest exists and contains all required fields:
    - [ ] `shard-spec` — `"0.3.0"` (current); `"0.2.0"` or `"0.1.0"` is a warning (outdated spec); any other value is an error
-   - [ ] `id` — a uuid v4 or v7 (warning if absent: run `flint shard id <alias>` in a Dev Local or an edit checkout)
-   - [ ] `formerNames`, `formerShorthands`, `of` — if present, written by the CLI (`rename`, `fork`); `formerNames[]` is `{ name, slug, at }`, `of` is `{ id, address? }`
+   - [ ] `id` and `source.id` — uuids v4 or v7 (warning if absent: run `flint shard id <alias>` on the source)
+   - [ ] `org` — a kebab slug (warning if absent in a Flint with an org: run `flint shard id <alias>`)
+   - [ ] `formerNames`, `formerShorthands`, `of` — if present, written by the CLI (`rename`, `fork`); `formerNames[]` is `{ name, slug, at }`, `of` is `{ id, address? }`, `source.of` is `{ id }`
    - [ ] `version` — valid semver string (`major.minor.patch`)
    - [ ] `name` — non-empty, Title Case (warning otherwise)
    - [ ] `shorthand` — lowercase-letters-only string (any length, pattern `^[a-z]+$`)
    - [ ] `description` — non-empty single-line string
-   - [ ] `dependencies` — if present, each entry has a `source` of the source grammar (`owner/repo`, a path, or an address `@/flint/<flint>/shard/<alias>` / `@<uuid>`), an optional `id` (uuid), and an optional `version` floor (semver)
+   - [ ] `dependencies` — if present, a map: each key is a package name (`@org/name` or `@org/shard/name`, no range, no place) and each value is an exact version, a caret range, a tilde range, or `""` (the list form is legacy input: a warning)
    - [ ] `setup` — if present, value is `full`, `flint`, or `local`
    - [ ] `types` — if present, each entry is `Type` or `Type.Subtype` Title Case (multi-word names allowed)
    - [ ] `folders` — if present, each entry is a relative path from flint root
    - [ ] `install` — each entry has `source` and `dest`; `mode` is `once` or `force` (or legacy boolean flags)
    - [ ] No deprecated fields: `state`, `scripts`, `requires.cli`, `requires.workspace`, legacy `depends` (warn on each)
 
-2. **Check init file.** Verify `init-<shorthand>.md` (or `dev-init-<shorthand>.md` for dev shards) exists and contains:
+2. **Check init file.** Verify `init-<shorthand>.md` (or `dev-init-<shorthand>.md` in a source) exists and contains:
    - [ ] Shard name as heading
    - [ ] Description of the shard's purpose
    - [ ] `required-reading` YAML frontmatter listing knowledge files the agent must read (if the shard has knowledge files)
@@ -48,14 +49,14 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] If `setup` is declared but setup file is missing — **error**, not warning
    - [ ] If setup file exists but `setup` is not declared in manifest — warning
 
-5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In dev shards, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
-   - [ ] Skills: `dev-sk-<sh>-<name>.md` / installed `sk-<sh>-<name>.md`
+5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In a source, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
+   - [ ] Skills: `dev-sk-<sh>-<name>.md` / built `sk-<sh>-<name>.md`
    - [ ] Workflows: `dev-wkfl-<sh>-<name>.md` (and `dev-hwkfl-` for headless)
    - [ ] Templates: `dev-tmp-<sh>-<name>-v<X.X>.md`
    - [ ] Knowledge: `dev-knw-<sh>-<name>.md`
    - [ ] Assets: `dev-ast-<sh>-<name>.<ext>`
    - [ ] Scripts: `dev-<name>.js`
-   - [ ] Migrations: `dev-mig-<sh>-<from>-to-<to>.md` (dev-prefix applies — migrations ship with installed shards)
+   - [ ] Migrations: `dev-mig-<sh>-<from>-to-<to>.md` (dev-prefix applies — migrations ship with the shard)
    - [ ] Obsidian templates (in `install/`): `otmp-<sh>-<name>.md` — **no dev prefix**
    - [ ] Type definitions (in `install/`): `type-<sh>-<type>[_<subtype>].md` — **no dev prefix**
    - [ ] Dashboards / system files (in `install/`): bare names like `(Dashboard) X.md` — **no dev prefix**
@@ -69,14 +70,14 @@ Validate that a shard follows Flint conventions and is structurally complete.
 7. **Check skill structure.** For each skill file, verify:
    - [ ] Has `description` in YAML frontmatter
    - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered
-   - [ ] Next non-blank line is `Run \`flint shard start <shorthand>\` if you haven't already.` (or `start-dev` for dev shards)
+   - [ ] Next non-blank line is `Run \`flint shard start <shorthand>\` if you haven't already.` (or `start-dev` in a source)
    - [ ] Has `# Skill: [Name]` heading
    - [ ] Has `# Input`, `# Actions`, `# Output` sections
 
 8. **Check workflow structure.** For each workflow (and headless workflow) file, verify:
    - [ ] Has `description` in YAML frontmatter
    - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered. Applies to both `wkfl-*` and `hwkfl-*`.
-   - [ ] Next non-blank line is the correct shard context line — `wkfl-*` uses `flint shard start <sh>`; `hwkfl-*` uses `flint shard hstart <sh>` (or `start-dev` / `hstart-dev` in dev shards)
+   - [ ] Next non-blank line is the correct shard context line — `wkfl-*` uses `flint shard start <sh>`; `hwkfl-*` uses `flint shard hstart <sh>` (or `start-dev` / `hstart-dev` in a source)
    - [ ] Has `# Workflow: [Name]` heading
    - [ ] Has staged actions (`## Stage N:`)
    - [ ] Interactive workflows have at least one human checkpoint; headless workflows report via Orbh keys
@@ -97,7 +98,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
     - See [[knw-f-types]] for the complete convention
 
 11. **Check scripts.**
-    - [ ] Every `.js` file in `scripts/` follows the naming convention (`dev-<name>.js` in dev shards, `<name>.js` in installed)
+    - [ ] Every `.js` file in `scripts/` follows the naming convention (`dev-<name>.js` in a source, `<name>.js` in the shard)
     - [ ] No `scripts:` field in `shard.yaml` (deprecated — scripts are auto-discovered from the folder)
 
 12. **Check install files.** For each `shard.yaml` install entry:
@@ -107,7 +108,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
     - [ ] `mode` is `once` or `force` (or legacy `once: true` / `force: true`)
 
 13. **Check migrations.** If `migrations/` exists:
-    - [ ] All files start with `dev-` prefix in dev shards (error if not)
+    - [ ] All files start with `dev-` prefix in a source (error if not)
     - [ ] Files follow the `dev-mig-<sh>-<from>-to-<to>[-s<n>].md` ID format
     - [ ] An empty `migrations/` folder is valid
 

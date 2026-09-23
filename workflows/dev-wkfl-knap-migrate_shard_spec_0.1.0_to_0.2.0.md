@@ -48,7 +48,7 @@ Make the shard match what Knap teaches. The order doesn't matter much; a reasona
 
 ## Stage 3: Verify
 
-1. Run `flint shard start <name>` (or `start-dev` for dev shards). Confirm:
+1. Run `flint shard build <name>` and `flint shard start <name>` (or `start-dev` to load the source). Confirm:
    - Required reading resolves cleanly.
    - Skills/workflows/templates/knowledge appear with descriptions.
    - If `setup:` is declared, the `SETUP REQUIRED` banner appears (state files start as `setup: required`).
@@ -66,7 +66,7 @@ Present the user with:
 
 ## Stage 5: Finalize
 
-The record of the shard in `flint.toml` (`<alias> = { id, source, edit = true }` for a checkout, `<alias> = { id, source = "./Shards/(Dev Local) <Name>" }` for a Dev Local) also installs the copy. Run `flint shard reinstall <alias>` (or `flint sync`) to refresh it. Dev and installed are separate folders — see [[dev-knw-knap-architecture]] § Lifecycle Modes.
+The record of the shard in `flint.toml` (`<alias> = { source = "@org/name", from = "source" }`, with `git` for a remote source) builds the shard from the source. Run `flint shard build <alias>` (or `flint sync`) to refresh the build. The source and the shard are separate folders — see [[dev-knw-knap-architecture]] § Two Entities: Source and Shard.
 
 # Output
 

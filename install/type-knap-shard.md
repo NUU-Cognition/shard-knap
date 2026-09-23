@@ -7,16 +7,16 @@ tags:
 
 # Shard
 
-A cognitive program — a self-contained package that extends agent capabilities inside a Flint. Shards ship init files, skills, workflows, templates, knowledge, and install files. They define artifact types and their lifecycles.
+A cognitive program — a self-contained package that extends agent capabilities inside a Flint. A shard has a source (the files a person edits) and a build (the shard that agents load). Shards ship init files, skills, workflows, templates, knowledge, and install files. They define artifact types and their lifecycles.
 
 ## Properties
 
 | Property | Value |
 |----------|-------|
 | Tag | N/A (meta-type) |
-| Location | `Shards/(Dev Remote) [Name]/` or `Shards/(Dev Local) [Name]/` (dev), `Shards/[Name]/` (installed) |
-| Archive | N/A (published to repositories) |
-| Naming | Folder: `(Dev Remote) Name/` or `(Dev Local) Name/`, Files: `dev-init-sh.md`, `dev-sk-sh-*.md`, `dev-wkfl-sh-*.md`, etc. |
+| Location | `Shards/(Source Remote) [Name]/` or `Shards/(Source Local) [Name]/` (the source), `Shards/[Name]/` (the shard) |
+| Archive | N/A (released to repositories and the NUU Shard Registry) |
+| Naming | Source folder: `(Source Remote) Name/` or `(Source Local) Name/`, source files: `dev-init-sh.md`, `dev-sk-sh-*.md`, `dev-wkfl-sh-*.md`, etc. The package: `@org/shard/<name>` |
 | Numbering | None |
 
 ## Structure

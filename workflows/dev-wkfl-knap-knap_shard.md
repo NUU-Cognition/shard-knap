@@ -26,7 +26,7 @@ Load the entire target shard into context.
 3. Read the shard's `setup-<sh>.md` if the manifest declares `setup:`
 4. List all files in the shard directory **recursively** — `skills/`, `workflows/`, `templates/`, and `knowledge/` may contain arbitrary subfolder groupings
 5. Read every file in the shard — skills, workflows, templates, knowledge, scripts, install files, README
-6. If the shard has install files, read the installed copies in `Mesh/` as well to understand current state
+6. If the shard has install files, read the files that the install put in `Mesh/` as well to understand current state
 
 Present a summary to the user:
 - Shard name, version, shorthand

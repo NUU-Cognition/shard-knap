@@ -1,17 +1,22 @@
 ---
-description: "Complete shard.yaml schema reference — identity (id, formerNames, of), fields, install modes, dependencies, setup lifecycle, scripts, types"
+description: "Complete shard.yaml schema reference — the two ids (id, source.id), org and the package name, formerNames, of, the dependency map, install modes, setup lifecycle, scripts, types"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
 
 Complete reference for the `shard.yaml` manifest file — the configuration that defines a shard's identity, dependencies, runtime requirements, and installation behavior.
 
+The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards/(Source Remote) <Name>/`). The **build** (`Shards/<Name>/`) carries a copy of it. So the shard names itself, and the build carries its provenance.
+
 ## Full Schema
 
 ```yaml
 # Required fields
 shard-spec: "0.3.0"                  # Shard spec version (conformance level)
-id: 00000000-0000-4000-8000-000000000000  # Stable id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
+id: 00000000-0000-4000-8000-000000000000  # The shard id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
+org: nuu-cognition                   # The org slug. The package is @nuu-cognition/shard/<fold(name)>. Absent: no org (@/shard/<name>)
+source:                              # The source block
+  id: 00000000-0000-4000-8000-00000000000a  # The source id. `flint shard create` mints it.
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
 name: Shard Name                     # Title Case display name
 shorthand: sh                        # lowercase-letters-only identifier (any length)
@@ -23,16 +28,14 @@ formerNames:                         # One line per title rename (flint shard re
     slug: old-name
     at: 2026-09-23T01:19:42.168Z
 formerShorthands: [osh]              # One entry per shorthand rename (flint shard rename --shorthand)
-of:                                  # The source of a fork (flint shard fork)
+of:                                  # The origin of a fork (flint shard fork); source.of names the origin source
   id: 00000000-0000-4000-8000-000000000001
-  address: "@/flint/other-flint/shard/source-shard"
+  address: "@nuu-cognition/shard/notepad"
 
 # Optional fields
-dependencies:                        # Shard dependencies
-  - source: NUU-Cognition/shard-flint
-    version: "1.0.0"                 # Optional minimum version floor (enforced)
-  - id: 00000000-0000-4000-8000-000000000002   # Optional: match by id
-    source: "@/flint/other-flint/shard/notepad"
+dependencies:                        # A map from package name to range
+  "@nuu-cognition/flint": "^0.2"     # caret range
+  "@nuu-cognition/notepad": "~1.1.3" # tilde range; "1.1.3" is an exact version; "" is any version
 
 setup: full                          # Setup scope: full | flint | local
 
@@ -64,18 +67,40 @@ All shards must include this field. It allows tooling to handle backwards compat
 **Spec versions:**
 - `"0.1.0"` — Original spec. Init files contained hardcoded Skills/Workflows/Templates/Knowledge tables. Skill/workflow files started with `Ensure you have [[init-<sh>]] in context before continuing.`
 - `"0.2.0"` — Progressive disclosure. Init files strip discovery tables and declare `required-reading` in YAML frontmatter. Every skill/workflow/template/knowledge file has `description` YAML frontmatter. Skill/workflow context lines use `Run `flint shard start <shorthand>` if you haven't already.` — `flint shard start` assembles the manifest dynamically.
-- `"0.3.0"` — The shard is an entity. The manifest carries `id`, and the CLI writes `formerNames`, `formerShorthands`, and `of`. A dependency can name an `id`, and its `source` uses the one source grammar.
+- `"0.3.0"` — The shard is a package. The manifest carries the shard `id`, the `org`, and the `source` block with the source id, and the CLI writes `formerNames`, `formerShorthands`, and `of`. `dependencies` is a map from package name to range.
 
-A `"0.2.0"` or `"0.1.0"` manifest still parses. `flint sync` gives an `outdated-spec` notice for a Dev Local or a Dev Remote checkout below the current spec (a notice: sync never changes the checkout). To go from `0.2.0` to `0.3.0`, set `shard-spec: "0.3.0"` and run `flint shard id <alias>`. To go from `0.1.0` to `0.2.0` first, use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow; it invokes the `prefix-shard` script for the `dev-` filename pass.
+A `"0.2.0"` or `"0.1.0"` manifest still parses. A `"0.3.0"` manifest without `org` or `source` is valid; `flint shard status <alias> --health` reports them as missing with the next command `flint shard id <alias>`. `flint sync` gives an `outdated-spec` notice for a source below the current spec (a notice: sync never changes a source). To go from `0.2.0` to `0.3.0`, set `shard-spec: "0.3.0"` and run `flint shard id <alias>`. To go from `0.1.0` to `0.2.0` first, use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow; it invokes the `prefix-shard` script for the `dev-` filename pass.
 
 ### `id` (expected from spec `0.3.0`)
 
-The stable identity of the shard: a uuid v4 (v7 is accepted), stored in lowercase. The parser accepts a manifest with no `id`, but a shard without one gets only a held id in each Flint (see below). The id never changes. A title rename and a shorthand rename keep it. Every record of every Flint keys the shard by it.
+The **shard id**: the stable identity of the shard (the built package). A uuid v4 (v7 is accepted), stored in lowercase. The parser accepts a manifest with no `id`, but a shard without one gets only a held id in each Flint (see below). The id never changes. A title rename and a shorthand rename keep it. The lock of every Flint (`flint.json#shards[<id>]`) keys the shard by it, and the registry keeps the record by it.
 
-- `flint shard create` mints the id.
-- `flint shard id <alias>` fills an id into a Dev Local or an edit checkout (Dev Remote) that has none. It writes only the `id` line. On a checkout that is dirty or on a work branch it prints a notice and the next command `flint shard push <alias>`.
-- A replica (an installed copy) never mints an id. `flint shard id` refuses it and names the canon.
-- An installed package with no id gets a **held id**: the Flint mints one, keeps it in `flint.json#shards[<id>]` with `held: { binding: { source, hash } }`, and never writes it into the package. `flint shard list` marks it `(held)`. When a later install of the same source carries a package id, the held record gets `mergedInto: <package id>` and the install prints one line: `Retired the held id <held> of "<Name>" into the package id <id>.`
+- `flint shard create` mints the shard id and the source id.
+- `flint shard id <alias>` fills an absent shard id, source id, and `org` (the org of the Flint) into a source. It fills only absent values. On a remote source that is dirty or on a work branch it prints a notice and the next command `flint shard push <alias>`.
+- A shard that is only a build never mints an id. `flint shard id` refuses it with `not-a-source`.
+- A clone never mints: the ids come with the files.
+- An installed package with no id gets a **held id**: the Flint mints one, keeps it in `flint.json#shards[<id>]` with `held: { binding: { request, hash } }`, and never writes it into the package. `flint shard list` marks it `(held)`. The held id retires into the real id when the registry answers `resolve?hash=` with a record, or when a later install of the same package carries an id: the held record gets `mergedInto: <package id>`.
+
+### `org` (expected from spec `0.3.0`)
+
+The slug of the org that owns the package, for example `nuu-cognition`. The package address is `@<org>/shard/<fold(name)>`. The short spelling `@<org>/<name>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<name>`.
+
+- `flint shard create` and `flint shard fork` write the org of the Flint (`flint.json#org`). A Flint with no org writes no `org`.
+- `flint shard id <alias>` fills an absent `org` from the Flint.
+- `flint shard release` refuses a source with no `org` in a Flint that has one, with the next command `flint shard id <alias>`.
+
+The org is not a GitHub owner. GitHub is a location of the source, which the registry records.
+
+### `source` (expected from spec `0.3.0`)
+
+`{ id, of? }`: the block of the source. `id` is the **source id**: the id of the files that a person edits. A source always has an id, also a local source.
+
+- `flint shard create` mints it with the shard id.
+- `flint shard dev` promotes a local source to a repository and keeps the source id.
+- `flint shard clone` never mints: the id comes with the files.
+- `flint shard fork` mints a new source id and writes `source.of: { id: <origin source id> }`.
+
+The build copies the block, so the lock and the registry can name the source of each version.
 
 ### `formerNames` (optional, CLI-written)
 
@@ -87,7 +112,21 @@ A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new
 
 ### `of` (optional, CLI-written)
 
-`{ id, address? }`: the shard that this shard was forked from. `flint shard fork` writes it. The `id` is the truth; `address` is a cache of the source address at the time of the fork. A fork always has a new `id` of its own.
+`{ id, address? }`: the shard that this shard was forked from. `flint shard fork` writes it. The `id` is the truth; `address` is a cache of the package address at the time of the fork. A fork always has a new shard id and a new source id of its own, and records `of` on each:
+
+```yaml
+id: 7948fa19-469b-4ce4-ba22-888554530bd2
+org: nuu-cognition
+name: Notepad Nathan
+shorthand: ntpn
+source:
+  id: f406afc5-cd8f-4460-8859-68000f4ec616
+  of:
+    id: 5b1c9e02-7a41-4c11-9d7e-0f3a2b6c8d10
+of:
+  id: 76d64e3e-3c05-4391-a39e-22001fb2e20a
+  address: "@nuu-cognition/shard/notepad"
+```
 
 ### `version` (required)
 
@@ -101,7 +140,7 @@ Start at `"1.0.0"` for first release. Use `"0.1.0"` for development/pre-release 
 
 ### `name` (required)
 
-Human-readable display name. Title Case. The installed folder is `Shards/<Name>/` when the alias of the shard in the Flint is the slug of the name, else `Shards/<Alias As Title>/`. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs.
+Human-readable display name. Title Case. The package name is the fold of it: `name: Notepad` in `org: nuu-cognition` is the package `@nuu-cognition/shard/notepad`. A title rename (`flint shard rename --title`) therefore moves the address; the id does not change. The build folder is `Shards/<Name>/` when the alias of the shard in the Flint is the slug of the name, else `Shards/<Alias As Title>/`. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs.
 
 Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`
 
@@ -128,33 +167,29 @@ Brief, single-sentence description of what the shard provides. Used in CLI outpu
 
 ### `dependencies` (optional)
 
-Array of shard dependencies. Each entry is an object with `source` (required), `id` (optional), and `version` (optional).
+A map from a package name to a range. A dependency names a shard, never a source.
 
 ```yaml
 dependencies:
-  - source: NUU-Cognition/shard-flint     # Core — almost always required
-  - id: 00000000-0000-4000-8000-000000000002
-    source: "@/flint/other-flint/shard/notepad"
-    version: "1.0.0"                      # Minimum version floor
+  "@nuu-cognition/flint": "^0.2"     # Core — almost always required
+  "@nuu-cognition/notepad": "~1.1.3"
+  "@nuu-cognition/plan": ""          # any version
 ```
 
-**Fields:**
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| `source` | string | yes | One string of the source grammar: `owner/repo`, a path, or an entity address (`@/flint/<flint>/shard/<alias>`, `@<uuid>`). The legacy `flint://<Flint>/<shard>` also parses. |
-| `id` | string | no | The uuid of the dependency. With an id, any presence of that id in the Flint satisfies it, whatever its alias or source. Without an id, the live record whose canonical source string equals the canonical `source` satisfies it. |
-| `version` | string | no | Minimum semver floor ("at least this version"). Enforced. |
+| Part | Form |
+|------|------|
+| Key | A package name: the short form `@org/name` or the full form `@org/shard/name`. The key has no range and no place. |
+| Value | A range: an exact version `1.1.3`, a caret range `^1.1`, or a tilde range `~1.1.3`. `""` is any version. Nothing else parses (not `*`, `1.x`, or `>=1`). |
 
 **Rules:**
-- A `source` that does not parse is a manifest error (`manifest-error`). A bare word with a space or a character outside `A-Za-z0-9._/~-` does not parse.
-- The floor is enforced. `flint shard install` refuses a shard whose present dependency is below the floor: `dependency <alias> is <v>, <Name> needs at least <floor>`, next `flint shard update <alias>`.
-- Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per dependency (`will install <Name> from <source> (needed by <alias>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
-- A cycle is refused: `the dependencies form a cycle: A -> B -> A`.
-- A missing dependency is a not-current line in `flint sync` with the next command `flint shard install <source>`. A present dependency below its floor is a not-current line with `flint shard update <alias>`.
-- `flint shard info <alias>` and `flint shard status <alias>` show the state of each dependency: `satisfied by <alias> (<id>)`, `missing`, `below floor`, or `invalid source`.
+- A key that does not parse, a key with a range or a place, a value that is not a range, and one package named twice are manifest errors (`manifest-error`).
+- A dependency is satisfied by a shard record of this Flint with that address and a version inside the range. When the lock of the dependent names the id of the dependency, the id is checked too.
+- Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per package with the spec that it resolves (`will install <Title> from <spec> (needed by <Title>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
+- A cycle is refused, and the reason names the chain.
+- A missing dependency is a not-current line in `flint sync` with the next command `flint shard install '@org/name@<range>'`. A present dependency outside its range is a not-current line (`dependency-out-of-range`) with the same next command.
+- `flint shard info <alias>` and `flint shard status <alias>` show the state of each dependency, for example `@nuu-cognition/shard/plan@^0.4 satisfied by plan (<id>)`.
 
-> **Backward compat:** The legacy `depends:` field with plain-string entries (e.g., `- NUU-Cognition/shard-flint`) is still accepted and normalised to `{ source }` objects. New manifests use `dependencies:`.
+> **Legacy input.** The list form of spec `0.3.0` before the package model (`- { source: NUU-Cognition/shard-flint, id?, version? }`, where `version` is a floor) and the older `depends:` list still parse. New manifests use the map. The Flint migration `flint-0.6.0-to-0.7.0` rewrites a list into the map.
 
 ### `setup` (optional)
 
@@ -296,7 +331,7 @@ Multiple shards may declare the same `name` so long as `remote` and `ref` agree.
 
 **Pinning:**
 
-Resolved SHAs are persisted in `flint.json#repos[<Name>] = { remote, ref, sha }`. The lockfile is the source of truth for which clones are present. Refcount-style cleanup: when no installed/dev shard still declares a given `name`, the next install removes the lockfile entry (the on-disk folder is left in place — the user may delete it manually).
+Resolved SHAs are persisted in `flint.json#repos[<Name>] = { remote, ref, sha }`. The lockfile is the source of truth for which clones are present. Refcount-style cleanup: when no shard or source still declares a given `name`, the next install removes the lockfile entry (the on-disk folder is left in place — the user may delete it manually).
 
 **Failure modes (every category is reported, never silently skipped):**
 
@@ -394,12 +429,15 @@ Useful for Obsidian templates and system files that need unique IDs or timestamp
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
+org: nuu-cognition
+source:
+  id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
 name: My Dashboard
 shorthand: md
 description: Provides tracking dashboards
 dependencies:
-  - source: NUU-Cognition/shard-flint
+  "@nuu-cognition/flint": "^0.2"
 install:
   - source: inst-md-overview_dashboard.md
     dest: Mesh/(Dashboard) Overview.md
@@ -411,13 +449,16 @@ install:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
+org: nuu-cognition
+source:
+  id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
 name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 dependencies:
-  - source: NUU-Cognition/shard-flint
-  - source: NUU-Cognition/shard-notepad
+  "@nuu-cognition/flint": "^0.2"
+  "@nuu-cognition/notepad": "^1.0"
 types:
   - Task
 install:
@@ -433,12 +474,15 @@ folders:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
+org: nuu-cognition
+source:
+  id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
 name: Living Documents
 shorthand: ld
 description: Track document lifecycle (living vs dead)
 dependencies:
-  - source: NUU-Cognition/shard-flint
+  "@nuu-cognition/flint": "^0.2"
 ```
 
 ### Shard with Obsidian Templates
@@ -446,13 +490,16 @@ dependencies:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
+org: nuu-cognition
+source:
+  id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
 name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 dependencies:
-  - source: NUU-Cognition/shard-flint
-  - source: NUU-Cognition/shard-notepad
+  "@nuu-cognition/flint": "^0.2"
+  "@nuu-cognition/notepad": "^1.0"
 types:
   - Task
 install:
@@ -469,12 +516,15 @@ install:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
+org: nuu-cognition
+source:
+  id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
 name: My Integration
 shorthand: mi
 description: Integrates with an external service
 dependencies:
-  - source: NUU-Cognition/shard-flint
+  "@nuu-cognition/flint": "^0.2"
 setup: full
 ```
 
@@ -484,14 +534,14 @@ Requires a companion `dev-setup-mi.md` (installed as `setup-mi.md`) describing c
 
 A valid `shard.yaml` must have:
 - [ ] `shard-spec` — `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` (an `outdated-spec` notice below `"0.3.0"`; any other value is refused)
-- [ ] `id` — a uuid v4 or v7 when present (expected from `"0.3.0"`; fill it with `flint shard id <alias>`)
+- [ ] `id` and `source.id` — uuids v4 or v7 when present (expected from `"0.3.0"`; fill them with `flint shard id <alias>`)
+- [ ] `org` — a kebab slug when present (expected from `"0.3.0"` in a Flint with an org)
 - [ ] `version` — valid semver string (`major.minor.patch`)
 - [ ] `name` — non-empty string (warning if not Title Case)
 - [ ] `shorthand` — non-empty lowercase-letters-only string (any length; pattern `^[a-z]+$`)
 - [ ] `description` — non-empty single-line string
-- [ ] All `dependencies[].source` entries parse in the source grammar (`owner/repo`, a path, or an address)
-- [ ] All `dependencies[].id` entries are uuids (if present)
-- [ ] All `dependencies[].version` entries are valid semver (if present)
+- [ ] Every `dependencies` key is a package name (`@org/name` or `@org/shard/name`) with no range and no place
+- [ ] Every `dependencies` value is an exact version, a caret range, a tilde range, or `""`
 - [ ] All `types[]` entries match `Type` or `Type.Subtype` Title Case
 - [ ] All `install[].source` files exist in the `install/` folder
 - [ ] All `install[].source` filenames start with `inst-<sh>-` or `otmp-<sh>-` (no literal target names)

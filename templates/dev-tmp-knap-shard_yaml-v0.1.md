@@ -6,14 +6,17 @@ description: "Shard manifest (shard.yaml) file structure"
 
 | | |
 |---|---|
-| Path | `shard.yaml` (at the shard root, NEVER prefixed, never under `install/`) |
+| Path | `shard.yaml` (at the root of the source, NEVER prefixed, never under `install/`; the build carries a copy) |
 | Required | Yes — every shard MUST have one |
 
-The manifest defines the shard's identity, dependencies, setup scope, and installation behaviour. See [[dev-knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
+The manifest defines the shard's identity (the shard id, the org, the source id), dependencies, setup scope, and installation behaviour. `flint shard create` writes it; edit it by hand only for the fields that no command writes. See [[dev-knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
 
 ```yaml
 shard-spec: "0.3.0"
-id: [generate-uuid4]
+id: [the shard id: a uuid4 that `flint shard create` mints]
+org: [the org slug of the Flint, e.g. nuu-cognition; omit the line when the Flint has no org]
+source:
+  id: [the source id: a uuid4 that `flint shard create` mints]
 version: "[semver version, e.g. 1.0.0]"
 name: [Shard Name in Title Case]
 shorthand: [lowercase-letters-only identifier, any length]
@@ -29,18 +32,18 @@ formerNames:
 formerShorthands:
   - [former shorthand]
 
-/* Optional: written by `flint shard fork`. The shard that this shard was forked from. `id` is the truth; `address` is a cache. */
+/* Optional: written by `flint shard fork`. The shard that this shard was forked from. `id` is the truth; `address` is a cache.
+   The fork also writes `of: { id: <origin source id> }` inside the `source` block. */
 of:
-  id: [uuid of the source shard]
-  address: "[entity address of the source, e.g. @/flint/<flint>/shard/<alias>]"
+  id: [shard id of the origin]
+  address: "[package address of the origin, e.g. @nuu-cognition/shard/notepad]"
 
-/* Optional: shard dependencies. `source` is required. `id` is optional and makes the match by id. `version` is a floor. */
+/* Optional: a map from package name to range. The key is `@org/name` (or `@org/shard/name`), with no range and no place.
+   The value is an exact version "1.1.3", a caret range "^1.1", a tilde range "~1.1.3", or "" (any version). */
 dependencies:
-  - source: NUU-Cognition/shard-flint
-  - id: [uuid of the dependency, optional]
-    source: [owner/repo, a path, or an address @/flint/<flint>/shard/<alias>]
-    version: "[minimum semver, optional]"
-  - (continue)
+  "@nuu-cognition/flint": "^0.2"
+  "[@org/name of the dependency]": "[range]"
+  (continue)
 
 /* Optional: declare that the shard needs one-time setup and on which layer.
    Requires a companion `dev-setup-<sh>.md` file at the shard root (installed as `setup-<sh>.md`).
@@ -93,15 +96,15 @@ install:
 
 ## Rules
 
-- `shard-spec`: `"0.3.0"` is current. `"0.2.0"` and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a checkout at a lower spec. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
-- `id`: a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a Dev Local or an edit checkout that has none. Never change it: every record of every Flint finds the shard by it. A replica (an installed copy) never mints an id.
+- `shard-spec`: `"0.3.0"` is current. `"0.2.0"` and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a source at a lower spec. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
+- `id`: the shard id, a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a source that has none. Never change it: the lock of every Flint and the registry find the shard by it. A shard that is only a build never mints an id.
+- `org`: the org slug. The package is `@<org>/shard/<fold(name)>`. `create`, `fork`, and `flint shard id` write the org of the Flint. Absent means no org (`@/shard/<name>`).
+- `source.id`: the source id. `flint shard create` mints it, `flint shard dev` keeps it, a clone never mints it, and `flint shard fork` mints a new one with `source.of`.
 - `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --title`, `rename --shorthand`, `fork`). Do not write them by hand.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
-- `name`: Title Case. The installed folder is `Shards/<Name>/` when the alias is the slug of the name, else `Shards/<Alias As Title>/`.
+- `name`: Title Case. The package name is its fold, so a title rename moves the address (the id stays). The build folder is `Shards/<Name>/` when the alias is the slug of the name, else `Shards/<Alias As Title>/`.
 - `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.
-- `dependencies[].source`: one string of the source grammar: `owner/repo`, a path, or an entity address. Almost always include `NUU-Cognition/shard-flint`.
-- `dependencies[].id`: optional. With an id, any presence of that id in the Flint satisfies the dependency, whatever its alias or source. Without an id, the canonical source string must match.
-- `dependencies[].version`: optional minimum version. The install refuses a present dependency below it.
+- `dependencies`: a map from package name to range. Almost always include `"@nuu-cognition/flint"`. A shard record of this Flint with that address and a version inside the range satisfies it. The install refuses a present dependency outside the range.
 - `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Mark setup complete with `flint shard setup <alias> --complete`.
 - `types[]`: Title Case, `Type` or `Type.Subtype`. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation.
 - `folders[]`: Explicit folder paths. `types:` does NOT auto-create artifact folders.
@@ -122,5 +125,5 @@ Scripts, skills, workflows, headless workflows, templates, knowledge files, head
 - `scripts`: Removed. Scripts are auto-discovered from `scripts/*.js`.
 - `requires.cli`: Removed. Document required CLI tools in `dev-setup-<sh>.md` prose instead.
 - `requires.workspace`: Removed. Replaced by the `dev-setup-<sh>.md` lifecycle file.
-- `depends`: Legacy plain-string dependencies — migrate to `dependencies` with `{source}` objects.
+- `depends`, and the list form of `dependencies` (`- source: owner/repo`): legacy input that still parses. Write the map form.
 - `once: true` / `force: true` boolean flags on install entries — use `mode: once` / `mode: force`.

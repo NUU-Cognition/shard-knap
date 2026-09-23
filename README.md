@@ -1,13 +1,13 @@
 # Knap (Flintknapping)
 
-Shard authoring toolkit for Flint. Everything you need to create, develop, validate, and publish shards that follow Flint conventions.
+Shard authoring toolkit for Flint. Everything you need to create, build, validate, and release shards that follow Flint conventions.
 
 Named after flintknapping — the craft of shaping raw stone into tools.
 
 ## Structure
 
 ```
-Shards/(Dev Remote) Knap/
+Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
   shard.yaml                              # Manifest
   dev-init-knap.md                        # Init with required-reading
   skills/
@@ -27,7 +27,7 @@ Shards/(Dev Remote) Knap/
     dev-tmp-knap-script-v0.1.md           # Script file template
   knowledge/
     dev-knw-knap-architecture.md          # Shard architecture reference
-    dev-knw-knap-manifest.md              # shard.yaml schema reference (id, formerNames, of)
+    dev-knw-knap-manifest.md              # shard.yaml schema reference (id, org, source, dependencies)
     dev-knw-knap-cli.md                   # flint shard CLI reference
   install/
     type-knap-shard.md                    # Shard artifact type definition
@@ -36,9 +36,9 @@ Shards/(Dev Remote) Knap/
 ## What This Shard Covers
 
 - **Shard structure** — File types, naming conventions, directory layout
-- **Manifest schema** — Complete shard.yaml reference, with the shard id
-- **Identity and records** — the id, the alias, the records by id, renames, references, forks
-- **Shard distribution** — How to publish and install shards
+- **Manifest schema** — Complete shard.yaml reference: the shard id, the org, the source id, the dependency map
+- **Source and shard** — the two entities, the build, the states, the lock, the registry, renames, references, forks
+- **Shard distribution** — How to release, clone, and install shards
 - **Templates for everything** — Every shard file type has a template
 - **Validation** — Check shard correctness
 - **Scaffolding workflow** — Create new shards from scratch
