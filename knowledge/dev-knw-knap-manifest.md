@@ -1,5 +1,5 @@
 ---
-description: "Complete shard.yaml schema reference — fields, install modes, dependencies, setup lifecycle, scripts, types"
+description: "Complete shard.yaml schema reference — identity (id, formerNames, of), fields, install modes, dependencies, setup lifecycle, scripts, types"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -10,17 +10,29 @@ Complete reference for the `shard.yaml` manifest file — the configuration that
 
 ```yaml
 # Required fields
-shard-spec: "0.2.0"                  # Shard spec version (conformance level)
+shard-spec: "0.3.0"                  # Shard spec version (conformance level)
+id: 00000000-0000-4000-8000-000000000000  # Stable id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
 name: Shard Name                     # Title Case display name
 shorthand: sh                        # lowercase-letters-only identifier (any length)
 description: What the shard does     # Brief description (one sentence)
 
+# Optional fields — written by the CLI, never by hand
+formerNames:                         # One line per title rename (flint shard rename --title)
+  - name: Old Name
+    slug: old-name
+    at: 2026-09-23T01:19:42.168Z
+formerShorthands: [osh]              # One entry per shorthand rename (flint shard rename --shorthand)
+of:                                  # The source of a fork (flint shard fork)
+  id: 00000000-0000-4000-8000-000000000001
+  address: "@/flint/other-flint/shard/source-shard"
+
 # Optional fields
 dependencies:                        # Shard dependencies
   - source: NUU-Cognition/shard-flint
-    version: "1.0.0"                 # Optional minimum version floor
-  - source: NUU-Cognition/shard-notepad
+    version: "1.0.0"                 # Optional minimum version floor (enforced)
+  - id: 00000000-0000-4000-8000-000000000002   # Optional: match by id
+    source: "@/flint/other-flint/shard/notepad"
 
 setup: full                          # Setup scope: full | flint | local
 
@@ -45,15 +57,37 @@ install:                                      # Files to install into the worksp
 
 ### `shard-spec` (required)
 
-Declares which version of the shard packaging specification this shard follows. Currently `"0.2.0"`.
+Declares which version of the shard packaging specification this shard follows. Currently `"0.3.0"`.
 
 All shards must include this field. It allows tooling to handle backwards compatibility when the spec evolves.
 
 **Spec versions:**
 - `"0.1.0"` — Original spec. Init files contained hardcoded Skills/Workflows/Templates/Knowledge tables. Skill/workflow files started with `Ensure you have [[init-<sh>]] in context before continuing.`
 - `"0.2.0"` — Progressive disclosure. Init files strip discovery tables and declare `required-reading` in YAML frontmatter. Every skill/workflow/template/knowledge file has `description` YAML frontmatter. Skill/workflow context lines use `Run `flint shard start <shorthand>` if you haven't already.` — `flint shard start` assembles the manifest dynamically.
+- `"0.3.0"` — The shard is an entity. The manifest carries `id`, and the CLI writes `formerNames`, `formerShorthands`, and `of`. A dependency can name an `id`, and its `source` uses the one source grammar.
 
-A `shard-spec: "0.1.0"` manifest still parses, and `flint sync` flags it via the `outdated-spec` drift kind on `dev-remote-shards` and `dev-local-shards` features (report-only — never auto-applied). Use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow to migrate; that workflow invokes the `prefix-shard` script to handle the `dev-` filename rename pass automatically. Installed shards are not flagged because the install pipeline will not accept a 0.1.0 manifest in the first place.
+A `"0.2.0"` or `"0.1.0"` manifest still parses. `flint sync` gives an `outdated-spec` notice for a Dev Local or a Dev Remote checkout below the current spec (a notice: sync never changes the checkout). To go from `0.2.0` to `0.3.0`, set `shard-spec: "0.3.0"` and run `flint shard id <alias>`. To go from `0.1.0` to `0.2.0` first, use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow; it invokes the `prefix-shard` script for the `dev-` filename pass.
+
+### `id` (expected from spec `0.3.0`)
+
+The stable identity of the shard: a uuid v4 (v7 is accepted), stored in lowercase. The parser accepts a manifest with no `id`, but a shard without one gets only a held id in each Flint (see below). The id never changes. A title rename and a shorthand rename keep it. Every record of every Flint keys the shard by it.
+
+- `flint shard create` mints the id.
+- `flint shard id <alias>` fills an id into a Dev Local or an edit checkout (Dev Remote) that has none. It writes only the `id` line. On a checkout that is dirty or on a work branch it prints a notice and the next command `flint shard push <alias>`.
+- A replica (an installed copy) never mints an id. `flint shard id` refuses it and names the canon.
+- An installed package with no id gets a **held id**: the Flint mints one, keeps it in `flint.json#shards[<id>]` with `held: { binding: { source, hash } }`, and never writes it into the package. `flint shard list` marks it `(held)`. When a later install of the same source carries a package id, the held record gets `mergedInto: <package id>` and the install prints one line: `Retired the held id <held> of "<Name>" into the package id <id>.`
+
+### `formerNames` (optional, CLI-written)
+
+A list of `{ name, slug, at }`, oldest first. `flint shard rename <alias> --title "<New Name>"` appends one line with the old Title, its slug, and the ISO time. A consumer Flint reads it on `flint sync`: the same id with a new name gives one `moved` change. Do not write it by hand.
+
+### `formerShorthands` (optional, CLI-written)
+
+A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new>` appends the old shorthand. An empty list is absent.
+
+### `of` (optional, CLI-written)
+
+`{ id, address? }`: the shard that this shard was forked from. `flint shard fork` writes it. The `id` is the truth; `address` is a cache of the source address at the time of the fork. A fork always has a new `id` of its own.
 
 ### `version` (required)
 
@@ -67,13 +101,13 @@ Start at `"1.0.0"` for first release. Use `"0.1.0"` for development/pre-release 
 
 ### `name` (required)
 
-Human-readable display name. Title Case. Used as the installed folder name under `Shards/`.
+Human-readable display name. Title Case. The installed folder is `Shards/<Name>/` when the alias of the shard in the Flint is the slug of the name, else `Shards/<Alias As Title>/`. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs.
 
 Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`
 
 ### `shorthand` (required)
 
-A lowercase-letters-only identifier used as the namespace prefix in every file name and as the key under `flint.json#shards[<shorthand>]`:
+A lowercase-letters-only identifier used as the namespace prefix in every file name:
 
 - `init-<sh>.md`
 - `sk-<sh>-name.md`
@@ -84,7 +118,7 @@ A lowercase-letters-only identifier used as the namespace prefix in every file n
 **Rules:**
 - Lowercase letters only (pattern: `/^[a-z]+$/`)
 - Any length (one character is fine — Flint shard uses `f`)
-- MUST be unique across all installed shards in a workspace
+- MUST be unique in one Flint. An install whose shorthand another shard uses is refused before any write: `the shorthand <sh> is used by <alias>`.
 
 Pick the shortest unambiguous form: short shorthands compose well into long filenames. Examples in the wild: `f`, `proj`, `inc`, `ld`, `ntpd`, `orbc`, `knap`.
 
@@ -94,12 +128,13 @@ Brief, single-sentence description of what the shard provides. Used in CLI outpu
 
 ### `dependencies` (optional)
 
-Array of shard dependencies. Each entry is an object with `source` (required) and `version` (optional).
+Array of shard dependencies. Each entry is an object with `source` (required), `id` (optional), and `version` (optional).
 
 ```yaml
 dependencies:
   - source: NUU-Cognition/shard-flint     # Core — almost always required
-  - source: NUU-Cognition/shard-notepad
+  - id: 00000000-0000-4000-8000-000000000002
+    source: "@/flint/other-flint/shard/notepad"
     version: "1.0.0"                      # Minimum version floor
 ```
 
@@ -107,59 +142,58 @@ dependencies:
 
 | Field | Type | Required | Purpose |
 |-------|------|----------|---------|
-| `source` | string | yes | `owner/repo` format |
-| `version` | string | no | Minimum semver floor ("at least this version") |
+| `source` | string | yes | One string of the source grammar: `owner/repo`, a path, or an entity address (`@/flint/<flint>/shard/<alias>`, `@<uuid>`). The legacy `flint://<Flint>/<shard>` also parses. |
+| `id` | string | no | The uuid of the dependency. With an id, any presence of that id in the Flint satisfies it, whatever its alias or source. Without an id, the live record whose canonical source string equals the canonical `source` satisfies it. |
+| `version` | string | no | Minimum semver floor ("at least this version"). Enforced. |
 
 **Rules:**
-- `source` must match `/^[\w.-]+\/[\w.-]+$/` (owner/repo format)
-- Dependencies are transitive (if A depends on B, and B depends on C, A gets C too)
-- Circular dependencies are not allowed
+- A `source` that does not parse is a manifest error (`manifest-error`). A bare word with a space or a character outside `A-Za-z0-9._/~-` does not parse.
+- The floor is enforced. `flint shard install` refuses a shard whose present dependency is below the floor: `dependency <alias> is <v>, <Name> needs at least <floor>`, next `flint shard update <alias>`.
+- Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per dependency (`will install <Name> from <source> (needed by <alias>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
+- A cycle is refused: `the dependencies form a cycle: A -> B -> A`.
+- A missing dependency is a not-current line in `flint sync` with the next command `flint shard install <source>`. A present dependency below its floor is a not-current line with `flint shard update <alias>`.
+- `flint shard info <alias>` and `flint shard status <alias>` show the state of each dependency: `satisfied by <alias> (<id>)`, `missing`, `below floor`, or `invalid source`.
 
-> **Backward compat:** The legacy `depends:` field with plain-string entries (e.g., `- NUU-Cognition/shard-flint`) is still accepted and auto-normalized to `{source}` objects. New manifests should use `dependencies:`.
+> **Backward compat:** The legacy `depends:` field with plain-string entries (e.g., `- NUU-Cognition/shard-flint`) is still accepted and normalised to `{ source }` objects. New manifests use `dependencies:`.
 
 ### `setup` (optional)
 
-Declares that the shard requires one-time setup and what scope of state files to create.
+Declares that the shard requires one-time setup and on which layer the flag lives.
 
 ```yaml
-setup: full     # Both global (tracked) and local (gitignored) state files
-setup: flint    # Global state only
-setup: local    # Local state only (gitignored)
+setup: full     # The Flint layer and the local layer
+setup: flint    # The Flint layer only
+setup: local    # The local layer only
 ```
 
-| Value | Global state file | Local state file | Use when |
-|-------|-------------------|------------------|----------|
-| `full` | Yes (tracked in git) | Yes (gitignored) | Shard needs both shared setup and per-machine setup |
-| `flint` | Yes (tracked in git) | No | Setup is shared — all machines see the same state |
-| `local` | No | Yes (gitignored) | Setup is per-machine only (credentials, local paths) |
-| *(omitted)* | No | No | Shard needs no setup |
+| Value | Flint layer (`flint.json#shards[<id>].setup`, committed) | Local layer (`.flint/shards.json` `shards[<id>].setup`, this machine) |
+|-------|------|------|
+| `full` | Yes | Yes |
+| `flint` | Yes | No |
+| `local` | No | Yes |
+| *(omitted)* | No | No |
+
+A layer holds one of `required`, `not-required`, `completed`, or `none` (the layer is not declared).
 
 When `setup` is declared:
 - A companion `dev-setup-<sh>.md` file must exist at the shard root (installed as `setup-<sh>.md`). The installer refuses to install a shard that declares `setup` but has no setup file.
-- The installer creates state files under `Shards/(Shards) State/` and/or `Shards/(Shards) Local State/` based on scope; the local-state folder is auto-added to `.gitignore`.
-- `flint shard start` reads both layers and emits a `SETUP REQUIRED` banner with the setup-file content when either layer is `setup: required`. Init content is withheld until the layer flips to `completed`.
-
-**State file layout:**
-
-| Scope | Path | Git tracked? |
-|-------|------|-------------|
-| Flint (committed) | `Shards/(Shards) State/(Shard) <Name>.md` | Yes |
-| Local | `Shards/(Shards) Local State/(Shard) <Name> (Local).md` | No (gitignored) |
+- The install writes `required` into each declared layer of the record. There are no state files.
+- `flint shard start` reads both layers from the records. When a layer is `required`, it prints `FORCE SETUP`, the setup file, and the banner `SETUP REQUIRED`, and exits 1. The init content is withheld until the layer is `completed`.
 
 **Inspecting and transitioning state — `flint shard setup`:**
 
 ```bash
-flint shard setup <name>                          # show current state for both layers
-flint shard setup <name> --complete               # mark all manifest-declared layers as completed
-flint shard setup <name> --complete --scope flint # only the committed layer
-flint shard setup <name> --complete --scope local # only the local layer
-flint shard setup <name> --complete --scope both  # both, regardless of manifest scope
-flint shard setup <name> --reset                  # flip back to required (force a re-setup pass)
+flint shard setup <alias>                          # show the state of both layers
+flint shard setup <alias> --complete               # mark all manifest-declared layers as completed
+flint shard setup <alias> --complete --scope flint # only the Flint layer
+flint shard setup <alias> --complete --scope local # only the local layer
+flint shard setup <alias> --complete --scope both  # both, regardless of manifest scope
+flint shard setup <alias> --reset                  # back to required (force a re-setup pass)
 ```
 
-The default `--scope` is derived from `manifest.setup`: `'full'` → both layers, `'flint'` → committed, `'local'` → local. The command always prints the post-condition state so an agent can confirm the result.
+The default `--scope` is derived from `manifest.setup`: `full` → both layers, `flint` → the Flint layer, `local` → the local layer. The command prints the state after the change. A layer with no record prints `(no record)`.
 
-**Note:** The `setup` field in `shard.yaml` declares scope. State files have their own `setup` frontmatter field that tracks completion status (`required`, `not-required`, `completed`). These are different fields with the same name in different contexts.
+**Note:** The `setup` field in `shard.yaml` declares the scope. The `setup` field of a record tracks the state (`required`, `not-required`, `completed`, `none`). These are different fields with the same name.
 
 ### `types` (optional)
 
@@ -303,7 +337,7 @@ YAML is permissive about unquoted strings. Leaving strings unquoted keeps manife
 
 **DO need quotes:**
 - Version numbers: `version: "1.0.0"` — otherwise YAML may interpret `1.0` as a float (`1.0.0` parses fine as a string, but `"1.0.0"` is defensive and consistent)
-- `shard-spec: "0.2.0"` — same reason
+- `shard-spec: "0.3.0"` — same reason
 - Strings that look like booleans or keywords: `"yes"`, `"no"`, `"true"`, `"false"`, `"null"`, `"on"`, `"off"`
 - Strings starting with YAML metacharacters: `{`, `}`, `[`, `]`, `,`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``, `#`
 - Strings starting or ending with whitespace (rare)
@@ -317,7 +351,7 @@ Examples:
 name: Projects                                  # no quotes
 description: Task management with lifecycle     # no quotes
 shorthand: proj                                 # no quotes
-shard-spec: "0.2.0"                             # quoted (version string)
+shard-spec: "0.3.0"                             # quoted (version string)
 version: "1.0.0"                                # quoted (version string)
 setup: full                                     # no quotes (enum)
 folders:
@@ -333,10 +367,10 @@ install:
 
 The legacy `state: true` boolean, the `requires: { cli, workspace }` block, and `scripts:` declarations are predecessors of the `setup:` field and auto-discovery model. Their handling depends on the manifest's `shard-spec`:
 
-| Field | On `shard-spec: "0.2.0"` | On `shard-spec: "0.1.0"` |
+| Field | On `shard-spec: "0.2.0"` and `"0.3.0"` | On `shard-spec: "0.1.0"` |
 |-------|--------------------------|--------------------------|
-| `state: true` | **Hard error** (parser refuses the manifest) | Warning. Health checks treat `state: true` as `setup: full` so existing state files keep validating. |
-| `requires.cli` / `requires.workspace` | **Hard error** | Warning. `requires.workspace` still implies a local-state file at health-check time. |
+| `state: true` | **Hard error** (parser refuses the manifest) | Warning. Health checks treat `state: true` as `setup: full`. |
+| `requires.cli` / `requires.workspace` | **Hard error** | Warning. |
 | `scripts:` (explicit list) | **Hard error** | Warning. Scripts are auto-discovered from `scripts/*.js` regardless. |
 | `repos:` (when paired with the above legacy fields) | Allowed at the modern slot — see [`repos`](#repos-optional). The error is in pairing it with `state:` / `requires:` on the same manifest. | n/a |
 
@@ -358,7 +392,8 @@ Useful for Obsidian templates and system files that need unique IDs or timestamp
 ### Dashboard-Only Shard
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000
 version: "1.0.0"
 name: My Dashboard
 shorthand: md
@@ -374,7 +409,8 @@ install:
 ### Full Artifact Shard
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000
 version: "1.0.0"
 name: Projects
 shorthand: proj
@@ -395,7 +431,8 @@ folders:
 ### Minimal Shard
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000
 version: "1.0.0"
 name: Living Documents
 shorthand: ld
@@ -407,7 +444,8 @@ dependencies:
 ### Shard with Obsidian Templates
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000
 version: "1.0.0"
 name: Projects
 shorthand: proj
@@ -429,7 +467,8 @@ install:
 ### Shard with Setup
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000
 version: "1.0.0"
 name: My Integration
 shorthand: mi
@@ -444,12 +483,14 @@ Requires a companion `dev-setup-mi.md` (installed as `setup-mi.md`) describing c
 ## Validation Rules
 
 A valid `shard.yaml` must have:
-- [ ] `shard-spec` — non-empty string (warning if not `"0.2.0"`)
+- [ ] `shard-spec` — `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` (an `outdated-spec` notice below `"0.3.0"`; any other value is refused)
+- [ ] `id` — a uuid v4 or v7 when present (expected from `"0.3.0"`; fill it with `flint shard id <alias>`)
 - [ ] `version` — valid semver string (`major.minor.patch`)
 - [ ] `name` — non-empty string (warning if not Title Case)
 - [ ] `shorthand` — non-empty lowercase-letters-only string (any length; pattern `^[a-z]+$`)
 - [ ] `description` — non-empty single-line string
-- [ ] All `dependencies[].source` entries use `owner/repo` format
+- [ ] All `dependencies[].source` entries parse in the source grammar (`owner/repo`, a path, or an address)
+- [ ] All `dependencies[].id` entries are uuids (if present)
 - [ ] All `dependencies[].version` entries are valid semver (if present)
 - [ ] All `types[]` entries match `Type` or `Type.Subtype` Title Case
 - [ ] All `install[].source` files exist in the `install/` folder
@@ -463,4 +504,4 @@ A valid `shard.yaml` must have:
 - [ ] All `repos[].remote` are `owner/repo` form
 - [ ] All `repos[].ref` are tags or 40-char SHAs (branch names rejected: `main`, `master`, `develop`, `development`, `trunk`, `HEAD`)
 
-Validation is permissive for format issues (title case, shorthand pattern) — these produce warnings, not errors. Missing required fields, type mismatches, and path traversal attempts produce errors. Legacy fields (`state`, `requires`, `scripts`) produce warnings on `shard-spec: "0.1.0"` and **hard errors** on `shard-spec: "0.2.0"` — see [Deprecated Fields](#deprecated-fields).
+Validation is permissive for format issues (title case, shorthand pattern) — these produce warnings, not errors. Missing required fields, type mismatches, and path traversal attempts produce errors. Legacy fields (`state`, `requires`, `scripts`) produce warnings on `shard-spec: "0.1.0"` and **hard errors** on `shard-spec: "0.2.0"` and above — see [Deprecated Fields](#deprecated-fields).

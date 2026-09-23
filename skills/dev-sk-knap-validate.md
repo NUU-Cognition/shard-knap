@@ -17,17 +17,19 @@ Validate that a shard follows Flint conventions and is structurally complete.
 # Actions
 
 1. **Check shard.yaml.** Verify the manifest exists and contains all required fields:
-   - [ ] `shard-spec` — non-empty string (warning if not `"0.2.0"`)
+   - [ ] `shard-spec` — `"0.3.0"` (current); `"0.2.0"` or `"0.1.0"` is a warning (outdated spec); any other value is an error
+   - [ ] `id` — a uuid v4 or v7 (warning if absent: run `flint shard id <alias>` in a Dev Local or an edit checkout)
+   - [ ] `formerNames`, `formerShorthands`, `of` — if present, written by the CLI (`rename`, `fork`); `formerNames[]` is `{ name, slug, at }`, `of` is `{ id, address? }`
    - [ ] `version` — valid semver string (`major.minor.patch`)
    - [ ] `name` — non-empty, Title Case (warning otherwise)
    - [ ] `shorthand` — lowercase-letters-only string (any length, pattern `^[a-z]+$`)
    - [ ] `description` — non-empty single-line string
-   - [ ] `dependencies` — if present, each entry has `source` in `owner/repo` format
+   - [ ] `dependencies` — if present, each entry has a `source` of the source grammar (`owner/repo`, a path, or an address `@/flint/<flint>/shard/<alias>` / `@<uuid>`), an optional `id` (uuid), and an optional `version` floor (semver)
    - [ ] `setup` — if present, value is `full`, `flint`, or `local`
    - [ ] `types` — if present, each entry is `Type` or `Type.Subtype` Title Case (multi-word names allowed)
    - [ ] `folders` — if present, each entry is a relative path from flint root
    - [ ] `install` — each entry has `source` and `dest`; `mode` is `once` or `force` (or legacy boolean flags)
-   - [ ] No deprecated fields: `state`, `scripts`, `requires.cli`, `requires.workspace`, `repos`, legacy `depends` (warn on each)
+   - [ ] No deprecated fields: `state`, `scripts`, `requires.cli`, `requires.workspace`, legacy `depends` (warn on each)
 
 2. **Check init file.** Verify `init-<shorthand>.md` (or `dev-init-<shorthand>.md` for dev shards) exists and contains:
    - [ ] Shard name as heading

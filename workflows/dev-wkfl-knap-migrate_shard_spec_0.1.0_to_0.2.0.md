@@ -66,10 +66,10 @@ Present the user with:
 
 ## Stage 5: Finalize
 
-If the workspace also needs an installed copy of the shard separate from the dev folder, declare it under `[shards].installed[]` and run `flint shard reinstall <name>` (or `flint sync`). Dev and installed are separate folders — see [[dev-knw-knap-architecture]] § Lifecycle Modes.
+The record of the shard in `flint.toml` (`<alias> = { id, source, edit = true }` for a checkout, `<alias> = { id, source = "./Shards/(Dev Local) <Name>" }` for a Dev Local) also installs the copy. Run `flint shard reinstall <alias>` (or `flint sync`) to refresh it. Dev and installed are separate folders — see [[dev-knw-knap-architecture]] § Lifecycle Modes.
 
 # Output
 
 - Target shard fully conforms to the conventions in [[dev-knw-knap-architecture]] and [[dev-knw-knap-manifest]].
 - `shard-spec: "0.2.0"` in `shard.yaml`.
-- `flint sync` reports no `outdated-spec` drift.
+- `flint sync` still gives the `outdated-spec` notice, because `0.3.0` is current. To finish, set `shard-spec: "0.3.0"` and run `flint shard id <alias>` (see [[dev-knw-knap-manifest]] § `shard-spec`).

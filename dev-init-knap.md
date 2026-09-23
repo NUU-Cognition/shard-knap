@@ -39,7 +39,7 @@ Every shard is in one of three modes:
 | `dev-remote` | `Shards/(Dev Remote) <Name>/` | Yes — changes pushed to origin |
 | `dev-local` | `Shards/(Dev Local) <Name>/` | Yes — no remote |
 
-Source files inside dev folders are prefixed `dev-` (e.g., `dev-init-<sh>.md`). Dev and installed copies live in **separate folders**: the dev source at `Shards/(Dev Remote\|Local) Name/`, the installed deployment at `Shards/Name/` (no prefix). The installer strips the `dev-` prefix when copying source files into the installed folder. Files in `install/` are the exception: they are literal payloads and carry no dev prefix in either location.
+All folders of one shard are presences of one entity with one `id` (in `shard.yaml`). Source files inside dev folders are prefixed `dev-` (e.g., `dev-init-<sh>.md`). Dev and installed copies live in **separate folders**: the dev source at `Shards/(Dev Remote\|Local) Name/`, the installed deployment at `Shards/Name/` (no prefix). The installer strips the `dev-` prefix when copying source files into the installed folder. Files in `install/` are the exception: they are literal payloads and carry no dev prefix in either location.
 
 ## Shard Structure
 
@@ -96,12 +96,13 @@ Dev-mode files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast
 
 ## Shard Manifest (shard.yaml)
 
-The manifest defines identity, dependencies, setup lifecycle, and installation behavior.
+The manifest defines identity (the `id`), dependencies, setup lifecycle, and installation behavior.
 
 For the complete schema reference, see [[dev-knw-knap-manifest]].
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: 00000000-0000-4000-8000-000000000000    # Minted by flint shard create — never edit
 version: "1.0.0"
 name: Shard Name
 shorthand: sh
@@ -109,6 +110,7 @@ description: What this shard does
 dependencies:
   - source: NUU-Cognition/shard-flint      # Always depend on Flint (core)
   - source: NUU-Cognition/shard-notepad
+    version: "1.0.0"                        # Optional floor (enforced)
 setup: full                                 # full | flint | local
 types:
   - Task
@@ -122,13 +124,13 @@ folders:
 
 ## Dev Shard Authoring
 
-Dev shards live at `Shards/(Dev Remote) <Name>/` or `Shards/(Dev Local) <Name>/` for live development and testing. They are fully functional — agents can load and use them immediately. To re-deploy installed copies of declared shards from their source, run `flint shard reinstall [<name>]` (or `flint sync` — the kernel emits `not-installed` drift and applies it).
+Dev shards live at `Shards/(Dev Remote) <Name>/` or `Shards/(Dev Local) <Name>/` for live development and testing. They are fully functional — agents can load and use them immediately. To re-deploy the installed copy of a shard from its source, run `flint shard reinstall [<alias>]` (or `flint sync` — the kernel emits `not-installed` drift and applies it).
 
 To create a dev shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
 
 ## Shard CLI
 
-`flint shard` is the only supported way to mutate shard state. Every authoring action — create, rename, install, reinstall, run scripts, migrate, publish — has a CLI command. Always use the CLI; do not edit `flint.toml#[shards]` or rename folders by hand.
+`flint shard` is the only supported way to change shard state. Every authoring action — create, id, rename, fork, install, reinstall, run scripts, migrate, publish — has a CLI command. A command names a shard by its alias, shorthand, id, or address. Always use the CLI; do not edit `flint.json#shards` or `.flint/shards.json`, do not write `id`, `formerNames`, or `of` by hand, and do not rename folders by hand.
 
 For the full command surface, resolution rules (dev vs installed), authoring flow, and anti-patterns, see [[dev-knw-knap-cli]].
 

@@ -12,27 +12,44 @@ description: "Shard manifest (shard.yaml) file structure"
 The manifest defines the shard's identity, dependencies, setup scope, and installation behaviour. See [[dev-knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
 
 ```yaml
-shard-spec: "0.2.0"
+shard-spec: "0.3.0"
+id: [generate-uuid4]
 version: "[semver version, e.g. 1.0.0]"
 name: [Shard Name in Title Case]
 shorthand: [lowercase-letters-only identifier, any length]
 description: [Brief description of what the shard does, one sentence]
 
-/* Optional: shard dependencies. Each entry is an object with required `source` and optional `version` floor. */
+/* Optional: written by `flint shard rename <alias> --title`. One line per title rename, oldest first. Do not write it by hand. */
+formerNames:
+  - name: [Former Title]
+    slug: [former-slug]
+    at: [ISO 8601 time of the rename]
+
+/* Optional: written by `flint shard rename <alias> --shorthand`. One entry per shorthand rename, oldest first. */
+formerShorthands:
+  - [former shorthand]
+
+/* Optional: written by `flint shard fork`. The shard that this shard was forked from. `id` is the truth; `address` is a cache. */
+of:
+  id: [uuid of the source shard]
+  address: "[entity address of the source, e.g. @/flint/<flint>/shard/<alias>]"
+
+/* Optional: shard dependencies. `source` is required. `id` is optional and makes the match by id. `version` is a floor. */
 dependencies:
   - source: NUU-Cognition/shard-flint
-  - source: [other owner/repo]
+  - id: [uuid of the dependency, optional]
+    source: [owner/repo, a path, or an address @/flint/<flint>/shard/<alias>]
     version: "[minimum semver, optional]"
   - (continue)
 
-/* Optional: declare that the shard needs one-time setup and what scope of state files to create.
+/* Optional: declare that the shard needs one-time setup and on which layer.
    Requires a companion `dev-setup-<sh>.md` file at the shard root (installed as `setup-<sh>.md`).
-   
+
    Scopes:
-     full  — both global (tracked) and local (gitignored) state files
-     flint — global state only (shared across machines)
-     local — local state only (per-machine, gitignored)
-   
+     full  — the Flint layer (flint.json#shards[<id>].setup) and the local layer (.flint/shards.json)
+     flint — the Flint layer only (shared by every clone of the Flint)
+     local — the local layer only (this machine)
+
    Omit the field entirely if the shard needs no setup. */
 setup: full
 
@@ -76,13 +93,16 @@ install:
 
 ## Rules
 
-- `shard-spec`: Currently `"0.2.0"`. A `"0.1.0"` manifest still parses (with a deprecation warning); `flint sync` flags it via the `outdated-spec` drift kind. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are HARD ERRORS at `"0.2.0"`.
+- `shard-spec`: `"0.3.0"` is current. `"0.2.0"` and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a checkout at a lower spec. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
+- `id`: a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a Dev Local or an edit checkout that has none. Never change it: every record of every Flint finds the shard by it. A replica (an installed copy) never mints an id.
+- `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --title`, `rename --shorthand`, `fork`). Do not write them by hand.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
-- `name`: Title Case, becomes the installed folder name (`Shards/<Name>/`).
-- `shorthand`: lowercase letters only, any length. Pick the shortest unambiguous form. Used in every file name and as the key under `flint.json#shards[<sh>]`.
-- `dependencies[].source`: `owner/repo` format. Almost always include `NUU-Cognition/shard-flint`.
-- `dependencies[].version`: Optional minimum semver floor.
-- `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Authors mark setup complete via `flint shard setup <name> --complete`.
+- `name`: Title Case. The installed folder is `Shards/<Name>/` when the alias is the slug of the name, else `Shards/<Alias As Title>/`.
+- `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.
+- `dependencies[].source`: one string of the source grammar: `owner/repo`, a path, or an entity address. Almost always include `NUU-Cognition/shard-flint`.
+- `dependencies[].id`: optional. With an id, any presence of that id in the Flint satisfies the dependency, whatever its alias or source. Without an id, the canonical source string must match.
+- `dependencies[].version`: optional minimum version. The install refuses a present dependency below it.
+- `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Mark setup complete with `flint shard setup <alias> --complete`.
 - `types[]`: Title Case, `Type` or `Type.Subtype`. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation.
 - `folders[]`: Explicit folder paths. `types:` does NOT auto-create artifact folders.
 - `install[]`: `source` must NOT start with `dev-` — `install/` files are literal payloads.
@@ -90,7 +110,7 @@ install:
 
 ## Quoting
 
-YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.2.0"`, `"1.0.0"`) and anything starting with a YAML metacharacter. See [[dev-knw-knap-manifest]] § YAML Quoting Guide.
+YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.3.0"`, `"1.0.0"`) and anything starting with a YAML metacharacter. See [[dev-knw-knap-manifest]] § YAML Quoting Guide.
 
 ## Not Declared Here
 
@@ -102,6 +122,5 @@ Scripts, skills, workflows, headless workflows, templates, knowledge files, head
 - `scripts`: Removed. Scripts are auto-discovered from `scripts/*.js`.
 - `requires.cli`: Removed. Document required CLI tools in `dev-setup-<sh>.md` prose instead.
 - `requires.workspace`: Removed. Replaced by the `dev-setup-<sh>.md` lifecycle file.
-- `repos`: Removed. Use `dev-setup-<sh>.md` for repo-cloning instructions.
 - `depends`: Legacy plain-string dependencies — migrate to `dependencies` with `{source}` objects.
 - `once: true` / `force: true` boolean flags on install entries — use `mode: once` / `mode: force`.
