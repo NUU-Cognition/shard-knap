@@ -189,7 +189,7 @@ dependencies:
 - A missing dependency is a not-current line in `flint sync` with the next command `flint shard install '@org/name@<range>'`. A present dependency outside its range is a not-current line (`dependency-out-of-range`) with the same next command.
 - `flint shard info <alias>` and `flint shard status <alias>` show the state of each dependency, for example `@nuu-cognition/shard/plan@^0.4 satisfied by plan (<id>)`.
 
-> **Legacy input.** The list form of spec `0.3.0` before the package model (`- { source: NUU-Cognition/shard-flint, id?, version? }`, where `version` is a floor) and the older `depends:` list still parse. New manifests use the map. The Flint migration `flint-0.6.0-to-0.7.0` rewrites a list into the map.
+> **Legacy input.** The list form of spec `0.3.0` before the package model (`- { source: NUU-Cognition/shard-flint, id?, version? }`, where `version` is a floor) and the older `depends:` list still parse. New manifests use the map. The step `s5` of the Flint migration `flint-0.6.0-to-0.7.0` rewrites a list into the map when every entry names a shard of the Flint whose source is there; an entry with no floor becomes `""`, and a floor `x.y.z` becomes `^x.y.z` only when that shard is inside it. Else the list stays, with a warning.
 
 ### `setup` (optional)
 

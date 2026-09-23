@@ -332,7 +332,7 @@ Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_
 |---------|---------|
 | `flint sync [--dry-run]` | Two reconciles. **The shard reconcile** makes `Shards/<Name>/` match the lock: it installs a missing shard, builds a stale build of a source again, fetches the locked version when the build differs from the lock, heals a rename (`moved`), and records a changed registry answer (with a notice). **The source reconcile** reports the Git state of each source (`draft, ahead by N`, `behind`, `dirty`) and records it; it never changes a source. A missing dependency or a dependency outside its range is not current, with the next command. |
 | `flint resolve <spec> [--json]` | The answer of the walk (see [The Package Spec](#the-package-spec)). |
-| `flint migrate run [--dry-run]` | Run the pending Flint migration steps. The steps `s5`, `s6`, and `l4` of `flint-0.6.0-to-0.7.0` upgrade a Flint to the package model (see [[dev-knw-knap-architecture]] § Upgrade of an Older Flint). `flint migrate rollback` undoes a run. |
+| `flint migrate run [--dry-run]` | Run the pending Flint migration steps. The steps `s5`, `s6`, and `l4` of `flint-0.6.0-to-0.7.0` take a 0.6.0 Flint to the package model in one run: both ids and `org` in every source, the moves to `(Source Local)` and `(Source Remote)`, the toml rewrite, the lock at `shard-record/0.2` (see [[dev-knw-knap-architecture]] § Identity and Records, "Upgrade of an older Flint"). `flint migrate rollback <run>` undoes a run. A Flint of the pre-release 0.7.0 steps is restored from its backup first. |
 
 ```
 $ flint sync --dry-run
