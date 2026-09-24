@@ -67,7 +67,7 @@ The shard id and the source id are the truth. Names are for people; the CLI stor
 
 **The alias.** The key of the record in `flint.toml` is its alias: the local name of the shard in this Flint. It defaults to the slug of the name. `flint shard install <input> --alias <alias>` sets another one; a second shard with the same slug needs it. The build folder is the name when the alias is the slug of the name, else the alias as a Title.
 
-**The ref.** A command names one shard with a `<ref>`, read by one resolver in this order: the alias, the shorthand, the address (full or short), the id (or a prefix of eight or more characters), then a former name, slug, address, or shorthand with the note `moved: <old> is now <new>`. The current name and a folder name are not a ref. See [[dev-knw-knap-cli]] § The Ref.
+**The ref.** A command names one shard with a `<ref>`, read by one resolver in this order: the alias, the shorthand, the address (full or short), the id (or a prefix of eight or more characters), then a former address or a former shorthand with the note `moved: <old> is now <new>`. A bare word is an alias or a shorthand; a name is an address. The name, a former name, a bare former slug, and a folder name are not a ref. See [[dev-knw-knap-cli]] § The Ref.
 
 **The three places of shard state:**
 
@@ -143,8 +143,9 @@ A rename of the name is one manifest edit plus one reconcile. The whole process 
 
 - **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source writes the new `name` and one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
 - **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, the registry (the read of the registry notice), or the build after `flint shard update`.
-- **The heal**, in one order with one restore: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
-- **Old names** still resolve as a ref, with `moved: <old> is now <new>`.
+- **The heal**, in one order, in one transaction: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
+- **Old names.** A former address and a former shorthand resolve as a ref, with `moved: <old> is now <new>`. A bare former slug does not.
+- **One transaction.** The author edit, the heal, and the build are one transaction under the store lock. A failure at any step puts every store back: the source, the files, the links, the intent, the lock, the local facts, and a retired held id. A restore that fails names each store that is not back and the backup paths.
 - **What does not change:** the ids, the repository, the ledger ids, a custom alias and its folder, the manifest of a published build.
 - **A shorthand rename** (`--shorthand <new>`) bumps the major version and scaffolds an agent step with the block `rewrite: { shorthand: { from, to } }`. In a consumer, `flint shard migrate run <alias>` rewrites the tags, the link stems, and the command texts of the Mesh as code, then stops at the agent step for the prose.
 
@@ -292,12 +293,12 @@ Two facts make this safe:
 
 ### Headless Init File (`hinit-<sh>.md`)
 
-Optional alternate init file loaded when the shard runs in a headless Orbh session. Loaded by `flint shard hstart <sh>` (the headless counterpart of `flint shard start`). Replaces the interactive init — the human-facing stages and checkpoints are gone; progress is reported via Orbh session keys.
+Optional alternate init file loaded when the shard runs in a headless Orbh session. `flint shard hstart <ref>` (the headless counterpart of `flint shard start`) loads it and the files of its `required-reading:`, in place of `init-<sh>.md`. The human-facing stages and checkpoints are gone; progress is reported via Orbh session keys. The contract is in [[(Spec) Flint Shards . Content]] § Headless Init.
 
 - Auto-discovered if the file exists — no manifest declaration needed
 - Same frontmatter format as the interactive init
 - Typically refers to the interactive init for fundamentals and focuses on what's different in headless mode
-- Running `flint shard hstart <sh>` when no `hinit-<sh>.md` exists is an error — interactive mode is the default
+- `flint shard hstart <ref>` of a shard with no `hinit-<sh>.md` refuses (exit 1) with the next command `flint shard start <ref>`. There is no fallback: the agent runs `flint shard start <ref>` and reads the interactive init
 
 ### Setup File (`setup-<sh>.md`)
 

@@ -12,7 +12,7 @@ The words (source, shard, build, install, spec, lock, registry, place, name, slu
 
 ## The Ref
 
-A command that takes `<ref>` names one shard of this Flint. One resolver reads the ref, in this order; the first rule that matches wins:
+A command that takes `<ref>` names one shard of this Flint. The rule: **a bare word is an alias or a shorthand; a name is an address.** One resolver reads the ref, in this order; the first rule that matches wins. The spec states the forms in [[(Spec) Flint Shards . Lifecycle]] § The Ref.
 
 | Order | Form | Example |
 |-------|------|---------|
@@ -20,11 +20,11 @@ A command that takes `<ref>` names one shard of this Flint. One resolver reads t
 | 2 | The shorthand | `ntpd` |
 | 3 | The address, full or short (a range and a place are cut off) | `@nuu-cognition/shard/notepad`, `@nuu-cognition/notepad@^1.1` |
 | 4 | The id, `@<id>`, or an id prefix of eight or more characters | `76d64e3e` |
-| 5 | A former name, slug, address, or shorthand | `scratchpad` after a rename to Notepad |
+| 5 | A former address (`@org/<former slug>`, `@org/shard/<former slug>`), or a former shorthand as a bare word | `@nuu-cognition/meeting-notes` after a rename to Meeting Log; `meet` after a shorthand rename to `mlog` |
 
-A former form prints `moved: <old> is now <new>` on stderr and goes on; `--json` carries `moved: { from, to }`.
+A former form prints `moved: <old> is now <new>` on stderr and goes on; `--json` carries `moved: { from, to }`. A former name resolves only in its address form.
 
-**Not a ref:** the current name, a folder name, the kebab of the name of a shard with a custom alias, a camelCase split, and an `init-` stem. They give `not-found` with the next command `flint shard list`. Use the alias.
+**Not a ref:** the name, a former name, a bare former slug (the former alias: `meeting-notes` after the rename), a folder name, the kebab of the name of a shard with a custom alias, a camelCase split, and an `init-` stem. They give `not-found` with the next command `flint shard list`. Use the alias; for a former name, use its address.
 
 When a ref names two shards, the command stops with the code `ambiguous` and gives one next command per shard, each with its alias (`flint shard status <alias>`). Nothing is written.
 
@@ -208,7 +208,7 @@ The transitive plan prints one line per missing package before any write, then i
 | `flint shard dev <ref> <url>` | Promote a local source to a remote source: `git init`, set the remote, commit, push. The folder becomes `(Source Remote) <Name>`, the source id stays, and the record gets `git = "owner/repo"`. |
 | `flint shard clone <spec> [--from-git <owner/repo>] [--alias <alias>] [--no-build] [--json]` | Clone the source of a published shard into `Shards/(Source Remote) <Name>/`. The registry says where the repository is. Writes `{ source = "@org/<slug>", from = "source" }` (with `git` for a location that you gave) and builds the shard. |
 | `flint shard fork <spec> --name "<Name>" [--shorthand <sh>] [--no-install] [--json]` | Make a new local source with a new shard id and a new source id, and `of` on each. The origin does not change. A fork in the same Flint needs a new shorthand. |
-| `flint shard rename <ref> --name "<New Name>" [--json]` | Source only. One manifest edit (`name` and one `formerNames` line) plus the reconcile of this Flint: the source folder, the build folder, the key, the request, the lock, the type files with their links, the dependency keys of dependents. Every consumer heals at `flint sync`. See [[dev-knw-knap-architecture]] § Renames. |
+| `flint shard rename <ref> --name "<New Name>" [--json]` | Source only. One manifest edit (`name` and one `formerNames` line) plus the reconcile of this Flint: the source folder, the build folder, the key, the request, the lock, the type files with their links, the dependency keys of dependents. The command is one transaction: a failure at any step puts every store back, or names each store that is not back and the backup paths. Every consumer heals at `flint sync`. See [[dev-knw-knap-architecture]] § Renames. |
 | `flint shard rename <ref> --shorthand <new> [--json]` | Source only. Renames the prefixed files, rewrites the tags, links, and commands of the source, adds `formerShorthands`, bumps the major version, scaffolds `migrations/dev-mig-<new>-<from>-to-<to>.md` (an agent step with a `rewrite` block), and builds again (the step is queued for the build). A failure restores every file. |
 | `flint shard id <ref> [--dry-run] [--json]` | Fill an absent shard id, source id, and `org` (the org of the Flint) into a source. A shard that is only a build is refused with `not-a-source`. On a dirty source or a work branch it writes the values and prints the next command `flint shard push <ref>`. |
 | `flint shard type add <Name> --shard <ref> [--description] [--folder] [--dashboard] [--obsidian]` | Add an artifact type to a source and build it. |

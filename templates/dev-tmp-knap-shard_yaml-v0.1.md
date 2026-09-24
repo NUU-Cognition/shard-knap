@@ -100,7 +100,7 @@ install:
 - `id`: the shard id, a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a source that has none. Never change it: the lock of every Flint and the registry find the shard by it. A shard that is only a build never mints an id.
 - `org`: the org slug. The address is `@<org>/shard/<slug>`. `create`, `fork`, and `flint shard id` write the org of the Flint. Absent means no org (`@/shard/<slug>`).
 - `source.id`: the source id. `flint shard create` mints it, `flint shard dev` keeps it, a clone never mints it, and `flint shard fork` mints a new one with `source.of`.
-- `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --name`, `rename --shorthand`, `fork`). Do not write them by hand. A former name still resolves, with a `moved` note.
+- `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --name`, `rename --shorthand`, `fork`). Do not write them by hand. A former name resolves only in its address form (`@org/<former slug>`), and a former shorthand as a bare word, with a `moved` note.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
 - `name`: the Display Name law (letters, digits, spaces, `-`, and `' , . ! & + ; @`; no `/ # ( ) [ ] : ?`; no trailing dot). Proper Case is the convention; the health check warns, never refuses. The slug is `slugKey(name)`, so a rename of the name moves the address (the id stays). The build folder is the name when the alias is the slug, else the alias as a Title.
 - `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.

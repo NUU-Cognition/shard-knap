@@ -38,7 +38,7 @@ A shard is a package with two entities:
 | The **source**: the files a person edits | `Shards/(Source Local) <Name>/` (no repository) or `Shards/(Source Remote) <Name>/` (a clone of a repository) | `shard.yaml#source.id` | `flint shard start-dev` |
 | The **shard**: the built package | `Shards/<folder>/`: the name when the alias is the slug of the name, else the alias as a Title | `shard.yaml#id` | `flint shard start` |
 
-The address is `@org/shard/<slug>` (the slug is `slugKey(name)`); `@org/<slug>` is its short form. The words are in the glossary of the spec ([[(Spec) Flint Shards#Glossary]]). **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts a shard at a published version into a Flint, proven by its hash. The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
+The address is `@org/shard/<slug>` (the slug is `slugKey(name)`); `@org/<slug>` is its short form. The words are in the glossary of the spec ([[(Spec) Flint Shards#Glossary]]). **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts the selected package into a Flint. The lock state says what the install got: `published` when the hash of the build is the hash of the registry tag, `snapshot` with the sha of a known Git commit, or `edited` (no proof). The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
 
 Source files are prefixed `dev-` (e.g., `dev-init-<sh>.md`). The build strips the prefix. Files in `install/` are the exception: they are literal payloads and carry no prefix in either folder.
 
@@ -133,7 +133,7 @@ To create a shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-de
 
 ## Shard CLI
 
-`flint shard` is the only supported way to change shard state. Every authoring action — create, build, dev, clone, release, install, update, fork, rename, id, uninstall, run scripts, migrate — has a CLI command. A command names a shard by a `<ref>`: its alias, shorthand, address, or id; a former name resolves with the note `moved: <old> is now <new>`. A rename is `flint shard rename <alias> --name "<Name>"` (one manifest edit; every Flint heals at `flint sync`). Always use the CLI; do not edit `flint.json#shards` or `.flint/shards.json`, do not write `id`, `source.id`, `formerNames`, or `of` by hand, and do not rename folders by hand.
+`flint shard` is the only supported way to change shard state. Every authoring action — create, build, dev, clone, release, install, update, fork, rename, id, uninstall, run scripts, migrate — has a CLI command. A command names a shard by a `<ref>`: its alias, shorthand, address, or id; a former address or a former shorthand resolves with the note `moved: <old> is now <new>` ([[dev-knw-knap-cli]] § The Ref). A rename is `flint shard rename <alias> --name "<Name>"` (one manifest edit; every Flint heals at `flint sync`). Always use the CLI; do not edit `flint.json#shards` or `.flint/shards.json`, do not write `id`, `source.id`, `formerNames`, or `of` by hand, and do not rename folders by hand.
 
 For the full command surface, the package spec `@org/name[@version][#place]`, the resolution walk, the authoring flow, and anti-patterns, see [[dev-knw-knap-cli]].
 

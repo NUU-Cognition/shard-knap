@@ -9,7 +9,7 @@ description: "Shard init file structure"
 | Dev source path | `dev-init-<sh>.md` (at the shard root) |
 | Installed path | `init-<sh>.md` (the installer strips `dev-`) |
 | Wikilink form | dev source: `[[dev-init-<sh>]]` → installer strips to `[[init-<sh>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
-| Headless variant | `dev-hinit-<sh>.md` → `hinit-<sh>.md`, loaded by `flint shard hstart` when present |
+| Headless variant | `dev-hinit-<sh>.md` → `hinit-<sh>.md`, loaded by `flint shard hstart` in place of the init; `hstart` refuses a shard without one |
 
 **Every shard MUST have an init file.** This is the entry point agents load when they need the shard's capabilities. `flint shard start <name>` returns the init body plus a dynamically-assembled manifest of skills, workflows, templates, and knowledge files.
 
