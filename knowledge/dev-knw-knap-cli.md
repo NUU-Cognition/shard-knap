@@ -50,7 +50,7 @@ The short form `@org/name` is valid only in a shard context (`[shards]`, `depend
 
 A copy outside the range is skipped with a note, and the walk goes on. With `#place`, a bare slug is a machine name first, then a Flint slug; the answer is the folder in that place. GitHub is not a place of the walk: the registry answers with the Git location of each version. An old address that the registry knows answers the record with a note (`<old> moved: the registry answers with the address <new>`).
 
-When the registry does not answer (offline, refused, or a bad answer), an install from Git or from a path goes on, and the lock says `registry: "unchecked"`. `flint sync` asks again and reports a changed answer as a notice. An install of a package that no local place holds stops:
+When the registry does not answer (offline, refused, or a bad answer), an install from Git or from a path goes on, and the lock says `registry: "unchecked"`. `flint shard install` with no argument asks again and records a changed answer with a notice. An install of a package that no local place holds stops:
 
 ```
 $ flint shard install @nuu-cognition/nothing
@@ -174,11 +174,12 @@ meeting-notes = { source = "@nuu-cognition/meeting-notes@0.1.0", git = "nuu-cogn
 
 | Command | Purpose |
 |---------|---------|
+| `flint shard install [--dry-run] [--json]` | No input: make the lock match the specs of `flint.toml`, like `pnpm install`. A record that the lock does not satisfy (no lock line, or the range, the place, or the Git location changed) is installed or built, after its missing dependencies. A satisfied record is not moved. One registry read per record with a hash records the answer and heals a rename that the registry reports (`moved: …`). Offline: one notice, no answer recorded. `--dry-run` writes nothing. |
 | `flint shard install <input> --alias <alias>` | Install under another alias (kebab-case). Needed for a second shard with the same slug. The build folder is the alias as a Title. |
 | `flint shard install <input> --no-deps` | Install the shard alone. The missing dependencies are printed with their install commands. |
 | `flint shard install --all-dev` | Build the shard of every source of this Flint. A record with `use = "none"` is skipped with one line. |
 | `flint shard reinstall [<ref>]` | Install the shard again from its record. A `from = "source"` record calls `build`. |
-| `flint shard update [<ref>] [--json]` | Resolve each spec again inside its range and move the lock to the highest version. A spec with an exact version does not move. A build of a source is skipped: `built from its source: run flint shard build <alias>`. A rename that the new version carries heals at once (`moved: …`). |
+| `flint shard update [<ref>] [--json]` | Resolve each spec again inside its range and move the lock to the highest version, like `pnpm update`. It is the one command that moves a version that the lock satisfies. A spec with an exact version does not move. A build of a source is skipped: `built from its source: run flint shard build <alias>`. A rename that the new version carries heals at once (`moved: …`). |
 | `flint shard uninstall <ref> [--json]` | Remove the build, the lock record, the local entry, and the unchanged payloads. A changed or shared payload stays. For a `from = "source"` record the source and the record stay, and the record gets `use = "none"`. |
 
 To take a new major version that the range excludes (`^0.1` does not take `1.0.0`), install the new range with the same alias: `flint shard install '@org/name@^1' --alias <alias>`.
@@ -208,7 +209,7 @@ The transitive plan prints one line per missing package before any write, then i
 | `flint shard dev <ref> <url>` | Promote a local source to a remote source: `git init`, set the remote, commit, push. The folder becomes `(Source Remote) <Name>`, the source id stays, and the record gets `git = "owner/repo"`. |
 | `flint shard clone <spec> [--from-git <owner/repo>] [--alias <alias>] [--no-build] [--json]` | Clone the source of a published shard into `Shards/(Source Remote) <Name>/`. The registry says where the repository is. Writes `{ source = "@org/<slug>", from = "source" }` (with `git` for a location that you gave) and builds the shard. |
 | `flint shard fork <spec> --name "<Name>" [--shorthand <sh>] [--no-install] [--json]` | Make a new local source with a new shard id and a new source id, and `of` on each. The origin does not change. A fork in the same Flint needs a new shorthand. |
-| `flint shard rename <ref> --name "<New Name>" [--json]` | Source only. One manifest edit (`name` and one `formerNames` line) plus the reconcile of this Flint: the source folder, the build folder, the key, the request, the lock, the type files with their links, the dependency keys of dependents. The command is one transaction: a failure at any step puts every store back, or names each store that is not back and the backup paths. Every consumer heals at `flint sync`. See [[dev-knw-knap-architecture]] § Renames. |
+| `flint shard rename <ref> --name "<New Name>" [--json]` | Source only. One manifest edit (`name` and one `formerNames` line) plus the reconcile of this Flint: the source folder, the build folder, the key, the request, the lock, the type files with their links, the dependency keys of dependents. The command is one transaction: a failure at any step puts every store back, or names each store that is not back and the backup paths. A consumer heals at `flint sync` (a copy from a place or a source) or at `flint shard install` (a registry copy). See [[dev-knw-knap-architecture]] § Renames. |
 | `flint shard rename <ref> --shorthand <new> [--json]` | Source only. Renames the prefixed files, rewrites the tags, links, and commands of the source, adds `formerShorthands`, bumps the major version, scaffolds `migrations/dev-mig-<new>-<from>-to-<to>.md` (an agent step with a `rewrite` block), and builds again (the step is queued for the build). A failure restores every file. |
 | `flint shard id <ref> [--dry-run] [--json]` | Fill an absent shard id, source id, and `org` (the org of the Flint) into a source. A shard that is only a build is refused with `not-a-source`. On a dirty source or a work branch it writes the values and prints the next command `flint shard push <ref>`. |
 | `flint shard type add <Name> --shard <ref> [--description] [--folder] [--dashboard] [--obsidian]` | Add an artifact type to a source and build it. |
@@ -317,18 +318,26 @@ Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_
 
 | Command | Purpose |
 |---------|---------|
-| `flint sync [--dry-run]` | Two reconciles. **The shard reconcile** (feature `shards`) makes each build match the lock: it installs a missing shard, builds a stale build of a source again, fetches the locked version when the build differs from the lock, heals a rename (`moved: <Old> is now <New> …`), and records a changed registry answer (with a notice). **The source reconcile** (feature `shard-sources`) reports the Git state of each source (`draft, ahead by N`, `behind`, `dirty`) and records it; it never changes a source. A missing dependency or a dependency outside its range is not current, with the next command. |
+| `flint sync [--dry-run]` | Makes the files of this Flint match its lock and its declarations. It never asks the registry and never moves the lock. Two reconciles. **The shard reconcile** (feature `shards`) makes each build match the lock: it installs a missing locked build from the lock, builds a stale build of a source again, fetches the locked version when the build differs from the lock, and heals a rename that the source, the place, or the build shows (`moved: <Old> is now <New> …`). A record with no lock line is not current (`not-locked`, next `flint shard install`). **The source reconcile** (feature `shard-sources`) reports the Git state of each source (`draft, ahead by N`, `behind`, `dirty`) and records it; it never changes a source. A missing dependency or a dependency outside its range is not current, with the next command. |
 | `flint resolve <spec> [--json]` | The answer of the walk (see [The Package Spec](#the-package-spec)). |
 | `flint migrate run [--dry-run]` | Run the pending Flint migration steps. The steps `s5`, `s6`, and `l4` of `flint-0.6.0-to-0.7.0` take a 0.6.0 Flint to the package model in one run (see [[dev-knw-knap-architecture]] § Upgrade of an Older Flint). `flint migrate rollback <run>` undoes a run. |
 
+A rename that the registry reports heals at `flint shard install`, not at `flint sync`:
+
 ```
-$ flint sync --dry-run
+$ flint shard install --dry-run
+Steps
+  ✓ Resolve Flint       5 records
+  ✓ Ask the registry    5 answers
+  ✓ Follow renames      1 to move
+  ✓ Install shards      The lock satisfies every spec
+  ✓ Record the answers  No answer changed
+
 Changes
-  ● Would move the shard notes: Meeting Notes is now Meeting Log (@nuu-cognition/shard/meeting-log); the folder, the key, and the type files follow; the request becomes @nuu-cognition/shard/meeting-log@^0.1#author
-  ● Would record the registry answer published of notes
-Notices
-  ● The registry answer for notes (@nuu-cognition/shard/meeting-notes) is now published 0.1.0; the lock said unchecked.
+  ● Would move the shard sy-delta: Sy Delta is now Sy Omega (@sy/shard/sy-omega); the folder, the key, and the type files follow
 ```
+
+When the registry does not answer, the three registry steps are skipped with the notice `The registry did not answer. The answers were not recorded.`
 
 ## --json Shapes
 

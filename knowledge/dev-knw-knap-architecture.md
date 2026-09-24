@@ -44,7 +44,7 @@ The manifest `shard.yaml` lives in the source and declares what the source build
 | `dev` | source | Promotes a local source to a repository; the source id stays |
 | `clone` | source | Clones the source of a published shard; the registry says where the repository is |
 | `release` | both | Builds from a clean export of `HEAD`, tags the source, registers the version with its hash, the name, and `formerNames` |
-| `install` | shard | Puts the shard at a version into this Flint (`published`) |
+| `install` | shard | Puts the shard at a version into this Flint (`published`); with no argument, makes the lock match the specs and records the registry answers |
 | `update` | shard | Resolves the spec again inside its range and moves the lock |
 | `fork` | both | A new source with a new source id and a new shard id, and `of` on each |
 | `rename` | source | One manifest edit plus one reconcile (see [Renames](#renames)) |
@@ -53,11 +53,11 @@ The manifest `shard.yaml` lives in the source and declares what the source build
 
 | Feature (label) | Records | Drift kinds (strategy) |
 |---------|---------|------------------------|
-| `shards` ("Shards") | every record with a build or a reference | `moved`, `not-installed`, `version-mismatch`, `content-mismatch` (for a `from = "source"` record the heal is a build), `lock-mismatch`, `payload-missing`, `stale-record`, `reference-stale`, `registry-record` (auto); `orphan`, `malformed-manifest`, `source-not-found`, `payload-source-missing`, `conversion-collision`, `migrations-pending`, `dependency-missing`, `dependency-out-of-range`, `dependency-id-changed`, `dependency-below-floor` (report); `registry-answer`, `dependency-by-name`, `dependency-former-address` (notice) |
+| `shards` ("Shards") | every record with a build or a reference | `moved`, `not-installed`, `version-mismatch`, `content-mismatch` (for a `from = "source"` record the heal is a build), `lock-mismatch`, `payload-missing`, `stale-record`, `reference-stale` (auto); `orphan`, `malformed-manifest`, `source-not-found`, `payload-source-missing`, `conversion-collision`, `migrations-pending`, `dependency-missing`, `dependency-out-of-range`, `dependency-id-changed`, `dependency-below-floor`, `not-locked` (report); `legacy-lock`, `dependency-by-name`, `dependency-former-address` (notice) |
 | `shard-sources` ("Shard sources") | every record whose source is a `(Source Local)` or a `(Source Remote)` folder | `not-cloned`, `damaged`, `git-state` (auto: records the Git state of the source); `damaged-clone`, `orphan`, `malformed-manifest`, `source-not-found` (report); `outdated-spec`, `draft`, `behind`, `dirty`, `legacy-folder` (notice) |
 | `shard-repos` ("Shard repositories") | `repos:` of every manifest | `converge` (auto); `deferred` (report) |
 
-The feature ids and the drift kind names are machine keys. These are the two reconciles of sync: **the shard reconcile** (`shards`) makes each build match the lock and heals a rename; **the source reconcile** (`shard-sources`) reports the Git state of each source and never changes a source. A notice never changes anything.
+The feature ids and the drift kind names are machine keys. These are the two reconciles of sync: **the shard reconcile** (`shards`) makes each build match the lock and heals a rename that the source, the place, or the build shows; **the source reconcile** (`shard-sources`) reports the Git state of each source and never changes a source. A notice never changes anything. Sync never asks the registry: the registry answers (`registry-answer`, a notice, and `registry-record`, a lock write) and the rename that the registry reports belong to `flint shard install`.
 
 ## Identity and Records
 
@@ -142,7 +142,7 @@ A reader that meets a record of a newer shape stops with the reason and `Upgrade
 A rename of the name is one manifest edit plus one reconcile. The whole process is in [[(Spec) Flint Shards . Rename]]; in short:
 
 - **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source writes the new `name` and one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
-- **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, the registry (the read of the registry notice), or the build after `flint shard update`.
+- **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, or the build after `flint shard update`. A registry copy sees it at `flint shard install`, which reads the registry answer.
 - **The heal**, in one order, in one transaction: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
 - **Old names.** A former address and a former shorthand resolve as a ref, with `moved: <old> is now <new>`. A bare former slug does not.
 - **One transaction.** The author edit, the heal, and the build are one transaction under the store lock. A failure at any step puts every store back: the source, the files, the links, the intent, the lock, the local facts, and a retired held id. A restore that fails names each store that is not back and the backup paths.
