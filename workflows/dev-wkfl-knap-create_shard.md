@@ -88,7 +88,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    - Obsidian templates: `install/otmp-<sh>-<name>.md` — declare under `install:` with dest `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md`
    - Type definitions: `install/type-<sh>-<type>[_<subtype>].md` per [[dev-tmp-knap-type-v0.1]] — auto-resolved via `types:`, do **not** add an `install:` entry
 
-8. **Renames**: if you change your mind about the title or shorthand, use `flint shard rename <alias> --title "<New Title>"` or `flint shard rename <alias> --shorthand <new-sh>` — never `mv` folders or files by hand. The id does not change.
+8. **Renames**: if you change your mind about the name or the shorthand, use `flint shard rename <alias> --name "<New Name>"` or `flint shard rename <alias> --shorthand <new-sh>` — never `mv` folders or files by hand. The id does not change. See [[dev-knw-knap-architecture]] § Renames.
 
 9. Create or edit `README.md` with the shard overview and structure.
 

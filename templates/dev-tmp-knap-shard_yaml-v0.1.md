@@ -18,17 +18,17 @@ org: [the org slug of the Flint, e.g. nuu-cognition; omit the line when the Flin
 source:
   id: [the source id: a uuid4 that `flint shard create` mints]
 version: "[semver version, e.g. 1.0.0]"
-name: [Shard Name in Title Case]
+name: [Shard name: the Display Name law; Proper Case is the convention]
 shorthand: [lowercase-letters-only identifier, any length]
 description: [Brief description of what the shard does, one sentence]
 
-/* Optional: written by `flint shard rename <alias> --title`. One line per title rename, oldest first. Do not write it by hand. */
+/* Optional: written by `flint shard rename <alias> --name`. One line per rename of the name, oldest first. Do not write it by hand. */
 formerNames:
   - name: [Former Title]
     slug: [former-slug]
     at: [ISO 8601 time of the rename]
 
-/* Optional: written by `flint shard rename <alias> --shorthand`. One entry per shorthand rename, oldest first. */
+/* Optional: written by `flint shard rename <alias> --shorthand`. One entry per rename of the shorthand, oldest first. */
 formerShorthands:
   - [former shorthand]
 
@@ -98,15 +98,15 @@ install:
 
 - `shard-spec`: `"0.3.0"` is current. `"0.2.0"` and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a source at a lower spec. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
 - `id`: the shard id, a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a source that has none. Never change it: the lock of every Flint and the registry find the shard by it. A shard that is only a build never mints an id.
-- `org`: the org slug. The package is `@<org>/shard/<fold(name)>`. `create`, `fork`, and `flint shard id` write the org of the Flint. Absent means no org (`@/shard/<name>`).
+- `org`: the org slug. The address is `@<org>/shard/<slug>`. `create`, `fork`, and `flint shard id` write the org of the Flint. Absent means no org (`@/shard/<slug>`).
 - `source.id`: the source id. `flint shard create` mints it, `flint shard dev` keeps it, a clone never mints it, and `flint shard fork` mints a new one with `source.of`.
-- `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --title`, `rename --shorthand`, `fork`). Do not write them by hand.
+- `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --name`, `rename --shorthand`, `fork`). Do not write them by hand. A former name still resolves, with a `moved` note.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
-- `name`: Title Case. The package name is its fold, so a title rename moves the address (the id stays). The build folder is `Shards/<Name>/` when the alias is the slug of the name, else `Shards/<Alias As Title>/`.
+- `name`: the Display Name law (letters, digits, spaces, `-`, and `' , . ! & + ; @`; no `/ # ( ) [ ] : ?`; no trailing dot). Proper Case is the convention; the health check warns, never refuses. The slug is `slugKey(name)`, so a rename of the name moves the address (the id stays). The build folder is the name when the alias is the slug, else the alias as a Title.
 - `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.
 - `dependencies`: a map from package name to range. Almost always include `"@nuu-cognition/flint"`. A shard record of this Flint with that address and a version inside the range satisfies it. The install refuses a present dependency outside the range.
 - `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Mark setup complete with `flint shard setup <alias> --complete`.
-- `types[]`: Title Case, `Type` or `Type.Subtype`. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation.
+- `types[]`: `Type` or `Type.Subtype`, each word with a capital letter. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation.
 - `folders[]`: Explicit folder paths. `types:` does NOT auto-create artifact folders.
 - `install[]`: `source` must NOT start with `dev-` — `install/` files are literal payloads.
 - `install[].mode`: `once` (default, skip if destination exists) or `force` (overwrite on every sync).

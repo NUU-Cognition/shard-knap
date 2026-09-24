@@ -36,9 +36,9 @@ A shard is a package with two entities:
 | Entity | Folder | Id | Loaded by |
 |--------|--------|----|-----------|
 | The **source**: the files a person edits | `Shards/(Source Local) <Name>/` (no repository) or `Shards/(Source Remote) <Name>/` (a clone of a repository) | `shard.yaml#source.id` | `flint shard start-dev` |
-| The **shard**: the built package | `Shards/<Name>/` | `shard.yaml#id` | `flint shard start` |
+| The **shard**: the built package | `Shards/<folder>/`: the name when the alias is the slug of the name, else the alias as a Title | `shard.yaml#id` | `flint shard start` |
 
-The package address is `@org/shard/<name>`; `@org/name` is its short form. **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts a shard at a published version into a Flint, proven by its hash. The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
+The address is `@org/shard/<slug>` (the slug is `slugKey(name)`); `@org/<slug>` is its short form. The words are in the glossary of the spec ([[(Spec) Flint Shards#Glossary]]). **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts a shard at a published version into a Flint, proven by its hash. The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
 
 Source files are prefixed `dev-` (e.g., `dev-init-<sh>.md`). The build strips the prefix. Files in `install/` are the exception: they are literal payloads and carry no prefix in either folder.
 
@@ -127,17 +127,15 @@ folders:
 
 ## Authoring a Source
 
-`flint shard create "<Title>"` makes a local source at `Shards/(Source Local) <Name>/`, mints the two ids, and builds the shard. Edit the source, then run `flint shard build <alias>` to make the shard again. `flint shard start` loads the build and prints a notice with `flint shard build <alias>` when the source changed after the build. `flint shard dev <alias> <url>` promotes the local source to a remote source; `flint shard release <alias>` tags a version and registers it. To edit a published shard, `flint shard clone @org/name` clones its source.
+`flint shard create "<Name>"` makes a local source at `Shards/(Source Local) <Name>/`, mints the two ids, and builds the shard. Edit the source, then run `flint shard build <alias>` to make the shard again. `flint shard start` loads the build and prints a notice with `flint shard build <alias>` when the source changed after the build. `flint shard dev <alias> <url>` promotes the local source to a remote source; `flint shard release <alias>` tags a version and registers it. To edit a published shard, `flint shard clone @org/name` clones its source.
 
 To create a shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
 
 ## Shard CLI
 
-`flint shard` is the only supported way to change shard state. Every authoring action — create, build, dev, clone, release, install, update, fork, rename, id, uninstall, run scripts, migrate — has a CLI command. A command names a shard by its alias, shorthand, id, or package address. Always use the CLI; do not edit `flint.json#shards` or `.flint/shards.json`, do not write `id`, `source.id`, `formerNames`, or `of` by hand, and do not rename folders by hand.
+`flint shard` is the only supported way to change shard state. Every authoring action — create, build, dev, clone, release, install, update, fork, rename, id, uninstall, run scripts, migrate — has a CLI command. A command names a shard by a `<ref>`: its alias, shorthand, address, or id; a former name resolves with the note `moved: <old> is now <new>`. A rename is `flint shard rename <alias> --name "<Name>"` (one manifest edit; every Flint heals at `flint sync`). Always use the CLI; do not edit `flint.json#shards` or `.flint/shards.json`, do not write `id`, `source.id`, `formerNames`, or `of` by hand, and do not rename folders by hand.
 
 For the full command surface, the package spec `@org/name[@version][#place]`, the resolution walk, the authoring flow, and anti-patterns, see [[dev-knw-knap-cli]].
-
-> Old words: the "Dev Local" and "Dev Remote" folders are now the local source `(Source Local)` and the remote source `(Source Remote)`; a "dev shard" is a source; the "installed copy" is the shard (the build).
 
 ## Obsidian Templates
 
@@ -145,7 +143,7 @@ Shards can provide human-facing templates for Obsidian's template picker, distin
 
 | Type | Prefix | Location | Audience |
 |------|--------|----------|----------|
-| Agent templates | `tmp-` | `Shards/<Name>/templates/` | Agents (bracket syntax, generation instructions) |
+| Agent templates | `tmp-` | `templates/` of the build | Agents (bracket syntax, generation instructions) |
 | Obsidian templates | `otmp-` | `Shards/(Shards) Obsidian Templates/` | Humans (pre-filled frontmatter, direct insertion) |
 
 Obsidian templates use `{{uuid}}` and `{{date}}` placeholders resolved at install time. Declare them in `shard.yaml` install entries:

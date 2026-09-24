@@ -6,7 +6,7 @@ description: "Complete shard.yaml schema reference — the two ids (id, source.i
 
 Complete reference for the `shard.yaml` manifest file — the configuration that defines a shard's identity, dependencies, runtime requirements, and installation behavior.
 
-The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards/(Source Remote) <Name>/`). The **build** (`Shards/<Name>/`) carries a copy of it. So the shard names itself, and the build carries its provenance.
+The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards/(Source Remote) <Name>/`). The **build** carries a copy of it. So the shard names itself, and the build carries its provenance. The words are the words of the glossary of the spec: [[(Spec) Flint Shards#Glossary]].
 
 ## Full Schema
 
@@ -14,20 +14,20 @@ The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards
 # Required fields
 shard-spec: "0.3.0"                  # Shard spec version (conformance level)
 id: 00000000-0000-4000-8000-000000000000  # The shard id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
-org: nuu-cognition                   # The org slug. The package is @nuu-cognition/shard/<fold(name)>. Absent: no org (@/shard/<name>)
+org: nuu-cognition                   # The org slug. The address is @nuu-cognition/shard/<slug>. Absent: no org (@/shard/<slug>)
 source:                              # The source block
   id: 00000000-0000-4000-8000-00000000000a  # The source id. `flint shard create` mints it.
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
-name: Shard Name                     # Title Case display name
+name: Shard Name                     # The Display Name law; Proper Case is the convention
 shorthand: sh                        # lowercase-letters-only identifier (any length)
 description: What the shard does     # Brief description (one sentence)
 
 # Optional fields — written by the CLI, never by hand
-formerNames:                         # One line per title rename (flint shard rename --title)
+formerNames:                         # One line per rename of the name (flint shard rename --name)
   - name: Old Name
     slug: old-name
     at: 2026-09-23T01:19:42.168Z
-formerShorthands: [osh]              # One entry per shorthand rename (flint shard rename --shorthand)
+formerShorthands: [osh]              # One entry per rename of the shorthand (flint shard rename --shorthand)
 of:                                  # The origin of a fork (flint shard fork); source.of names the origin source
   id: 00000000-0000-4000-8000-000000000001
   address: "@nuu-cognition/shard/notepad"
@@ -83,7 +83,7 @@ The **shard id**: the stable identity of the shard (the built package). A uuid v
 
 ### `org` (expected from spec `0.3.0`)
 
-The slug of the org that owns the package, for example `nuu-cognition`. The package address is `@<org>/shard/<fold(name)>`. The short spelling `@<org>/<name>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<name>`.
+The slug of the org that owns the package, for example `nuu-cognition`. The address is `@<org>/shard/<slug>`. The short spelling `@<org>/<slug>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<slug>`.
 
 - `flint shard create` and `flint shard fork` write the org of the Flint (`flint.json#org`). A Flint with no org writes no `org`.
 - `flint shard id <alias>` fills an absent `org` from the Flint.
@@ -104,11 +104,11 @@ The build copies the block, so the lock and the registry can name the source of 
 
 ### `formerNames` (optional, CLI-written)
 
-A list of `{ name, slug, at }`, oldest first. `flint shard rename <alias> --title "<New Name>"` appends one line with the old Title, its slug, and the ISO time. A consumer Flint reads it on `flint sync`: the same id with a new name gives one `moved` change. Do not write it by hand.
+A list of `{ name, slug, at }`, oldest first. `flint shard rename <alias> --name "<New Name>"` appends one line with the old name, its slug (`slugKey`), and the ISO time. The lock keeps a copy; `flint shard release` sends it to the registry. A former name, slug, or address still resolves as a ref, with a `moved` note. Every consumer heals on `flint sync` ([[(Spec) Flint Shards . Rename]]). Do not write it by hand.
 
 ### `formerShorthands` (optional, CLI-written)
 
-A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new>` appends the old shorthand. An empty list is absent.
+A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new>` appends the old shorthand. A former shorthand still resolves, with a `moved` note. An empty list is absent.
 
 ### `of` (optional, CLI-written)
 
@@ -140,9 +140,16 @@ Start at `"1.0.0"` for first release. Use `"0.1.0"` for development/pre-release 
 
 ### `name` (required)
 
-Human-readable display name. Title Case. The package name is the fold of it: `name: Notepad` in `org: nuu-cognition` is the package `@nuu-cognition/shard/notepad`. A title rename (`flint shard rename --title`) therefore moves the address; the id does not change. The build folder is `Shards/<Name>/` when the alias of the shard in the Flint is the slug of the name, else `Shards/<Alias As Title>/`. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs.
+The name of the shard. It follows the **Display Name law** of `@nuucognition/entity`, the law of the name of a Flint. `flint shard create`, `rename --name`, `fork --name`, and the manifest parser apply it:
 
-Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`
+- Allowed: the core characters `A-Z a-z 0-9`, the structural characters (space and `-`), and the volatile characters `' ’ , . ! & + ; @`. Every other character is forbidden, for example `/ # { } ( ) [ ] " : ? * < > |`.
+- At least one letter or digit; no trailing dot; no trailing space; never ` . `.
+- The slug is `slugKey(name)`, the one fold of a shard name: lowercase, drop the volatile characters, join the parts with `-`. `Meeting Notes` gives `meeting-notes`; `R&D Tools` gives `rd-tools`.
+- Proper Case (`Meeting Notes`) is the convention. `flint shard status <alias> --health` warns `name is not Proper Case: "<name>" (the convention; the name is valid)`; it never refuses.
+
+The address is `@<org>/shard/<slug>`: `name: Notepad` in `org: nuu-cognition` is `@nuu-cognition/shard/notepad`. A rename (`flint shard rename --name`) therefore moves the address; the id does not change. The build folder is the name when the alias of the shard in the Flint is the slug of the name, else the alias as a Title. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs. The rule is stated once in [[(Spec) Flint Shards . Manifest]] § The Name.
+
+Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`, `R&D Tools`
 
 ### `shorthand` (required)
 
@@ -184,10 +191,10 @@ dependencies:
 **Rules:**
 - A key that does not parse, a key with a range or a place, a value that is not a range, and one package named twice are manifest errors (`manifest-error`).
 - A dependency is satisfied by a shard record of this Flint with that address and a version inside the range. When the lock of the dependent names the id of the dependency, the id is checked too.
-- Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per package with the spec that it resolves (`will install <Title> from <spec> (needed by <Title>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
+- Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per package with the spec that it resolves (`will install <Name> from <spec> (needed by <Name>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
 - A cycle is refused, and the reason names the chain.
 - A missing dependency is a not-current line in `flint sync` with the next command `flint shard install '@org/name@<range>'`. A present dependency outside its range is a not-current line (`dependency-out-of-range`) with the same next command.
-- `flint shard info <alias>` and `flint shard status <alias>` show the state of each dependency, for example `@nuu-cognition/shard/plan@^0.4 satisfied by plan (<id>)`.
+- `flint shard status <alias>` shows the state of each dependency, for example `@nuu-cognition/shard/plan@^0.4 satisfied by plan (<id>)`.
 
 > **Legacy input.** The list form of spec `0.3.0` before the package model (`- { source: NUU-Cognition/shard-flint, id?, version? }`, where `version` is a floor) and the older `depends:` list still parse. New manifests use the map. The step `s5` of the Flint migration `flint-0.6.0-to-0.7.0` rewrites a list into the map when every entry names a shard of the Flint whose source is there; an entry with no floor becomes `""`, and a floor `x.y.z` becomes `^x.y.z` only when that shard is inside it. Else the list stays, with a warning.
 
@@ -243,11 +250,11 @@ types:
 
 Naming rules (parser-enforced):
 
-- Title Case, letters / numbers / spaces only on each segment.
+- Each word with a capital letter; letters, numbers, and spaces only on each segment.
 - Format: `Type`, `Multi Word Type`, or `Type.Subtype` (one level of nesting).
 - Pattern: `/^[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*(?:\.[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*)?$/`
 
-**Source / destination resolution, the two-separator asymmetry, and install behaviour are documented authoritatively in [[dev-knw-knap-architecture]] § Type Installation.** In short: source filenames use `_` (`type-<sh>-<lower_snake>.md`), destination paths preserve Title Case with ` . ` for subtypes, and authors never write a separate `install:` entry for types.
+**Source / destination resolution, the two-separator asymmetry, and install behaviour are documented authoritatively in [[dev-knw-knap-architecture]] § Type Installation.** In short: source filenames use `_` (`type-<sh>-<lower_snake>.md`), destination paths keep the type name with ` . ` for subtypes, and authors never write a separate `install:` entry for types.
 
 `types:` does **not** create artifact storage folders. Use `folders:` for that. See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
 
@@ -294,11 +301,11 @@ Type definition files (`type-<sh>-<type>.md`) also live in `install/` but are **
 
 ### `repos` (optional)
 
-External git repositories the shard expects to be cloned into the workspace at install time. Each entry pins a remote at an immutable ref (SHA or tag). Repos are cloned into a flat workspace-scoped folder — `Shards/(Shards) Repos/<Title Case Name>/` — so multiple shards can share the same clone without nesting.
+External git repositories the shard expects to be cloned into the workspace at install time. Each entry pins a remote at an immutable ref (SHA or tag). Repos are cloned into a flat workspace-scoped folder — `Shards/(Shards) Repos/<Name>/` — so multiple shards can share the same clone without nesting.
 
 ```yaml
 repos:
-  - name: My Helper Tool                            # Title Case display name
+  - name: My Helper Tool                            # each word with a capital letter
     remote: NUU-Cognition/my-helper-tool            # owner/repo
     ref: v1.4.0                                     # tag, or 40-char SHA
   - name: Vendor Sdk
@@ -310,7 +317,7 @@ repos:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `name` | string | Title Case display name. Becomes the folder name under `Shards/(Shards) Repos/`. Must be unique workspace-wide. |
+| `name` | string | The repo name, each word with a capital letter. Becomes the folder name under `Shards/(Shards) Repos/`. Must be unique workspace-wide. |
 | `remote` | string | Git remote in `owner/repo` form. The installer clones `https://github.com/<owner>/<repo>.git`. |
 | `ref` | string | Immutable ref — a tag or a 40-char SHA. Branch names (`main`, `master`, `develop`, `development`, `trunk`, `HEAD`) are rejected at parse time. |
 
@@ -323,7 +330,7 @@ repos:
 | Folder present, pin differs | `git fetch --tags --prune origin` then detached `git checkout <ref>` (no reset, no stash) |
 | Working tree dirty | Refuse and report — never auto-stash, never auto-discard |
 
-The installer never runs `git reset --hard`. Local edits inside a clone are preserved between installs; the installer only converges via fetch + checkout.
+The installer never runs `git reset --hard`. Local edits inside a clone are preserved between installs; the installer only converges with `git fetch` and a detached `git checkout`.
 
 **Cross-shard sharing:**
 
@@ -340,7 +347,7 @@ Resolved SHAs are persisted in `flint.json#repos[<Name>] = { remote, ref, sha }`
 | `permission` | `git clone` denied (private repo, missing credentials) |
 | `network` | Clone or fetch failed due to DNS / connection / timeout |
 | `bad-ref` | Pinned ref does not exist in the remote |
-| `dirty-tree` | Working tree has uncommitted changes that would conflict with checkout |
+| `dirty-tree` | Working tree has uncommitted changes that would conflict with the Git checkout |
 | `conflict` | Two shards declare the same `name` with disagreeing `remote`/`ref` |
 
 The installer collects all failures and reports them together — one bad repo does not abort the others.
@@ -358,7 +365,7 @@ Some things are not declared in `shard.yaml` — they are discovered at runtime 
 | Knowledge | `knowledge/**` (recursive) | Discovery + `description` frontmatter |
 | Headless init / workflows | `hinit-<sh>.md`, `hwkfl-*` files | Discovery by filename prefix |
 
-Only things with no filesystem signature of their own need explicit declaration: `types` (what Title-Case name a file represents), `folders` (paths outside `Mesh/Metadata/Types/`), `install` (source→dest mapping), `dependencies`, and `setup` scope.
+Only things with no filesystem signature of their own need explicit declaration: `types` (what type name a file represents), `folders` (paths outside `Mesh/Metadata/Types/`), `install` (source→dest mapping), `dependencies`, and `setup` scope.
 
 ## YAML Quoting Guide
 
@@ -537,12 +544,12 @@ A valid `shard.yaml` must have:
 - [ ] `id` and `source.id` — uuids v4 or v7 when present (expected from `"0.3.0"`; fill them with `flint shard id <alias>`)
 - [ ] `org` — a kebab slug when present (expected from `"0.3.0"` in a Flint with an org)
 - [ ] `version` — valid semver string (`major.minor.patch`)
-- [ ] `name` — non-empty string (warning if not Title Case)
+- [ ] `name` — passes the Display Name law (a warning if it is not Proper Case)
 - [ ] `shorthand` — non-empty lowercase-letters-only string (any length; pattern `^[a-z]+$`)
 - [ ] `description` — non-empty single-line string
 - [ ] Every `dependencies` key is a package name (`@org/name` or `@org/shard/name`) with no range and no place
 - [ ] Every `dependencies` value is an exact version, a caret range, a tilde range, or `""`
-- [ ] All `types[]` entries match `Type` or `Type.Subtype` Title Case
+- [ ] All `types[]` entries match `Type` or `Type.Subtype`, each word with a capital letter
 - [ ] All `install[].source` files exist in the `install/` folder
 - [ ] All `install[].source` filenames start with `inst-<sh>-` or `otmp-<sh>-` (no literal target names)
 - [ ] All `install[].dest` paths are relative to flint root
@@ -550,8 +557,8 @@ A valid `shard.yaml` must have:
 - [ ] `setup` is `"full"`, `"flint"`, or `"local"` (if present)
 - [ ] If `setup` is declared, `dev-setup-<sh>.md` must exist
 - [ ] No circular dependencies
-- [ ] All `repos[].name` are Title Case and unique within the manifest
+- [ ] All `repos[].name` have each word with a capital letter and are unique within the manifest
 - [ ] All `repos[].remote` are `owner/repo` form
 - [ ] All `repos[].ref` are tags or 40-char SHAs (branch names rejected: `main`, `master`, `develop`, `development`, `trunk`, `HEAD`)
 
-Validation is permissive for format issues (title case, shorthand pattern) — these produce warnings, not errors. Missing required fields, type mismatches, and path traversal attempts produce errors. Legacy fields (`state`, `requires`, `scripts`) produce warnings on `shard-spec: "0.1.0"` and **hard errors** on `shard-spec: "0.2.0"` and above — see [Deprecated Fields](#deprecated-fields).
+Validation is permissive for the convention (a name that is not Proper Case) — it produces a warning, not an error. A name that breaks the Display Name law is an error. Missing required fields, type mismatches, and path traversal attempts produce errors. Legacy fields (`state`, `requires`, `scripts`) produce warnings on `shard-spec: "0.1.0"` and **hard errors** on `shard-spec: "0.2.0"` and above — see [Deprecated Fields](#deprecated-fields).

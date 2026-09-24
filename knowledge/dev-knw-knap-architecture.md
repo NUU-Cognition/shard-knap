@@ -22,14 +22,14 @@ Every shard file uses the shorthand as a namespace prefix: `sk-proj-`, `tmp-inc-
 
 ## Two Entities: Source and Shard
 
-A shard is a package. It has two entities, and each one has its own id:
+A shard is a package. It has two entities, and each one has its own id. The words are the words of the glossary of the spec: [[(Spec) Flint Shards#Glossary]].
 
 | | The source | The shard |
 |---|---|---|
 | What it is | The files that a person edits: `shard.yaml`, `dev-init-<sh>.md`, `dev-sk-<sh>-*.md`, … | The built package: `init-<sh>.md`, `sk-<sh>-*.md`, … with a copy of the manifest |
-| Folder | `Shards/(Source Local) <Name>/` (no repository) or `Shards/(Source Remote) <Name>/` (a clone of a repository) | `Shards/<Name>/` (or `Shards/<Alias As Title>/` when the alias is not the slug) |
+| Folder | `Shards/(Source Local) <Name>/` (no repository) or `Shards/(Source Remote) <Name>/` (a clone of a repository) | `Shards/<folder>/`: the name when the alias is the slug of the name, else the alias as a Title |
 | Id | `shard.yaml#source.id` | `shard.yaml#id` |
-| Name | the repository, when there is one | `@org/shard/<fold(name)>` |
+| Location or address | the repository, when there is one | `@org/shard/<slug>` |
 | States | `edited`, or a Git commit (sha, ahead, behind, dirty) | `published` (a tag, proven by the hash), `snapshot` (built from a commit, proven by the sha), `edited` (no proof) |
 | Loaded by | `flint shard start-dev` (for editing) | `flint shard start` (for use) |
 
@@ -40,30 +40,34 @@ The manifest `shard.yaml` lives in the source and declares what the source build
 | Verb | Entity | What it does |
 |------|--------|--------------|
 | `create` | source | Mints the source id and the shard id, makes the local source, builds the shard |
-| `build` | shard | Makes `Shards/<Name>/` from the source of the record and writes the lock state |
+| `build` | shard | Makes the build from the source of the record and writes the lock state |
 | `dev` | source | Promotes a local source to a repository; the source id stays |
 | `clone` | source | Clones the source of a published shard; the registry says where the repository is |
-| `release` | both | Builds from a clean export of `HEAD`, tags the source, registers the version with its hash |
+| `release` | both | Builds from a clean export of `HEAD`, tags the source, registers the version with its hash, the name, and `formerNames` |
 | `install` | shard | Puts the shard at a version into this Flint (`published`) |
 | `update` | shard | Resolves the spec again inside its range and moves the lock |
 | `fork` | both | A new source with a new source id and a new shard id, and `of` on each |
+| `rename` | source | One manifest edit plus one reconcile (see [Renames](#renames)) |
 
 `flint sync` runs these kernel features:
 
 | Feature (label) | Records | Drift kinds (strategy) |
 |---------|---------|------------------------|
-| `installed-shards` ("Shards") | every record with a build or a reference | `not-installed`, `version-mismatch`, `content-mismatch` (for a `from = "source"` record the heal is a build), `lock-mismatch`, `payload-missing`, `moved`, `stale-record`, `reference-stale`, `registry-record` (auto); `orphan`, `malformed-manifest`, `source-not-found`, `payload-source-missing`, `conversion-collision`, `migrations-pending`, `dependency-missing`, `dependency-out-of-range`, `dependency-id-changed`, `dependency-below-floor` (report); `registry-answer` (notice) |
-| `dev-remote-shards` ("Shard sources (remote)") | records with `from = "source"` and a Git location | `not-cloned`, `damaged`, `checkout-state` (auto: records the Git state of the source); `damaged-checkout`, `orphan`, `malformed-manifest` (report); `outdated-spec`, `draft`, `behind`, `dirty`, `legacy-folder` (notice) |
-| `dev-local-shards` ("Shard sources (local)") | records whose source is a `(Source Local)` folder | `damaged`, `checkout-state` (auto); `orphan`, `malformed-manifest`, `source-not-found` (report); `outdated-spec`, `draft`, `behind`, `dirty`, `legacy-folder` (notice) |
-| `shard-repos` | `repos:` of every manifest | `converge` (auto); `deferred` (report) |
+| `shards` ("Shards") | every record with a build or a reference | `moved`, `not-installed`, `version-mismatch`, `content-mismatch` (for a `from = "source"` record the heal is a build), `lock-mismatch`, `payload-missing`, `stale-record`, `reference-stale`, `registry-record` (auto); `orphan`, `malformed-manifest`, `source-not-found`, `payload-source-missing`, `conversion-collision`, `migrations-pending`, `dependency-missing`, `dependency-out-of-range`, `dependency-id-changed`, `dependency-below-floor` (report); `registry-answer`, `dependency-by-name`, `dependency-former-address` (notice) |
+| `shard-sources` ("Shard sources") | every record whose source is a `(Source Local)` or a `(Source Remote)` folder | `not-cloned`, `damaged`, `git-state` (auto: records the Git state of the source); `damaged-clone`, `orphan`, `malformed-manifest`, `source-not-found` (report); `outdated-spec`, `draft`, `behind`, `dirty`, `legacy-folder` (notice) |
+| `shard-repos` ("Shard repositories") | `repos:` of every manifest | `converge` (auto); `deferred` (report) |
 
-The feature ids and the drift kind names are machine keys and stay. These are the two reconciles of sync: **the shard reconcile** (`installed-shards`) makes `Shards/<Name>/` match the lock; **the source reconcile** (the two source features) reports the Git state of each source and never changes a source. A notice never changes anything.
+The feature ids and the drift kind names are machine keys. These are the two reconciles of sync: **the shard reconcile** (`shards`) makes each build match the lock and heals a rename; **the source reconcile** (`shard-sources`) reports the Git state of each source and never changes a source. A notice never changes anything.
 
 ## Identity and Records
 
 The shard id and the source id are the truth. Names are for people; the CLI stores ids.
 
-**The alias.** The key of the record in `flint.toml` is its alias, and nothing more. It defaults to the slug of the Title. `flint shard install <input> --alias <alias>` sets another one; a second shard with the same slug needs it. The build folder is `Shards/<Name>/` when the alias is the slug, else `Shards/<Alias As Title>/`.
+**The identity** is four stored facts of the manifest: `id`, `org`, `name`, `shorthand` (plus `source.id`). The slug is `slugKey(name)`, the one fold of a shard name. The address is `@org/shard/<slug>`. The default alias is the slug. The name follows the Display Name law ([[dev-knw-knap-manifest]] § name).
+
+**The alias.** The key of the record in `flint.toml` is its alias: the local name of the shard in this Flint. It defaults to the slug of the name. `flint shard install <input> --alias <alias>` sets another one; a second shard with the same slug needs it. The build folder is the name when the alias is the slug of the name, else the alias as a Title.
+
+**The ref.** A command names one shard with a `<ref>`, read by one resolver in this order: the alias, the shorthand, the address (full or short), the id (or a prefix of eight or more characters), then a former name, slug, address, or shorthand with the note `moved: <old> is now <new>`. The current name and a folder name are not a ref. See [[dev-knw-knap-cli]] § The Ref.
 
 **The three places of shard state:**
 
@@ -77,7 +81,7 @@ The shard id and the source id are the truth. Names are for people; the CLI stor
 
 | Field | Meaning |
 |-------|---------|
-| `source` | A package spec `@org/name[@version][#place]`. A path (`./Shards/(Source Local) X`) is an escape hatch that `create` does not write. |
+| `source` | A package spec `@org/name[@version][#place]`. A path (`./Shards/(Source Local) X`) also parses; `create` does not write it. |
 | `git` | `owner/repo`: the Git location that a person chose (`--from-git`, `clone --from-git`, `dev`). |
 | `from` | `"source"`: build the shard from its source in this Flint. |
 | `use` | `reference` (no build; the loader reads the folder in its place) or `none` (a source with no build here). |
@@ -94,14 +98,15 @@ drafts = { source = "@nuu-cognition/drafts", from = "source", use = "none" }    
 
 The toml holds no id. A person never types a uuid. An `id` that a person wrote still parses: it is checked against the lock, and a different id refuses the write with `id-mismatch`.
 
-**The lock.** `flint.json#shards[<shard id>]` (spec `shard-record/0.2`):
+**The lock.** `flint.json#shards[<shard id>]` (the record shape `shard-record/0.2`):
 
 | Field | Meaning |
 |-------|---------|
-| `alias`, `shorthand`, `name` | The key, the prefix, the Title |
-| `address` | The package address `@org/shard/<name>` |
+| `alias`, `shorthand`, `name` | The key, the prefix, the name of this copy |
+| `address` | The address `@org/shard/<slug>` |
 | `request` | The spec of the record, in the full form (`@nuu-cognition/shard/notepad@^1.1`) |
-| `version` | The version of the build |
+| `formerNames`, `formerShorthands` | The rename history, as the manifest has it; filled at the next write of the record |
+| `version` | The recorded version (the row shows the version of the build) |
 | `state` | `{ kind: "published", tag, hash }`, `{ kind: "snapshot", sha, hash }`, or `{ kind: "edited", hash }` |
 | `source` | `{ id, git?, presence? }`: the source id, its Git location, and the source folder in this Flint |
 | `resolved` | `{ registry, repo?, ref?, sha?, hash?, from }`: the registry answer (`published`, `snapshot`, `unregistered`, `unchecked`) and where the build came from (`registry`, `git`, `path`, `source`, `place`) |
@@ -111,7 +116,7 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 | `dependencies` | The locked ids of the dependencies: `{ <address>: <id> }` |
 | `setup` | The Flint layer: `required`, `not-required`, `completed`, or `none` |
 | `migrations`, `pending` | The shard migration ledger: done steps with times, queued steps |
-| `held`, `mergedInto` | A client-held id with its binding `{ request, hash }`; the id it was retired into |
+| `held`, `mergedInto` | A held id with its binding `{ request, hash }`; the id it was retired into |
 
 ```json
 "76d64e3e-3c05-4391-a39e-22001fb2e20a": {
@@ -126,17 +131,30 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 }
 ```
 
-`.flint/shards.json` (spec `shard-local/0.2`) holds per shard id: `setup` (the local layer), `source { branch, sha, ahead, behind, dirty, fetchedAt? }` for a source that is a Git repository, `reference { resolvedPath, resolvedAt }` for a reference record, `installedAt`, and `builtAt`.
+`.flint/shards.json` (`shard-local/0.2`) holds per shard id: `setup` (the local layer), `source { branch, sha, ahead, behind, dirty, fetchedAt? }` for a source that is a Git repository, `reference { resolvedPath, resolvedAt }` for a reference record, `installedAt`, and `builtAt`.
 
-A reader that meets a record of a newer spec stops with the reason and `Upgrade flint-cli`. A record of `shard-record/0.1` (a pre-release 0.7.0 build) stops every read with the next command `flint migrate run`. A Flint whose `flint.json#shards` still holds the 0.6.0 shape (`{ <sh>: "<version>" }` plus a top-level `payloads`) can be read, but every write is refused with `shard records are in the legacy shape` and the next command `flint migrate run`.
+A reader that meets a record of a newer shape stops with the reason and `Upgrade flint-cli`. A record of `shard-record/0.1` (a pre-release 0.7.0 build) stops every read with the next command `flint migrate run`. A Flint whose `flint.json#shards` still holds the 0.6.0 shape (`{ <sh>: "<version>" }`) is read by `list`, `status`, `start`, `hstart`, `start-dev`, and `hstart-dev` with the notice `this Flint has the 0.6.0 shard records; run flint migrate run`; every other shard command refuses with `shard records are in the legacy shape` and the next command `flint migrate run`.
 
-**The registry.** The NUU Shard Registry (`shards.nuucognition.com`) holds one record per shard id (`org`, `name`, the slug `<org slug>/<fold(name)>`, `shorthand`, `repo`, `sourceId`) and one row per version (`tag`, `hash`, `repo`, `ref`, `sha`). The CLI asks `GET /api/shards/<org>/<name>` (the record and its versions), `GET /api/resolve?id=` and `GET /api/resolve?hash=` (the record of a package that the CLI already holds), and `GET /api/resolve?repo=`. `flint shard release` sends `POST /api/register`. The registry refuses a second id under one slug (`slug-taken`) and a tag with another hash (`tag-taken`). `FLINT_SHARD_REGISTRY_URL` points the CLI at another registry.
+**The registry.** The NUU Shard Registry (`shards.nuucognition.com`) holds one record per shard id (`org`, `name`, the slug `<org slug>/<slug>`, `legacySlug`, `formerNames`, `shorthand`, `repo`, `sourceId`) and one row per version (`tag`, `hash`, `repo`, `ref`, `sha`). The CLI asks `GET /api/shards/<org>/<name>` (the record and its versions; an old slug answers with `moved`), `GET /api/resolve?id=` and `GET /api/resolve?hash=` (the record of a package that the CLI already holds), and `GET /api/resolve?repo=`. `flint shard release` sends `POST /api/register`. The registry refuses a second id under one slug (`slug-taken`) and a tag with another hash (`tag-taken`). `FLINT_SHARD_REGISTRY_URL` points the CLI at another registry.
 
-**Renames heal by id.** `flint shard rename <ref> --title` in a source writes the new name and one `formerNames` line. The package address follows the new name. A consumer Flint that syncs sees the same id with a new address and gets one `moved` change: the folder, the key (when the alias was the old slug), the lock `address` and `request`, and the type files follow.
+### Renames
 
-**References and forks.** `use = "reference"` installs no build; `flint shard start` reads the folder that `.flint/shards.json` names, and fails closed with `reference-missing` and `flint sync` when it is gone. `flint shard fork <spec> --name "<Name>" --shorthand <sh>` makes a new local source with a new shard id, a new source id, `of: { id, address }`, and `source.of: { id }`.
+A rename of the name is one manifest edit plus one reconcile. The whole process is in [[(Spec) Flint Shards . Rename]]; in short:
 
-**Upgrade of an older Flint.** A 0.6.0 Flint has `flint.json#shards = { <sh>: "<version>" }`, a top-level `payloads`, shard entries in the top-level `migrations` and `pending`, the state folders, the old source folders, and `flint.toml` records with `edit = true` and `id`. `flint migrate run` upgrades it in one run with three steps of the migration `flint-0.6.0-to-0.7.0`:
+- **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source writes the new `name` and one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
+- **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, the registry (the read of the registry notice), or the build after `flint shard update`.
+- **The heal**, in one order with one restore: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
+- **Old names** still resolve as a ref, with `moved: <old> is now <new>`.
+- **What does not change:** the ids, the repository, the ledger ids, a custom alias and its folder, the manifest of a published build.
+- **A shorthand rename** (`--shorthand <new>`) bumps the major version and scaffolds an agent step with the block `rewrite: { shorthand: { from, to } }`. In a consumer, `flint shard migrate run <alias>` rewrites the tags, the link stems, and the command texts of the Mesh as code, then stops at the agent step for the prose.
+
+### References and Forks
+
+`use = "reference"` installs no build; `flint shard start` reads the folder that `.flint/shards.json` names, and fails closed with `reference-missing` and `flint sync` when it is gone. `flint shard fork <spec> --name "<Name>" --shorthand <sh>` makes a new local source with a new shard id, a new source id, `of: { id, address }`, and `source.of: { id }`.
+
+### Upgrade of an Older Flint
+
+A 0.6.0 Flint has `flint.json#shards = { <sh>: "<version>" }`, a top-level `payloads`, shard entries in the top-level `migrations` and `pending`, the state folders, the old source folders, and `flint.toml` records with `edit = true` and `id`. `flint migrate run` upgrades it in one run with three steps of the migration `flint-0.6.0-to-0.7.0`:
 
 | Step | What it does |
 |------|--------------|
@@ -195,7 +213,7 @@ Shards/(Source Remote) [Name]/
     └── *.md
 ```
 
-The shard at `Shards/<Name>/` has the same tree with the `dev-` prefix stripped from every file name (`install/` contents are copied verbatim since they never carried a prefix).
+The build has the same tree with the `dev-` prefix stripped from every file name (`install/` contents are copied verbatim since they never carried a prefix).
 
 ## Subfolder Groupings
 
@@ -503,7 +521,7 @@ See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
 
 ### Type Installation
 
-A `types:` entry is a single Title Case string. The installer resolves it to **two paths** at install time — a source filename and a destination path — using two different separators by design.
+A `types:` entry is a single type name (each word with a capital letter). The installer resolves it to **two paths** at install time — a source filename and a destination path — using two different separators by design.
 
 **Source filename** — the file in `install/` to copy from:
 
@@ -511,7 +529,7 @@ A `types:` entry is a single Title Case string. The installer resolves it to **t
 install/type-<shorthand>-<lower_snake>.md
 ```
 
-The Title Case string is lowercased; spaces become underscores; and for subtypes the `.` becomes `_`. So filenames carry one delimiter style (`_`) regardless of how the type is named.
+The type name is lowercased; spaces become underscores; and for subtypes the `.` becomes `_`. So filenames carry one delimiter style (`_`) regardless of how the type is named.
 
 **Destination path** — where the file is written into the workspace:
 
@@ -519,9 +537,9 @@ The Title Case string is lowercased; spaces become underscores; and for subtypes
 Mesh/Metadata/Types/(Type) <Name> [. <Subname>] (<Shard Name> Shard).md
 ```
 
-The Title Case string is preserved verbatim. Subtypes use ` . ` (space-dot-space) so the parent and child both stay readable. The `(<Shard Name> Shard)` suffix is the collision guard — two shards with different Titles may both declare a `Task` type and their definition files won't clobber each other. The qualifier uses the Title also when the shard is installed under another alias, so two shards with one Title share the destination (the second install keeps the first file).
+The type name is kept as it is. Subtypes use ` . ` (space-dot-space) so the parent and child both stay readable. The `(<Shard Name> Shard)` suffix is the collision guard — two shards with different names may both declare a `Task` type and their definition files won't clobber each other. The qualifier uses the name also when the shard is installed under another alias, so two shards with one name share the destination (the second install keeps the first file).
 
-**The two-separator asymmetry is deliberate.** Filenames use `_` because filesystems are awkward with dots and spaces; workspace paths use ` . ` because Obsidian and the Mesh browser render them as Title Case. The same type declaration takes three forms:
+**The two-separator asymmetry is deliberate.** Filenames use `_` because filesystems are awkward with dots and spaces; workspace paths use ` . ` because Obsidian and the Mesh browser render them as they are. The same type declaration takes three forms:
 
 | Manifest | Source file | Destination |
 |----------|-------------|-------------|
@@ -533,7 +551,7 @@ The two derive functions (`resolveTypeSourceFilename`, `resolveTypeDestPath` in 
 
 **Naming rules** (parser-enforced):
 
-- Title Case, letters / numbers / spaces only on each segment.
+- Each word with a capital letter; letters, numbers, and spaces only on each segment.
 - Format: `Type`, `Multi Word Type`, or `Type.Subtype` — exactly one level of nesting.
 - Pattern: `/^[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*(?:\.[A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*)?$/`
 
@@ -546,7 +564,7 @@ The two derive functions (`resolveTypeSourceFilename`, `resolveTypeDestPath` in 
 5. `#readonly` is injected into the destination's frontmatter. Every install and every build writes the shard (also from a local or a remote source), so every installed type file carries it.
 6. Parent directories are created as needed; the file is written.
 7. The record lists the file as a payload: `flint.json#shards[<id>].payloads[]` with `kind: type`, `sha256`, `mode`, and the Mesh `id`. Health and uninstall read the type files from the record, not from the installed `shard.yaml`. Uninstall removes an unchanged type file and keeps a changed one.
-8. A title rename moves the type file to the new qualifier. The file keeps its `id`, and the `[[wikilinks]]` to it follow.
+8. A rename of the shard moves the type file to the new qualifier (the lock `name`). The file keeps its `id`, and the `[[wikilinks]]` to it follow.
 
 **Authoring workflow:**
 
@@ -567,7 +585,7 @@ The shard installer ensures these workspace-scoped folders exist on every instal
 | Folder | Purpose | Tracked? |
 |--------|---------|----------|
 | `Shards/(Shards) Obsidian Templates/` | Destination for `otmp-<sh>-<name>.md` install entries | Yes |
-| `Shards/(Shards) Repos/` | External git repositories cloned via the manifest `repos:` field. One folder per declared `name` (Title Case). Pinned SHAs live in `flint.json#repos[]`. | Yes (the folder; clone contents may be partially gitignored depending on workspace policy) |
+| `Shards/(Shards) Repos/` | External git repositories cloned via the manifest `repos:` field. One folder per declared `name` (the repo name, each word with a capital letter). Pinned SHAs live in `flint.json#repos[]`. | Yes (the folder; clone contents may be partially gitignored depending on workspace policy) |
 
 There are no state folders. The setup flags are in the records (see Setup and State).
 
@@ -658,8 +676,8 @@ Current spec: `"0.3.0"`. Older specs that still parse: `"0.2.0"`, `"0.1.0"`.
 | Area | 0.2.0 | 0.3.0 |
 |------|-------|-------|
 | Identity | No `id` | The shard `id` and the `source` block with the source id (uuids v4 or v7), minted by `flint shard create`, filled by `flint shard id` |
-| Name | The Title only | `org` plus the Title: the package `@org/shard/<fold(name)>` |
-| Rename history | None | `formerNames` (title renames) and `formerShorthands` (shorthand renames), written by `flint shard rename` |
+| Name | The name only | `org` plus the name: the address `@org/shard/<slug>` |
+| Rename history | None | `formerNames` (renames of the name) and `formerShorthands` (renames of the shorthand), written by `flint shard rename` |
 | Fork origin | None | `of: { id, address? }` and `source.of: { id }`, written by `flint shard fork` |
 | Dependencies | `{ source: owner/repo, version? }`, floor not enforced | A map from package name to range (`"@org/name": "^1.0"`), enforced, transitive install with a plan; the list form parses as legacy input |
 
@@ -687,6 +705,4 @@ To move a shard to `0.3.0`: set `shard-spec: "0.3.0"` and run `flint shard id <a
 
 The mechanical pass is owned by [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]]. The bulk filename rename is automated by the `prefix-shard` script (`flint shard knap prefix-shard <path>`), which adds `dev-` to source files and strips it from `install/` payloads. The remaining edits — frontmatter, manifest field migration, init-file restructuring — are direct applications of this knowledge file plus [[dev-knw-knap-manifest]].
 
-`flint sync` gives the `outdated-spec` notice for a source below the current spec (`0.1.0` and `0.2.0`) on the two source features. A shard (a build) gets no notice.
-
-> Old words: the "Dev Local" and "Dev Remote" folders are now the local source `(Source Local)` and the remote source `(Source Remote)`; a "checkout" or a "dev shard" is a source; an "installed copy" or a "replica" is the shard (the build).
+`flint sync` gives the `outdated-spec` notice for a source below the current spec (`0.1.0` and `0.2.0`) on the source feature `shard-sources`. A shard (a build) gets no notice.

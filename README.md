@@ -37,7 +37,7 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
 
 - **Shard structure** — File types, naming conventions, directory layout
 - **Manifest schema** — Complete shard.yaml reference: the shard id, the org, the source id, the dependency map
-- **Source and shard** — the two entities, the build, the states, the lock, the registry, renames, references, forks
+- **Source and shard** — the two entities, the build, the states, the lock, the registry, the rename, references, forks (the words: [[(Spec) Flint Shards#Glossary]])
 - **Shard distribution** — How to release, clone, and install shards
 - **Templates for everything** — Every shard file type has a template
 - **Validation** — Check shard correctness

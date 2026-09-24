@@ -22,12 +22,12 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] `org` — a kebab slug (warning if absent in a Flint with an org: run `flint shard id <alias>`)
    - [ ] `formerNames`, `formerShorthands`, `of` — if present, written by the CLI (`rename`, `fork`); `formerNames[]` is `{ name, slug, at }`, `of` is `{ id, address? }`, `source.of` is `{ id }`
    - [ ] `version` — valid semver string (`major.minor.patch`)
-   - [ ] `name` — non-empty, Title Case (warning otherwise)
+   - [ ] `name` — the Display Name law (error otherwise: an empty name, a forbidden character such as `/`, a trailing dot); a name that is not Proper Case is a warning (the convention)
    - [ ] `shorthand` — lowercase-letters-only string (any length, pattern `^[a-z]+$`)
    - [ ] `description` — non-empty single-line string
    - [ ] `dependencies` — if present, a map: each key is a package name (`@org/name` or `@org/shard/name`, no range, no place) and each value is an exact version, a caret range, a tilde range, or `""` (the list form is legacy input: a warning)
    - [ ] `setup` — if present, value is `full`, `flint`, or `local`
-   - [ ] `types` — if present, each entry is `Type` or `Type.Subtype` Title Case (multi-word names allowed)
+   - [ ] `types` — if present, each entry is `Type` or `Type.Subtype`, each word with a capital letter (multi-word names allowed)
    - [ ] `folders` — if present, each entry is a relative path from flint root
    - [ ] `install` — each entry has `source` and `dest`; `mode` is `once` or `force` (or legacy boolean flags)
    - [ ] No deprecated fields: `state`, `scripts`, `requires.cli`, `requires.workspace`, legacy `depends` (warn on each)
@@ -116,7 +116,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 15. **Report.** Output a validation summary:
     - Pass/fail for each check
-    - Warnings vs errors (warnings for spec version, Title Case, shorthand pattern, deprecated fields; errors for missing required fields, traversal, format, dev-prefix violations)
+    - Warnings vs errors (warnings for spec version, Proper Case of the name, deprecated fields; errors for missing required fields, traversal, format, dev-prefix violations)
     - List of issues found
     - Suggestions for fixes
 
