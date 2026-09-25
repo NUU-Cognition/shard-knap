@@ -182,7 +182,7 @@ Files in a source (`(Source Remote)` and `(Source Local)` folders) are prefixed 
 | `migrations/` | `dev-` | Migrations ship in the shard and could be overwritten on update — the prefix keeps the source distinct |
 | `install/` | **no prefix** | Files under `install/` are literal payloads copied verbatim to a destination (dashboards, system files, type definitions, obsidian templates). They are not shard sources — they are user-facing artifacts that happen to ship with the shard. |
 
-The build refuses `install/dev-*` files (error). The health check flags a file with no `dev-` prefix in every other location of a source.
+The build refuses `install/dev-*` files (error). The health check flags a file with no `dev-` prefix in every other location of a source. The root documents `README.md`, `RELEASE.md`, and `MIGRATIONS.md` stay in the source: the build has none of them, and no package hash covers them. `flint shard release` sends `README.md` to the registry.
 
 ## Shard Structure
 
