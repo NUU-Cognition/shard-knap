@@ -1,9 +1,9 @@
 shard-spec: "0.3.0"
 id: 3f21ff74-3ba4-43c4-9ba9-88a2f336fb04
-org: nuu-cognition
+org: nuucognition
 source:
   id: 8afede48-a31f-47df-84f2-7f3cc2632d7c
-version: "1.1.4"
+version: "1.1.5"
 name: Knap
 shorthand: knap
 description: Shard authoring toolkit. Templates for all shard file types, shard manifest schema, CLI commands, and workflows for creating, iterating, and publishing shards.
