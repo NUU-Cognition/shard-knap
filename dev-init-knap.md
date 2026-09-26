@@ -125,7 +125,7 @@ folders:
   - Mesh/Archive/Tasks/
 ```
 
-A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still parses. To upgrade it, run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release.
+A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still parses. To upgrade it, run `flint migrate run` (the step `flint-0.6.0-to-0.7.0-s8` rewrites every source and its build; the Flint version stays `0.7.0`), then commit, then release.
 
 ## Authoring a Source
 

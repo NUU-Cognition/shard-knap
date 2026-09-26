@@ -141,7 +141,7 @@ A reader that meets a record of a newer shape stops with the reason and `Upgrade
 
 A rename of the name is one manifest edit plus one reconcile. The whole process is in [[(Spec) Flint Shards . Rename]]; in short:
 
-- **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source edits two lines of the manifest, the new `name` and `shard` (the new slug, the same org), writes one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
+- **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source edits two lines of the manifest, the new `name` and `shard` (the new slug, the same org; on a `0.3.0` manifest with no `shard:` line, `name` only), writes one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
 - **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, or the build after `flint shard update`. A registry copy sees it at `flint shard install`, which reads the registry answer.
 - **The heal**, in one order, in one transaction: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
 - **Old names.** A former address and a former shorthand resolve as a ref, with `moved: <old> is now <new>`. A bare former slug does not.
@@ -169,11 +169,11 @@ After the run every remote source is `edited`, because `s5` changed its `shard.y
 
 A Flint that ran the pre-release 0.7.0 steps (records of `shard-record/0.1`) is not migrated: `s6` blocks and writes nothing. Restore `flint.toml`, `flint.json`, and the state folders from the backup of that run (`flint migrate rollback <run>`, or by hand from `.flint/migrations/`), then run `flint migrate run` again.
 
-A 0.7.0 Flint has sources at `shard-spec: "0.3.0"` with `org:`. `flint migrate run` upgrades them with one step of the migration `flint-0.7.0-to-0.8.0`:
+The migration `flint-0.6.0-to-0.7.0` has one more shard step, `s8`. It gives a package name to each source at `shard-spec: "0.3.0"`. The Flint version stays `0.7.0`. A Flint at `0.7.0` whose ledger lacks `s8` is behind, and `flint migrate run` runs `s8` alone:
 
 | Step | What it does |
 |------|--------------|
-| `s1` "Give every shard source its package name" | For every source at `0.3.0`: writes `shard: "@<org>/<slugKey(name)>"` (the org of the manifest, else the org of the Flint, else no org), removes the `org:` line, and sets `shard-spec: "0.4.0"`. Comments, key order, and every other line stay. The build of the source gets the same edit; a build with no source here is not edited. A source at `0.2.0` or `0.1.0` is skipped with one report line. A present `shard` that names another org than `org` blocks with the file name, and the step writes nothing. One line per Git source: commit and push it. |
+| `s8` "Give every shard source its package name" | For every source at `0.3.0`: writes `shard: "@<org>/<slugKey(name)>"` (the org of the manifest, else the org of the Flint, else no org), removes the `org:` line, and sets `shard-spec: "0.4.0"`. Comments, key order, and every other line stay. The build of the source gets the same edit; a build with no source here is not edited. A source at `0.2.0` or `0.1.0` is skipped with one report line. A present `shard` that names another org than `org` blocks with the file name, and the step writes nothing. One line per Git source: commit and push it. |
 
 After the run the package hash of every source differs from the published hash. Commit each source, then release it. A Flint that installs the shard from the registry keeps the `0.3.0` manifest until that release; `org:` at `0.3.0` still parses.
 
@@ -688,7 +688,7 @@ Current spec: `"0.4.0"`. Older specs that still parse: `"0.3.0"`, `"0.2.0"`, `"0
 | The org | `org: nuucognition` (a kebab slug; absent means no org) | The first segment of `shard`. `org:` is a parse error. |
 | Rename of the name | Edits `name` | Edits `name` and `shard` |
 
-To move a source to `0.4.0`: run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release. `org:` at `0.3.0` parses forever, because every published version keeps it.
+To move a source to `0.4.0`: run `flint migrate run` (the step `flint-0.6.0-to-0.7.0-s8` rewrites every source and its build; the Flint version stays `0.7.0`), then commit, then release. `org:` at `0.3.0` parses forever, because every published version keeps it.
 
 ### What Changed: 0.2.0 → 0.3.0
 
