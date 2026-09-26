@@ -1,5 +1,7 @@
 ---
 description: "Create a new shard from scratch"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -31,7 +33,7 @@ Confirm the shard design with the user:
    - What skills does it provide? (Atomic tasks)
    - What workflows does it provide? (Multi-stage tasks)
    - What knowledge does it need? (Deep reference material)
-   - Does it need dashboards or other install files? (Dashboards, system files, Obsidian templates)
+   - Does it need dashboards or other install files? (Dashboards, system files, note templates)
    - Does it need scripts? (Deterministic CLI operations)
    - Does it need folders created? (Artifact storage, archive — declared in `folders:`)
    - Does it need one-time setup? (Credentials, repo clones, builds — declared via `setup:` + `dev-setup-<sh>.md`)
@@ -66,7 +68,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    - Add `dependencies:` as a map from package name to range (almost always `"@nuucognition/flint": "^0.2"`)
    - Add `types:` for any artifact types the shard manages, or run `flint shard type add <Name> --shard <sh>` (it writes the type file, the template, the folder, and the `types:` entry, and builds the shard)
    - Add `folders:` for artifact storage / archive paths
-   - Add `install:` entries for dashboards or Obsidian templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`)
+   - Add `install:` entries for dashboards or note templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`)
    - Add `repos:` if external git clones are required
    - Do **not** declare scripts/skills/workflows/templates/knowledge — they are auto-discovered
 
@@ -85,7 +87,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
 
 7. **Create install payloads** (**no `dev-` prefix** inside `install/`):
    - General payloads: `install/inst-<sh>-<name>.md` (dashboards, system files) — declare under `install:` in `shard.yaml`
-   - Obsidian templates: `install/otmp-<sh>-<name>.md` — declare under `install:` with dest `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md`
+   - Note templates: `install/otmp-<sh>-<name>.md` — declare under `install:` with dest `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` and `mode: force`. Use Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`), not `{{uuid}}` or `{{date}}`
    - Type definitions: `install/type-<sh>-<type>[_<subtype>].md` per [[dev-tmp-knap-type-v0.1]] — auto-resolved via `types:`, do **not** add an `install:` entry
 
 8. **Renames**: if you change your mind about the name or the shorthand, use `flint shard rename <alias> --name "<New Name>"` or `flint shard rename <alias> --shorthand <new-sh>` — never `mv` folders or files by hand. The id does not change. See [[dev-knw-knap-architecture]] § Renames.

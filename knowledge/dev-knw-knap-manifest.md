@@ -1,5 +1,7 @@
 ---
 description: "Complete shard.yaml schema reference — the package name (shard), the two ids (id, source.id), formerNames, of, the dependency map, install modes, setup lifecycle, scripts, types"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -298,13 +300,14 @@ install:
 | `dest` | string | required | Destination path from flint root — this is where the literal target filename (e.g. `(Dashboard) Backlog.md`) lives |
 | `mode` | `once` \| `force` | `once` | Overwrite behavior |
 
-**Source naming convention:** the `source` file inside `install/` is shard-namespaced (`inst-<sh>-<name>.md` for general payloads, `otmp-<sh>-<name>.md` for Obsidian templates). The user-facing filename — e.g. `(System) Flint Init.md` or `(Dashboard) Backlog.md` — appears only in `dest`. This keeps the `install/` folder self-describing (every file clearly belongs to this shard) and keeps target naming at the workspace layer.
+**Source naming convention:** the `source` file inside `install/` is shard-namespaced (`inst-<sh>-<name>.md` for general payloads, `otmp-<sh>-<name>.md` for note templates). The user-facing filename — e.g. `(System) Flint Init.md` or `(Dashboard) Backlog.md` — appears only in `dest`. This keeps the `install/` folder self-describing (every file clearly belongs to this shard) and keeps target naming at the workspace layer.
 
 Type definition files (`type-<sh>-<type>.md`) also live in `install/` but are **not** declared under `install:` — they are driven by the `types:` field and resolved automatically.
 
 **Install modes:**
 - `once` (default) — Install only if the destination doesn't exist. Users may customize it and the shard won't overwrite their changes.
 - `force` — Overwrite on every install and sync. Use for files that must stay in sync with the shard.
+- A note template (`otmp-`) always installs with `force` semantics and a conflict check: a changed copy stays, and the next command is `flint shard reinstall <alias> --replace-note-templates`. Declare it with `mode: force`.
 
 > **Backward compat:** Legacy boolean fields `once: true` and `force: true` are still accepted and resolved to the equivalent `mode` value. New manifests should use `mode`.
 
@@ -438,7 +441,7 @@ Files in the `install/` folder support these placeholders, resolved at install t
 | `{{uuid}}` | Random UUID v4 | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` |
 | `{{date}}` | Current date | `2026-04-14` |
 
-Useful for Obsidian templates and system files that need unique IDs or timestamps at creation.
+Use them in system files and dashboards that need a unique id or a date at install. A note template (`otmp-`) does not use them. The install copies a note template byte for byte, and Templater resolves its own syntax when a person makes a note: `<% crypto.randomUUID() %>` for the id, `<% tp.date.now("YYYY-MM-DD") %>` for the date. A health rule gives a warning for each `{{uuid}}` or `{{date}}` in a note template.
 
 ## Common Patterns
 
@@ -503,7 +506,7 @@ dependencies:
   "@nuucognition/flint": "^0.2"
 ```
 
-### Shard with Obsidian Templates
+### Shard with Note Templates
 
 ```yaml
 shard-spec: "0.4.0"
@@ -526,7 +529,7 @@ install:
     mode: once
   - source: otmp-proj-task.md
     dest: Shards/(Shards) Obsidian Templates/otmp-proj-task.md
-    mode: once
+    mode: force
 ```
 
 ### Shard with Setup

@@ -1,5 +1,7 @@
 ---
 description: "Validate shard structure and manifest integrity"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -58,7 +60,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Assets: `dev-ast-<sh>-<name>.<ext>`
    - [ ] Scripts: `dev-<name>.js`
    - [ ] Migrations: `dev-mig-<sh>-<from>-to-<to>.md` (dev-prefix applies — migrations ship with the shard)
-   - [ ] Obsidian templates (in `install/`): `otmp-<sh>-<name>.md` — **no dev prefix**
+   - [ ] Note templates (in `install/`): `otmp-<sh>-<name>.md` — **no dev prefix**. Warning on `{{uuid}}` or `{{date}}` in a note template: use Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`)
    - [ ] Type definitions (in `install/`): `type-<sh>-<type>[_<subtype>].md` — **no dev prefix**
    - [ ] Dashboards / system files (in `install/`): bare names like `(Dashboard) X.md` — **no dev prefix**
    - [ ] Shorthand matches `shard.yaml`

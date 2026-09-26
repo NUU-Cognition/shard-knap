@@ -3,6 +3,8 @@ required-reading:
   - "[[dev-knw-knap-architecture]]"
   - "[[dev-knw-knap-manifest]]"
   - "[[dev-knw-knap-cli]]"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 # Knap (Flintknapping)
@@ -89,7 +91,7 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | Asset | `ast-<sh>-<name>.<ext>` | `ast-proj-diagram.svg` |
 | Migration | `mig-<sh>-<from>-to-<to>.md` | `mig-proj-1.0.0-to-1.1.0.md` |
 | Install Payload | `inst-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `inst-proj-backlog_dashboard.md` |
-| Obsidian Template | `otmp-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `otmp-proj-task.md` |
+| Note Template | `otmp-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `otmp-proj-task.md` |
 | Type Definition | `type-<sh>-<type>[_<subtype>].md` (under `install/`, no `dev-` prefix) | `type-proj-task.md` |
 | Script | `<name>.js` (under `scripts/`; in the shard: `<name>.js`, in the source: `dev-<name>.js`) | `newtasknum.js` |
 
@@ -139,20 +141,29 @@ To create a shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-de
 
 For the full command surface, the package spec `@org/name[@version][#place]`, the resolution walk, the authoring flow, and anti-patterns, see [[dev-knw-knap-cli]].
 
-## Obsidian Templates
+## Note Templates
 
-Shards can provide human-facing templates for Obsidian's template picker, distinct from agent templates:
+A shard can give note templates: human-facing templates for Templater, the template picker in Obsidian. A note template is not an agent template:
 
 | Type | Prefix | Location | Audience |
 |------|--------|----------|----------|
 | Agent templates | `tmp-` | `templates/` of the build | Agents (bracket syntax, generation instructions) |
-| Obsidian templates | `otmp-` | `Shards/(Shards) Obsidian Templates/` | Humans (pre-filled frontmatter, direct insertion) |
+| Note templates | `otmp-` | `Shards/(Shards) Obsidian Templates/` | Humans (Templater syntax, pre-filled frontmatter) |
 
-Obsidian templates use `{{uuid}}` and `{{date}}` placeholders resolved at install time. Declare them in `shard.yaml` install entries:
+A note template uses Templater syntax. Templater resolves it each time a person makes a note from the template, so each note gets its own id and date:
+
+- `<% crypto.randomUUID() %>` gives a new id.
+- `<% tp.date.now("YYYY-MM-DD") %>` gives the date of today.
+
+The install copies a note template byte for byte. It does not resolve `{{uuid}}` or `{{date}}` in a note template, and it adds no `#readonly` tag (a note made from the template would copy the tag). The record lists the file with the payload kind `note-template`. A health rule gives a warning for each unresolved `{{uuid}}` or `{{date}}` in a note template, in a source and in an installed copy.
+
+The install always writes a note template with `force` semantics and a conflict check. It writes the file when the file is absent, or when the file has the new bytes or the recorded bytes. It keeps a changed copy and gives the next command `flint shard reinstall <alias> --replace-note-templates`. That command saves a backup of the changed copy, then writes the note template of the shard.
+
+`flint shard type add <Name> --shard <ref> --obsidian` scaffolds a note template in Templater syntax and its `install:` entry. Declare a note template in `shard.yaml` with `mode: force`:
 
 ```yaml
 install:
   - source: otmp-proj-task.md
     dest: "Shards/(Shards) Obsidian Templates/otmp-proj-task.md"
-    mode: once
+    mode: force
 ```

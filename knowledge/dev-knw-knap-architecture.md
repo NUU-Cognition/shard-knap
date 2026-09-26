@@ -1,5 +1,7 @@
 ---
 description: "Complete reference for the two entities (source and shard), the three states, the lock, the registry, shard structure, file types, headless mode, migrations, and design principles"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 # Knowledge: Shard Architecture
@@ -111,7 +113,7 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 | `source` | `{ id, git?, presence? }`: the source id, its Git location, and the source folder in this Flint |
 | `resolved` | `{ registry, repo?, ref?, sha?, hash?, from }`: the registry answer (`published`, `snapshot`, `unregistered`, `unchecked`) and where the build came from (`registry`, `git`, `path`, `source`, `place`) |
 | `package` | `{ hash, files[] }`: the hash and the files of the build (empty `files` for a reference) |
-| `payloads[]` | `{ path, id?, sha256, mode, kind }` per file installed outside the shard folder; `kind` is `type`, `install`, `obsidian`, or `folder` |
+| `payloads[]` | `{ path, id?, sha256, mode, kind }` per file installed outside the shard folder; `kind` is `type`, `install`, `note-template`, or `folder` (a 0.6.x record can hold `obsidian`, the old name of `note-template`; the read takes it as `note-template`) |
 | `folders[]` | The folders that the install made |
 | `dependencies` | The locked ids of the dependencies: `{ <address>: <id> }` |
 | `setup` | The Flint layer: `required`, `not-required`, `completed`, or `none` |
@@ -188,7 +190,7 @@ Files in a source (`(Source Remote)` and `(Source Local)` folders) are prefixed 
 | `assets/` | `dev-` (as `dev-ast-<sh>-<name>.<ext>`) | Source assets, stripped by the build |
 | `scripts/` | `dev-` (as `dev-<name>.js`) | Source scripts, stripped by the build |
 | `migrations/` | `dev-` | Migrations ship in the shard and could be overwritten on update — the prefix keeps the source distinct |
-| `install/` | **no prefix** | Files under `install/` are literal payloads copied verbatim to a destination (dashboards, system files, type definitions, obsidian templates). They are not shard sources — they are user-facing artifacts that happen to ship with the shard. |
+| `install/` | **no prefix** | Files under `install/` are literal payloads copied verbatim to a destination (dashboards, system files, type definitions, note templates). They are not shard sources — they are user-facing artifacts that happen to ship with the shard. |
 
 The build refuses `install/dev-*` files (error). The health check flags a file with no `dev-` prefix in every other location of a source. The root documents `README.md`, `RELEASE.md`, and `MIGRATIONS.md` stay in the source: the build has none of them, and no package hash covers them. `flint shard release` sends `README.md` to the registry.
 
@@ -492,13 +494,15 @@ Files placed into the Flint workspace during installation, declared in `shard.ya
 |----------------|---------|--------------|
 | `inst-<sh>-<name>.md` | General install payload (dashboards, system files, folder anchors, etc.) | `Mesh/(Dashboard) Backlog.md`, `Mesh/(System) Flint Init.md` |
 | `type-<sh>-<type>[_<subtype>].md` | Type definition — auto-installed via `types:` declaration, not `install:` | `Mesh/Metadata/Types/(Type) Task (Projects Shard).md` |
-| `otmp-<sh>-<name>.md` | Obsidian template (human-facing) | `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` |
+| `otmp-<sh>-<name>.md` | Note template (human-facing, Templater syntax) | `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` |
 
 **Rule:** every `install:` entry's `source` must start with `inst-<sh>-` or `otmp-<sh>-`. The only exception is `type-<sh>-*` files, which are never listed in `install:` — they are driven by `types:` declarations instead.
 
 Install files carry **no** `dev-` prefix in either the source or the shard — they are literal payloads, not source files. The installer refuses `install/dev-*` files with an error.
 
 Install files support `{{uuid}}` and `{{date}}` placeholders resolved at install time.
+
+A note template (`otmp-`) is the exception. The install copies it byte for byte: it resolves no placeholder and adds no `#readonly` tag. The record lists it with the payload kind `note-template` and no `id`. A note template uses Templater syntax: `<% crypto.randomUUID() %>` for the id and `<% tp.date.now("YYYY-MM-DD") %>` for the date. It always installs with `force` semantics and a conflict check: a changed copy stays, and the next command is `flint shard reinstall <alias> --replace-note-templates` (a backup comes first). A health rule gives a warning for each unresolved `{{uuid}}` or `{{date}}` in a note template. `flint shard type add <Name> --shard <ref> --obsidian` scaffolds a note template in Templater syntax, with `mode: force`. See [[dev-init-knap]] § Note Templates.
 
 ### Migrations (`migrations/`)
 
@@ -593,7 +597,7 @@ The shard installer ensures these workspace-scoped folders exist on every instal
 
 | Folder | Purpose | Tracked? |
 |--------|---------|----------|
-| `Shards/(Shards) Obsidian Templates/` | Destination for `otmp-<sh>-<name>.md` install entries | Yes |
+| `Shards/(Shards) Obsidian Templates/` | Destination for the note templates (`otmp-<sh>-<name>.md` install entries); Templater reads it | Yes |
 | `Shards/(Shards) Repos/` | External git repositories cloned via the manifest `repos:` field. One folder per declared `name` (the repo name, each word with a capital letter). Pinned SHAs live in `flint.json#repos[]`. | Yes (the folder; clone contents may be partially gitignored depending on workspace policy) |
 
 There are no state folders. The setup flags are in the records (see Setup and State).

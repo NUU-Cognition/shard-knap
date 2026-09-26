@@ -2,6 +2,8 @@
 name: Knap CLI Reference
 description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall), the retired inputs, and the --json shapes
 type: knowledge
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 # Knap CLI Reference
@@ -178,7 +180,7 @@ meeting-notes = { source = "@nuucognition/meeting-notes@0.1.0", git = "nuu-cogni
 | `flint shard install <input> --alias <alias>` | Install under another alias (kebab-case). Needed for a second shard with the same slug. The build folder is the alias as a Title. |
 | `flint shard install <input> --no-deps` | Install the shard alone. The missing dependencies are printed with their install commands. |
 | `flint shard install --all-dev` | Build the shard of every source of this Flint. A record with `use = "none"` is skipped with one line. |
-| `flint shard reinstall [<ref>]` | Install the shard again from its record. A `from = "source"` record calls `build`. |
+| `flint shard reinstall [<ref>] [--replace-note-templates]` | Install the shard again from its record. A `from = "source"` record calls `build`. `--replace-note-templates` replaces each changed note template with the note template of the shard, after a backup of the changed copy. |
 | `flint shard update [<ref>] [--json]` | Resolve each spec again inside its range and move the lock to the highest version, like `pnpm update`. It is the one command that moves a version that the lock satisfies. A spec with an exact version does not move. A build of a source is skipped: `built from its source: run flint shard build <alias>`. A rename that the new version carries heals at once (`moved: …`). |
 | `flint shard uninstall <ref> [--json]` | Remove the build, the lock record, the local entry, and the unchanged payloads. A changed or shared payload stays. For a `from = "source"` record the source and the record stay, and the record gets `use = "none"`. |
 
@@ -212,7 +214,7 @@ The transitive plan prints one line per missing package before any write, then i
 | `flint shard rename <ref> --name "<New Name>" [--json]` | Source only. One manifest edit (two lines, `name` and `shard`: the new slug, the same org; and one `formerNames` line; on a `0.3.0` manifest with no `shard:` line, `name` only) plus the reconcile of this Flint: the source folder, the build folder, the key, the request, the lock, the type files with their links, the dependency keys of dependents. The command is one transaction: a failure at any step puts every store back, or names each store that is not back and the backup paths. A consumer heals at `flint sync` (a copy from a place or a source) or at `flint shard install` (a registry copy). See [[dev-knw-knap-architecture]] § Renames. |
 | `flint shard rename <ref> --shorthand <new> [--json]` | Source only. Renames the prefixed files, rewrites the tags, links, and commands of the source, adds `formerShorthands`, bumps the major version (`shard` does not change), scaffolds `migrations/dev-mig-<new>-<from>-to-<to>.md` (an agent step with a `rewrite` block), and builds again (the step is queued for the build). A failure restores every file. |
 | `flint shard id <ref> [--dry-run] [--json]` | Fill an absent shard id, source id, and `shard` (the org of the Flint and the slug of the name) into a source. A present value stays. On a `0.3.0` manifest it fills `org` in place of `shard`; `flint migrate run` is the upgrade to `0.4.0`. A shard that is only a build is refused with `not-a-source`. On a dirty source or a work branch it writes the values and prints the next command `flint shard push <ref>`. |
-| `flint shard type add <Name> --shard <ref> [--description] [--folder] [--dashboard] [--obsidian]` | Add an artifact type to a source and build it. |
+| `flint shard type add <Name> --shard <ref> [--description] [--folder] [--dashboard] [--obsidian]` | Add an artifact type to a source and build it. `--obsidian` adds a note template `install/otmp-<sh>-<type>.md` in Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`) and its `install:` entry with `mode: force`. |
 | `flint shard push <ref> [-m "<msg>"] [-b [patch\|minor\|major]]` | Commit and push the remote source. |
 | `flint shard pull <ref>` | `git pull` the remote source. |
 | `flint shard release <ref> [<version>] [--org <slug>] [--no-register] [--json]` | Release a version (below). |

@@ -1,5 +1,7 @@
 ---
 description: "Shard manifest (shard.yaml) file structure"
+orbh-sessions:
+  - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
 ---
 
 # Naming and Placement
@@ -78,7 +80,7 @@ folders:
 
 /* Optional: files to install outside the shard folder.
    Files in install/ have NO dev- prefix — they are literal payloads copied verbatim.
-   Supports {{uuid}} and {{date}} placeholders resolved at install time. */
+   Supports {{uuid}} and {{date}} placeholders resolved at install time (not in a note template). */
 install:
   - source: [filename in install/ folder, no dev- prefix]
     dest: [destination path from flint root]
@@ -88,10 +90,12 @@ install:
     mode: force /* overwrite on every install/sync */
   - (continue)
 
-/* Optional: Obsidian templates for humans (otmp- prefix, no dev- prefix in install/) */
+/* Optional: note templates for humans (otmp- prefix, no dev- prefix in install/).
+   Templater syntax: <% crypto.randomUUID() %>, <% tp.date.now("YYYY-MM-DD") %>. No {{uuid}} or {{date}}.
+   A note template always installs with force semantics and a conflict check. */
   - source: otmp-[shorthand]-[name].md
     dest: "Shards/(Shards) Obsidian Templates/otmp-[shorthand]-[name].md"
-    mode: once
+    mode: force
 ```
 
 ## Rules
