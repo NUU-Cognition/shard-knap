@@ -38,7 +38,7 @@ A shard is a package with two entities:
 | The **source**: the files a person edits | `Shards/(Source Local) <Name>/` (no repository) or `Shards/(Source Remote) <Name>/` (a clone of a repository) | `shard.yaml#source.id` | `flint shard start-dev` |
 | The **shard**: the built package | `Shards/<folder>/`: the name when the alias is the slug of the name, else the alias as a Title | `shard.yaml#id` | `flint shard start` |
 
-The address is `@org/shard/<slug>` (the slug is `slugKey(name)`); `@org/<slug>` is its short form. The words are in the glossary of the spec ([[(Spec) Flint Shards#Glossary]]). **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts the selected package into a Flint. The lock state says what the install got: `published` when the hash of the build is the hash of the registry tag, `snapshot` with the sha of a known Git commit, or `edited` (no proof). The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
+The address is `@org/shard/<slug>` (the slug is `slugKey(name)`), for example `@nuucognition/shard/knap`; `@org/<slug>` is its short form, the package name (`@nuucognition/knap`). The manifest stores the package name in `shard.yaml#shard`. The words are in the glossary of the spec ([[(Spec) Flint Shards#Glossary]]). **Build** makes the shard from the source: `flint shard build <alias>`. A build of a clean Git source is a `snapshot` with the sha; a build of a local source or of a source with changes is `edited`. **Install** puts the selected package into a Flint. The lock state says what the install got: `published` when the hash of the build is the hash of the registry tag, `snapshot` with the sha of a known Git commit, or `edited` (no proof). The lock (`flint.json#shards[<id>]`) records the state of each shard; the NUU Shard Registry records the versions.
 
 Source files are prefixed `dev-` (e.g., `dev-init-<sh>.md`). The build strips the prefix. Files in `install/` are the exception: they are literal payloads and carry no prefix in either folder.
 
@@ -97,14 +97,14 @@ Source files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast-p
 
 ## Shard Manifest (shard.yaml)
 
-The manifest defines identity (the shard id, the org, the source id), dependencies, setup lifecycle, and installation behavior.
+The manifest defines identity (the package name `shard`, the shard id, the source id), dependencies, setup lifecycle, and installation behavior.
 
 For the complete schema reference, see [[dev-knw-knap-manifest]].
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/shard-name"           # The package name, always quoted; the slug is the slug of the name
 id: 00000000-0000-4000-8000-000000000000    # The shard id, minted by flint shard create — never edit
-org: nuucognition                          # The package is @nuucognition/shard/shard-name
 source:
   id: 00000000-0000-4000-8000-00000000000a  # The source id, minted by flint shard create — never edit
 version: "1.0.0"
@@ -124,6 +124,8 @@ install:
 folders:
   - Mesh/Archive/Tasks/
 ```
+
+A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still parses. To upgrade it, run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release.
 
 ## Authoring a Source
 

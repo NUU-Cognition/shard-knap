@@ -17,9 +17,10 @@ Validate that a shard follows Flint conventions and is structurally complete.
 # Actions
 
 1. **Check shard.yaml.** Verify the manifest exists and contains all required fields:
-   - [ ] `shard-spec` — `"0.3.0"` (current); `"0.2.0"` or `"0.1.0"` is a warning (outdated spec); any other value is an error
+   - [ ] `shard-spec` — `"0.4.0"` (current); `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` is a warning (outdated spec; for `"0.3.0"`, run `flint migrate run`, then commit, then release); any other value is an error
    - [ ] `id` and `source.id` — uuids v4 or v7 (warning if absent: run `flint shard id <alias>` on the source)
-   - [ ] `org` — a kebab slug (warning if absent in a Flint with an org: run `flint shard id <alias>`)
+   - [ ] `shard` — the package name, quoted: `"@<org>/<slug>"` (the full form `"@<org>/shard/<slug>"` also parses); the slug is `slugKey(name)` (error otherwise); at `"0.4.0"`, warning if absent: run `flint shard id <alias>`
+   - [ ] `org` — at `"0.4.0"`, an error (the field is `shard`); below `"0.4.0"`, a kebab slug (warning if absent in a Flint with an org: run `flint shard id <alias>`), and the org of `shard` when both are present (error otherwise)
    - [ ] `formerNames`, `formerShorthands`, `of` — if present, written by the CLI (`rename`, `fork`); `formerNames[]` is `{ name, slug, at }`, `of` is `{ id, address? }`, `source.of` is `{ id }`
    - [ ] `version` — valid semver string (`major.minor.patch`)
    - [ ] `name` — the Display Name law (error otherwise: an empty name, a forbidden character such as `/`, a trailing dot); a name that is not Proper Case is a warning (the convention)

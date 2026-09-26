@@ -1,5 +1,5 @@
 ---
-description: "Complete shard.yaml schema reference — the two ids (id, source.id), org and the package name, formerNames, of, the dependency map, install modes, setup lifecycle, scripts, types"
+description: "Complete shard.yaml schema reference — the package name (shard), the two ids (id, source.id), formerNames, of, the dependency map, install modes, setup lifecycle, scripts, types"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -12,9 +12,9 @@ The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards
 
 ```yaml
 # Required fields
-shard-spec: "0.3.0"                  # Shard spec version (conformance level)
+shard-spec: "0.4.0"                  # Shard spec version (conformance level)
+shard: "@nuucognition/shard-name"    # The package name, always quoted. The slug is slugKey(name). The address is @nuucognition/shard/shard-name. No org: "@/shard-name"
 id: 00000000-0000-4000-8000-000000000000  # The shard id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
-org: nuucognition                   # The org slug. The address is @nuucognition/shard/<slug>. Absent: no org (@/shard/<slug>)
 source:                              # The source block
   id: 00000000-0000-4000-8000-00000000000a  # The source id. `flint shard create` mints it.
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
@@ -60,7 +60,7 @@ install:                                      # Files to install into the worksp
 
 ### `shard-spec` (required)
 
-Declares which version of the shard packaging specification this shard follows. Currently `"0.3.0"`.
+Declares which version of the shard packaging specification this shard follows. Currently `"0.4.0"`.
 
 All shards must include this field. It allows tooling to handle backwards compatibility when the spec evolves.
 
@@ -68,28 +68,36 @@ All shards must include this field. It allows tooling to handle backwards compat
 - `"0.1.0"` — Original spec. Init files contained hardcoded Skills/Workflows/Templates/Knowledge tables. Skill/workflow files started with `Ensure you have [[init-<sh>]] in context before continuing.`
 - `"0.2.0"` — Progressive disclosure. Init files strip discovery tables and declare `required-reading` in YAML frontmatter. Every skill/workflow/template/knowledge file has `description` YAML frontmatter. Skill/workflow context lines use `Run `flint shard start <shorthand>` if you haven't already.` — `flint shard start` assembles the manifest dynamically.
 - `"0.3.0"` — The shard is a package. The manifest carries the shard `id`, the `org`, and the `source` block with the source id, and the CLI writes `formerNames`, `formerShorthands`, and `of`. `dependencies` is a map from package name to range.
+- `"0.4.0"` — The package name. The field `shard` holds the package name `"@<org>/<slug>"` and replaces the field `org`. `org:` is a parse error.
 
-A `"0.2.0"` or `"0.1.0"` manifest still parses. A `"0.3.0"` manifest without `org` or `source` is valid; `flint shard status <alias> --health` reports them as missing with the next command `flint shard id <alias>`. `flint sync` gives an `outdated-spec` notice for a source below the current spec (a notice: sync never changes a source). To go from `0.2.0` to `0.3.0`, set `shard-spec: "0.3.0"` and run `flint shard id <alias>`. To go from `0.1.0` to `0.2.0` first, use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow; it invokes the `prefix-shard` script for the `dev-` filename pass.
+A `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` manifest still parses. A `"0.4.0"` manifest without `shard`, `id`, or `source` is valid; `flint shard status <alias> --health` reports them as missing with the next command `flint shard id <alias>`. `flint sync` gives an `outdated-spec` notice for a source below the current spec (a notice: sync never changes a source). To go from `0.3.0` to `0.4.0`, run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release. To go from `0.2.0` to `0.4.0`, set `shard-spec: "0.4.0"` and run `flint shard id <alias>`. To go from `0.1.0` to `0.2.0` first, use the [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]] workflow; it invokes the `prefix-shard` script for the `dev-` filename pass.
 
 ### `id` (expected from spec `0.3.0`)
 
 The **shard id**: the stable identity of the shard (the built package). A uuid v4 (v7 is accepted), stored in lowercase. The parser accepts a manifest with no `id`, but a shard without one gets only a held id in each Flint (see below). The id never changes. A title rename and a shorthand rename keep it. The lock of every Flint (`flint.json#shards[<id>]`) keys the shard by it, and the registry keeps the record by it.
 
 - `flint shard create` mints the shard id and the source id.
-- `flint shard id <alias>` fills an absent shard id, source id, and `org` (the org of the Flint) into a source. It fills only absent values. On a remote source that is dirty or on a work branch it prints a notice and the next command `flint shard push <alias>`.
+- `flint shard id <alias>` fills an absent shard id, source id, and `shard` (the org of the Flint and the slug of the name) into a source. On a `0.3.0` manifest it fills `org` in place of `shard`. It fills only absent values. On a remote source that is dirty or on a work branch it prints a notice and the next command `flint shard push <alias>`.
 - A shard that is only a build never mints an id. `flint shard id` refuses it with `not-a-source`.
 - A clone never mints: the ids come with the files.
 - An installed package with no id gets a **held id**: the Flint mints one, keeps it in `flint.json#shards[<id>]` with `held: { binding: { request, hash } }`, and never writes it into the package. `flint shard list` marks it `(held)`. The held id retires into the real id when the registry answers `resolve?hash=` with a record, or when a later install of the same package carries an id: the held record gets `mergedInto: <package id>`.
 
-### `org` (expected from spec `0.3.0`)
+### `shard` (expected from spec `0.4.0`)
 
-The slug of the org that owns the package, for example `nuucognition`. The address is `@<org>/shard/<slug>`. The short spelling `@<org>/<slug>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<slug>`.
+The **package name** of the shard in the short form `"@<org>/<slug>"`, for example `shard: "@nuucognition/knap"`. It is the same string that `flint.toml` (`source = "@nuucognition/knap"`), the dependency map, and the `flint shard` commands use. The address is the full form `@<org>/shard/<slug>`. The short form is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). The parser also accepts the full form in `shard`; the CLI always writes the short form.
 
-- `flint shard create` and `flint shard fork` write the org of the Flint (`flint.json#org`). A Flint with no org writes no `org`.
-- `flint shard id <alias>` fills an absent `org` from the Flint.
-- `flint shard release` refuses a source with no `org` in a Flint that has one, with the next command `flint shard id <alias>`.
+- Always quote the value. YAML reserves `@` as an indicator, and a plain scalar cannot start with it: `shard: @nuucognition/knap` does not parse.
+- The slug MUST be `slugKey(name)`. A mismatch is a manifest error: `Invalid "shard": the slug "x" is not the slug of the name "Y" ("y")`. The name stays the Display Name. The slug is stored twice, and this rule guards the copy.
+- `"@/<slug>"` means no org: the package resolves in this machine only, as `@/shard/<slug>`.
+- The org of the package is the first segment of `shard`. The org of the Flint stays in `flint.json#org`.
+- `flint shard create` and `flint shard fork` write the org of the Flint (`flint.json#org`) and the slug of the name, or `"@/<slug>"` in a Flint with no org. They write no `org`.
+- `flint shard id <alias>` fills an absent `shard` on a `0.4.0` manifest. A present value stays.
+- `flint shard rename <alias> --name "<New Name>"` edits two lines: `name` and `shard` (the new slug, the same org). `flint shard rename --shorthand` does not change `shard`.
+- `flint shard release` refuses a source with no `shard`, with the next command `flint shard id <alias>`.
 
 The org is not a GitHub owner. GitHub is a location of the source, which the registry records.
+
+**`org` (spec `0.3.0` and below).** A manifest below `0.4.0` stores the org slug in the field `org` (for example `org: nuucognition`). An absent or empty `org` means no org. `org:` parses at `0.3.0`, `0.2.0`, and `0.1.0` forever, because every published version of every shard keeps it. At `0.4.0`, `org:` is a parse error: `Invalid "org": the field is "shard" since spec 0.4.0 (shard: "@<org>/<slug>")`. A manifest below `0.4.0` can also carry `shard`; when `org` and `shard` name different orgs, the manifest does not parse. On a `0.3.0` manifest, `flint shard id <alias>` fills an absent `org` and writes no `shard`. To upgrade, run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release.
 
 ### `source` (expected from spec `0.3.0`)
 
@@ -115,8 +123,9 @@ A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new
 `{ id, address? }`: the shard that this shard was forked from. `flint shard fork` writes it. The `id` is the truth; `address` is a cache of the package address at the time of the fork. A fork always has a new shard id and a new source id of its own, and records `of` on each:
 
 ```yaml
+shard-spec: "0.4.0"
+shard: "@nuucognition/notepad-nathan"
 id: 7948fa19-469b-4ce4-ba22-888554530bd2
-org: nuucognition
 name: Notepad Nathan
 shorthand: ntpn
 source:
@@ -147,7 +156,7 @@ The name of the shard. It follows the **Display Name law** of `@nuucognition/ent
 - The slug is `slugKey(name)`, the one fold of a shard name: lowercase, drop the volatile characters, join the parts with `-`. `Meeting Notes` gives `meeting-notes`; `R&D Tools` gives `rd-tools`.
 - Proper Case (`Meeting Notes`) is the convention. `flint shard status <alias> --health` warns `name is not Proper Case: "<name>" (the convention; the name is valid)`; it never refuses.
 
-The address is `@<org>/shard/<slug>`: `name: Notepad` in `org: nuucognition` is `@nuucognition/shard/notepad`. A rename (`flint shard rename --name`) therefore moves the address; the id does not change. The build folder is the name when the alias of the shard in the Flint is the slug of the name, else the alias as a Title. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs. The rule is stated once in [[(Spec) Flint Shards . Manifest]] § The Name.
+The address is `@<org>/shard/<slug>`: `name: Notepad` with `shard: "@nuucognition/notepad"` is `@nuucognition/shard/notepad`. The slug of `shard` MUST be the slug of the name. A rename (`flint shard rename --name`) therefore edits `name` and `shard` and moves the address; the id does not change. The build folder is the name when the alias of the shard in the Flint is the slug of the name, else the alias as a Title. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs. The rule is stated once in [[(Spec) Flint Shards . Manifest]] § The Name.
 
 Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`, `R&D Tools`
 
@@ -379,7 +388,8 @@ YAML is permissive about unquoted strings. Leaving strings unquoted keeps manife
 
 **DO need quotes:**
 - Version numbers: `version: "1.0.0"` — otherwise YAML may interpret `1.0` as a float (`1.0.0` parses fine as a string, but `"1.0.0"` is defensive and consistent)
-- `shard-spec: "0.3.0"` — same reason
+- `shard-spec: "0.4.0"` — same reason
+- `shard: "@nuucognition/knap"` — the value starts with `@`
 - Strings that look like booleans or keywords: `"yes"`, `"no"`, `"true"`, `"false"`, `"null"`, `"on"`, `"off"`
 - Strings starting with YAML metacharacters: `{`, `}`, `[`, `]`, `,`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``, `#`
 - Strings starting or ending with whitespace (rare)
@@ -393,7 +403,8 @@ Examples:
 name: Projects                                  # no quotes
 description: Task management with lifecycle     # no quotes
 shorthand: proj                                 # no quotes
-shard-spec: "0.3.0"                             # quoted (version string)
+shard-spec: "0.4.0"                             # quoted (version string)
+shard: "@nuucognition/projects"                 # quoted (starts with @)
 version: "1.0.0"                                # quoted (version string)
 setup: full                                     # no quotes (enum)
 folders:
@@ -409,7 +420,7 @@ install:
 
 The legacy `state: true` boolean, the `requires: { cli, workspace }` block, and `scripts:` declarations are predecessors of the `setup:` field and auto-discovery model. Their handling depends on the manifest's `shard-spec`:
 
-| Field | On `shard-spec: "0.2.0"` and `"0.3.0"` | On `shard-spec: "0.1.0"` |
+| Field | On `shard-spec: "0.2.0"`, `"0.3.0"`, and `"0.4.0"` | On `shard-spec: "0.1.0"` |
 |-------|--------------------------|--------------------------|
 | `state: true` | **Hard error** (parser refuses the manifest) | Warning. Health checks treat `state: true` as `setup: full`. |
 | `requires.cli` / `requires.workspace` | **Hard error** | Warning. |
@@ -434,9 +445,9 @@ Useful for Obsidian templates and system files that need unique IDs or timestamp
 ### Dashboard-Only Shard
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/my-dashboard"
 id: 00000000-0000-4000-8000-000000000000
-org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -454,9 +465,9 @@ install:
 ### Full Artifact Shard
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/projects"
 id: 00000000-0000-4000-8000-000000000000
-org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -479,9 +490,9 @@ folders:
 ### Minimal Shard
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/living-documents"
 id: 00000000-0000-4000-8000-000000000000
-org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -495,9 +506,9 @@ dependencies:
 ### Shard with Obsidian Templates
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/projects"
 id: 00000000-0000-4000-8000-000000000000
-org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -521,9 +532,9 @@ install:
 ### Shard with Setup
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "@nuucognition/my-integration"
 id: 00000000-0000-4000-8000-000000000000
-org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -540,9 +551,10 @@ Requires a companion `dev-setup-mi.md` (installed as `setup-mi.md`) describing c
 ## Validation Rules
 
 A valid `shard.yaml` must have:
-- [ ] `shard-spec` — `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` (an `outdated-spec` notice below `"0.3.0"`; any other value is refused)
+- [ ] `shard-spec` — `"0.4.0"`, `"0.3.0"`, `"0.2.0"`, or `"0.1.0"` (an `outdated-spec` notice below `"0.4.0"`; any other value is refused)
 - [ ] `id` and `source.id` — uuids v4 or v7 when present (expected from `"0.3.0"`; fill them with `flint shard id <alias>`)
-- [ ] `org` — a kebab slug when present (expected from `"0.3.0"` in a Flint with an org)
+- [ ] `shard` — a quoted package name, `"@<org>/<slug>"` or the full form `"@<org>/shard/<slug>"`, whose slug is `slugKey(name)` (expected from `"0.4.0"`; fill it with `flint shard id <alias>`)
+- [ ] `org` — absent at `"0.4.0"` (a parse error there); below `"0.4.0"`, a kebab slug when present, and the org of `shard` when both are present
 - [ ] `version` — valid semver string (`major.minor.patch`)
 - [ ] `name` — passes the Display Name law (a warning if it is not Proper Case)
 - [ ] `shorthand` — non-empty lowercase-letters-only string (any length; pattern `^[a-z]+$`)

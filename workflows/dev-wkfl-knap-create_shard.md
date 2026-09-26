@@ -41,7 +41,7 @@ Present the design to the user for confirmation. Once confirmed, progress to the
 
 ## Stage 2: Scaffold
 
-Use `flint shard create` to make a new local source at `Shards/(Source Local) [Name]/`. It is one command: it writes the folder, `shard.yaml`, `dev-init-<sh>.md`, `README.md`, and (if requested) the setup file; it **mints the shard id and the source id** into `shard.yaml` and writes the `org` of the Flint; it writes the record `<alias> = { source = "@org/name", from = "source" }` into `flint.toml`; and it builds the shard at `Shards/[Name]/` with its lock record in `flint.json#shards[<id>]`. **Never hand-craft the folder** and never write an id by hand. Promote the source later to a remote source with `flint shard dev <alias> <github-url>` once a Git remote is ready, then release a version with `flint shard release <alias>`.
+Use `flint shard create` to make a new local source at `Shards/(Source Local) [Name]/`. It is one command: it writes the folder, `shard.yaml`, `dev-init-<sh>.md`, `README.md`, and (if requested) the setup file; it **mints the shard id and the source id** into `shard.yaml` and writes the package name `shard: "@<org>/<slug>"` (the org of the Flint and the slug of the name); it writes the record `<alias> = { source = "@org/name", from = "source" }` into `flint.toml`; and it builds the shard at `Shards/[Name]/` with its lock record in `flint.json#shards[<id>]`. **Never hand-craft the folder** and never write an id by hand. Promote the source later to a remote source with `flint shard dev <alias> <github-url>` once a Git remote is ready, then release a version with `flint shard release <alias>`.
 
 1. **Run the scaffold command:**
    ```bash
@@ -51,7 +51,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    - `--no-install` writes the source only (the record gets `use = "none"`); build it later with `flint shard build <alias>`
    - Without `-s`, a free shorthand is derived from the name — pass it explicitly when you want control
    - The output reports the created path and the next command (`flint shard start-dev <sh>`); `cd` is not needed
-   - `shard.yaml` starts with `shard-spec: "0.3.0"`, `id: <new uuid>`, `org: <org slug>`, and the `source` block with `id: <new uuid>`. Keep these lines.
+   - `shard.yaml` starts with `shard-spec: "0.4.0"`, `shard: "@<org>/<slug>"` (for example `shard: "@nuucognition/oracle"`; `"@/oracle"` in a Flint with no org), `id: <new uuid>`, and the `source` block with `id: <new uuid>`. Keep these lines. The slug of `shard` MUST stay the slug of the name: to change the name, run `flint shard rename <alias> --name "<New Name>"`, which edits both lines.
 
    ```
    $ flint shard create Oracle --shorthand orc

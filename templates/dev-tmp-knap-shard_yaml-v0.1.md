@@ -9,12 +9,12 @@ description: "Shard manifest (shard.yaml) file structure"
 | Path | `shard.yaml` (at the root of the source, NEVER prefixed, never under `install/`; the build carries a copy) |
 | Required | Yes — every shard MUST have one |
 
-The manifest defines the shard's identity (the shard id, the org, the source id), dependencies, setup scope, and installation behaviour. `flint shard create` writes it; edit it by hand only for the fields that no command writes. See [[dev-knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
+The manifest defines the shard's identity (the package name `shard`, the shard id, the source id), dependencies, setup scope, and installation behaviour. `flint shard create` writes it; edit it by hand only for the fields that no command writes. See [[dev-knw-knap-manifest]] for the complete field reference, validation rules, and per-field semantics.
 
 ```yaml
-shard-spec: "0.3.0"
+shard-spec: "0.4.0"
+shard: "[the package name @<org>/<slug>: the org of the Flint and the slug of the name, e.g. @nuucognition/knap; @/<slug> when the Flint has no org]"
 id: [the shard id: a uuid4 that `flint shard create` mints]
-org: [the org slug of the Flint, e.g. nuucognition; omit the line when the Flint has no org]
 source:
   id: [the source id: a uuid4 that `flint shard create` mints]
 version: "[semver version, e.g. 1.0.0]"
@@ -96,13 +96,13 @@ install:
 
 ## Rules
 
-- `shard-spec`: `"0.3.0"` is current. `"0.2.0"` and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a source at a lower spec. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
+- `shard-spec`: `"0.4.0"` is current. `"0.3.0"`, `"0.2.0"`, and `"0.1.0"` still parse; `flint sync` gives an `outdated-spec` notice for a source at a lower spec. To move a `"0.3.0"` source, run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release. Legacy fields (`state:`, `requires:`, explicit `scripts:`) are errors at `"0.2.0"` and above.
 - `id`: the shard id, a uuid v4 (v7 is accepted), lowercase. `flint shard create` mints it. `flint shard id <alias>` fills it into a source that has none. Never change it: the lock of every Flint and the registry find the shard by it. A shard that is only a build never mints an id.
-- `org`: the org slug. The address is `@<org>/shard/<slug>`. `create`, `fork`, and `flint shard id` write the org of the Flint. Absent means no org (`@/shard/<slug>`).
+- `shard`: the package name in the short form `"@<org>/<slug>"`, always quoted (YAML reserves `@`). The address is `@<org>/shard/<slug>`. The slug MUST be `slugKey(name)`: a mismatch is a manifest error. `"@/<slug>"` means no org (`@/shard/<slug>`). `create` and `fork` write the org of the Flint and the slug of the name; `flint shard id` fills an absent value; `flint shard rename --name` writes the new slug. Do not write `org:` at `"0.4.0"`: it is a parse error. A manifest at `"0.3.0"` and below has `org:` in place of `shard:`, and it still parses.
 - `source.id`: the source id. `flint shard create` mints it, `flint shard dev` keeps it, a clone never mints it, and `flint shard fork` mints a new one with `source.of`.
 - `formerNames`, `formerShorthands`, `of`: optional. The CLI writes them (`rename --name`, `rename --shorthand`, `fork`). Do not write them by hand. A former name resolves only in its address form (`@org/<former slug>`), and a former shorthand as a bare word, with a `moved` note.
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
-- `name`: the Display Name law (letters, digits, spaces, `-`, and `' , . ! & + ; @`; no `/ # ( ) [ ] : ?`; no trailing dot). Proper Case is the convention; the health check warns, never refuses. The slug is `slugKey(name)`, so a rename of the name moves the address (the id stays). The build folder is the name when the alias is the slug, else the alias as a Title.
+- `name`: the Display Name law (letters, digits, spaces, `-`, and `' , . ! & + ; @`; no `/ # ( ) [ ] : ?`; no trailing dot). Proper Case is the convention; the health check warns, never refuses. The slug is `slugKey(name)`, so a rename of the name moves the address and edits `shard` (the id stays). The build folder is the name when the alias is the slug, else the alias as a Title.
 - `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.
 - `dependencies`: a map from package name to range. Almost always include `"@nuucognition/flint"`. A shard record of this Flint with that address and a version inside the range satisfies it. The install refuses a present dependency outside the range.
 - `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Mark setup complete with `flint shard setup <alias> --complete`.
@@ -113,7 +113,7 @@ install:
 
 ## Quoting
 
-YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.3.0"`, `"1.0.0"`) and anything starting with a YAML metacharacter. See [[dev-knw-knap-manifest]] § YAML Quoting Guide.
+YAML is permissive. Do NOT quote plain strings, enum values, or paths with parentheses. DO quote version strings (`"0.4.0"`, `"1.0.0"`), the package name (`shard: "@nuucognition/knap"`), and anything starting with a YAML metacharacter. See [[dev-knw-knap-manifest]] § YAML Quoting Guide.
 
 ## Not Declared Here
 

@@ -33,7 +33,7 @@ A shard is a package. It has two entities, and each one has its own id. The word
 | States | `edited`, or a Git commit (sha, ahead, behind, dirty) | `published` (a tag, proven by the hash), `snapshot` (built from a commit, proven by the sha), `edited` (no proof) |
 | Loaded by | `flint shard start-dev` (for editing) | `flint shard start` (for use) |
 
-The manifest `shard.yaml` lives in the source and declares what the source builds: the shard id, the org, the name. The build copies it, so the shard carries its provenance. The `dev-` prefix marks a source file.
+The manifest `shard.yaml` lives in the source and declares what the source builds: the package name (`shard`), the shard id, the name. The build copies it, so the shard carries its provenance. The `dev-` prefix marks a source file.
 
 **The build** is a function: `build(source at a state) = shard at a state`. A clean Git source at a tag gives a shard with the hash of that published version. A clean Git source at another commit gives a `snapshot` with the sha. A local source, or a source with changes, gives `edited`. The registry stores, for each version, the sha of the source and the hash of the build; that is the link between the two entities.
 
@@ -63,7 +63,7 @@ The feature ids and the drift kind names are machine keys. These are the two rec
 
 The shard id and the source id are the truth. Names are for people; the CLI stores ids.
 
-**The identity** is four stored facts of the manifest: `id`, `org`, `name`, `shorthand` (plus `source.id`). The slug is `slugKey(name)`, the one fold of a shard name. The address is `@org/shard/<slug>`. The default alias is the slug. The name follows the Display Name law ([[dev-knw-knap-manifest]] § name).
+**The identity** is four stored facts of the manifest: `id`, `shard`, `name`, `shorthand` (plus `source.id`). `shard` is the package name `"@<org>/<slug>"`: it stores the org and the slug. The slug is `slugKey(name)`, the one fold of a shard name; the slug of `shard` MUST be equal to it. The org is the first segment of `shard` (a manifest below `0.4.0` stores it in `org`). The address is `@org/shard/<slug>`, for example `@nuucognition/shard/knap`; the package name `@nuucognition/knap` is its short form. The default alias is the slug. The name follows the Display Name law ([[dev-knw-knap-manifest]] § name).
 
 **The alias.** The key of the record in `flint.toml` is its alias: the local name of the shard in this Flint. It defaults to the slug of the name. `flint shard install <input> --alias <alias>` sets another one; a second shard with the same slug needs it. The build folder is the name when the alias is the slug of the name, else the alias as a Title.
 
@@ -141,7 +141,7 @@ A reader that meets a record of a newer shape stops with the reason and `Upgrade
 
 A rename of the name is one manifest edit plus one reconcile. The whole process is in [[(Spec) Flint Shards . Rename]]; in short:
 
-- **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source writes the new `name` and one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
+- **The author.** `flint shard rename <alias> --name "<New>"` in the Flint that has the source edits two lines of the manifest, the new `name` and `shard` (the new slug, the same org), writes one `formerNames` line `{ name, slug, at }`, moves the source folder, and runs the reconcile of this Flint. `flint shard release <alias>` then sends the name and `formerNames` to the registry; the registry keeps the record by id and answers the old slug with `moved`.
 - **Every consumer.** `flint sync` runs the same reconcile. It sees the new name through the rung the copy came from: the source here, the place, or the build after `flint shard update`. A registry copy sees it at `flint shard install`, which reads the registry answer.
 - **The heal**, in one order, in one transaction: the folder (the name when the alias is the slug, else the alias as a Title), the key when the alias was the old slug, the request (the new slug; the range and the place stay), the lock `name`, `address`, and `formerNames`, the type files with their links, the payload paths, and the dependency keys of dependents (with the notice `dependency names a former address`). The report line is `moved: <Old> is now <New> (<address>); the folder, the key, and the type files followed`.
 - **Old names.** A former address and a former shorthand resolve as a ref, with `moved: <old> is now <new>`. A bare former slug does not.
@@ -168,6 +168,14 @@ Every step plans first, runs inside the migration transaction (a journal and a b
 After the run every remote source is `edited`, because `s5` changed its `shard.yaml`. Commit and push each source, then run `flint shard install --all-dev`: the builds become `snapshot` with the sha.
 
 A Flint that ran the pre-release 0.7.0 steps (records of `shard-record/0.1`) is not migrated: `s6` blocks and writes nothing. Restore `flint.toml`, `flint.json`, and the state folders from the backup of that run (`flint migrate rollback <run>`, or by hand from `.flint/migrations/`), then run `flint migrate run` again.
+
+A 0.7.0 Flint has sources at `shard-spec: "0.3.0"` with `org:`. `flint migrate run` upgrades them with one step of the migration `flint-0.7.0-to-0.8.0`:
+
+| Step | What it does |
+|------|--------------|
+| `s1` "Give every shard source its package name" | For every source at `0.3.0`: writes `shard: "@<org>/<slugKey(name)>"` (the org of the manifest, else the org of the Flint, else no org), removes the `org:` line, and sets `shard-spec: "0.4.0"`. Comments, key order, and every other line stay. The build of the source gets the same edit; a build with no source here is not edited. A source at `0.2.0` or `0.1.0` is skipped with one report line. A present `shard` that names another org than `org` blocks with the file name, and the step writes nothing. One line per Git source: commit and push it. |
+
+After the run the package hash of every source differs from the published hash. Commit each source, then release it. A Flint that installs the shard from the registry keeps the `0.3.0` manifest until that release; `org:` at `0.3.0` still parses.
 
 ## Dev Prefix Rules
 
@@ -670,7 +678,17 @@ Start minimal. Add capabilities as genuine needs emerge. A shard with one excell
 
 A shard declares the version of the **shard packaging spec** it conforms to via `shard-spec` in `shard.yaml`. This is independent from the shard's own `version` (semver lifecycle) — `shard-spec` describes the rules of the packaging itself, `version` describes the shard's content.
 
-Current spec: `"0.3.0"`. Older specs that still parse: `"0.2.0"`, `"0.1.0"`.
+Current spec: `"0.4.0"`. Older specs that still parse: `"0.3.0"`, `"0.2.0"`, `"0.1.0"`.
+
+### What Changed: 0.3.0 → 0.4.0
+
+| Area | 0.3.0 | 0.4.0 |
+|------|-------|-------|
+| The package name | Not stored: derived from `org` and `slugKey(name)` | `shard: "@nuucognition/knap"`: the package name in the short form, always quoted. `"@/knap"` means no org. The slug MUST be `slugKey(name)`. |
+| The org | `org: nuucognition` (a kebab slug; absent means no org) | The first segment of `shard`. `org:` is a parse error. |
+| Rename of the name | Edits `name` | Edits `name` and `shard` |
+
+To move a source to `0.4.0`: run `flint migrate run` (the Flint migration `0.7.0` to `0.8.0` rewrites every source and its build), then commit, then release. `org:` at `0.3.0` parses forever, because every published version keeps it.
 
 ### What Changed: 0.2.0 → 0.3.0
 
@@ -706,4 +724,4 @@ To move a shard to `0.3.0`: set `shard-spec: "0.3.0"` and run `flint shard id <a
 
 The mechanical pass is owned by [[dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0]]. The bulk filename rename is automated by the `prefix-shard` script (`flint shard knap prefix-shard <path>`), which adds `dev-` to source files and strips it from `install/` payloads. The remaining edits — frontmatter, manifest field migration, init-file restructuring — are direct applications of this knowledge file plus [[dev-knw-knap-manifest]].
 
-`flint sync` gives the `outdated-spec` notice for a source below the current spec (`0.1.0` and `0.2.0`) on the source feature `shard-sources`. A shard (a build) gets no notice.
+`flint sync` gives the `outdated-spec` notice for a source below the current spec (`0.1.0`, `0.2.0`, and `0.3.0`) on the source feature `shard-sources`. A shard (a build) gets no notice.
