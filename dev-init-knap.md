@@ -159,7 +159,7 @@ The install copies a note template byte for byte. It does not resolve `{{uuid}}`
 
 The install always writes a note template with `force` semantics and a conflict check. It writes the file when the file is absent, or when the file has the new bytes or the recorded bytes. It keeps a changed copy and gives the next command `flint shard reinstall <alias> --replace-note-templates`. That command saves a backup of the changed copy, then writes the note template of the shard.
 
-`flint shard type add <Name> --shard <ref> --obsidian` scaffolds a note template in Templater syntax and its `install:` entry. Declare a note template in `shard.yaml` with `mode: force`:
+`flint shard type add <Name> --shard <ref> --note-template` scaffolds a note template in Templater syntax and its `install:` entry (`--obsidian` is a hidden alias of the flag). Declare a note template in `shard.yaml` with `mode: force`:
 
 ```yaml
 install:
