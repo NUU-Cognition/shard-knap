@@ -112,7 +112,7 @@ The build copies the block, so the lock and the registry can name the source of 
 
 ### `formerNames` (optional, CLI-written)
 
-A list of `{ name, slug, at }`, oldest first. `flint shard rename <alias> --name "<New Name>"` appends one line with the old name, its slug (`slugKey`), and the ISO time. The lock keeps a copy; `flint shard release` sends it to the registry. A former name resolves as a ref only in its address form (`@org/<former slug>` or `@org/shard/<former slug>`), with a `moved` note; a bare former slug is `not-found` ([[dev-knw-knap-cli]] § The Ref). Every consumer heals on `flint sync` ([[(Spec) Flint Shards . Rename]]). Do not write it by hand.
+A list of `{ name, slug, at }`, oldest first. `flint shard rename <alias> --name "<New Name>"` appends one line with the old name, its slug (`slugKey`), and the ISO time. The lock keeps a copy; `flint shard release` sends it to the registry. A former name resolves as a ref only in its address form (`@org/<former slug>` or `@org/shard/<former slug>`), with a `moved` note; a bare former slug is `not-found` ([[dev-knw-knap-cli]] § The Ref). A consumer that reads the source, a place, or a build heals on `flint sync`; a copy from the shard registry heals on `flint shard install` ([[(Spec) Flint Shards . Rename]] § Every Consumer). Do not write it by hand.
 
 ### `formerShorthands` (optional, CLI-written)
 
