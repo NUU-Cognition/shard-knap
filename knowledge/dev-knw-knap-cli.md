@@ -18,9 +18,9 @@ A command that takes `<ref>` names one shard of this Flint. The rule: **a bare w
 |-------|------|---------|
 | 1 | The alias (the `flint.toml` key), in any case | `notepad` |
 | 2 | The shorthand | `ntpd` |
-| 3 | The address, full or short (a range and a place are cut off) | `@nuu-cognition/shard/notepad`, `@nuu-cognition/notepad@^1.1` |
+| 3 | The address, full or short (a range and a place are cut off) | `@nuucognition/shard/notepad`, `@nuucognition/notepad@^1.1` |
 | 4 | The id, `@<id>`, or an id prefix of eight or more characters | `76d64e3e` |
-| 5 | A former address (`@org/<former slug>`, `@org/shard/<former slug>`), or a former shorthand as a bare word | `@nuu-cognition/meeting-notes` after a rename to Meeting Log; `meet` after a shorthand rename to `mlog` |
+| 5 | A former address (`@org/<former slug>`, `@org/shard/<former slug>`), or a former shorthand as a bare word | `@nuucognition/meeting-notes` after a rename to Meeting Log; `meet` after a shorthand rename to `mlog` |
 
 A former form prints `moved: <old> is now <new>` on stderr and goes on; `--json` carries `moved: { from, to }`. A former name resolves only in its address form.
 
@@ -53,9 +53,9 @@ A copy outside the range is skipped with a note, and the walk goes on. With `#pl
 When the registry does not answer (offline, refused, or a bad answer), an install from Git or from a path goes on, and the lock says `registry: "unchecked"`. `flint shard install` with no argument asks again and records a changed answer with a notice. An install of a package that no local place holds stops:
 
 ```
-$ flint shard install @nuu-cognition/nothing
-✘ @nuu-cognition/shard/nothing is not on this machine, and the registry did not answer: the registry at http://127.0.0.1:9 is not reachable: fetch failed (bad port).
-  flint resolve @nuu-cognition/shard/nothing
+$ flint shard install @nuucognition/nothing
+✘ @nuucognition/shard/nothing is not on this machine, and the registry did not answer: the registry at http://127.0.0.1:9 is not reachable: fetch failed (bad port).
+  flint resolve @nuucognition/shard/nothing
   flint shard install --from-git <owner/repo>
 ```
 
@@ -80,20 +80,20 @@ Every inspect surface prints one row with one set of labels in one order: `Id`, 
 $ flint shard list
 Shards
   ID                ADDRESS                             ALIAS          SHORTHAND   VERSION     STATE
-  4426ad5b          @nuu-cognition/shard/meeting-notes  meeting-notes  meet        0.1.0       edited
+  4426ad5b          @nuucognition/shard/meeting-notes  meeting-notes  meet        0.1.0       edited
 
   1 shard, 1 declared
 
 $ flint shard status meeting-notes
 Meeting Notes
   Id       : 4426ad5b-e2a4-4046-b5ee-ebeee419a42f
-  Address  : @nuu-cognition/shard/meeting-notes
+  Address  : @nuucognition/shard/meeting-notes
   Alias    : meeting-notes
   Shorthand: meet
   Name     : Meeting Notes
   Version  : 0.1.0
   State    : edited
-  Request  : @nuu-cognition/shard/meeting-notes
+  Request  : @nuucognition/shard/meeting-notes
   From     : source
   Registry : unchecked
   Folders  : Shards/Meeting Notes, Shards/(Source Local) Meeting Notes
@@ -116,10 +116,10 @@ The header of every start names the shard:
 ```
 # Shard: Meeting Notes (meet) v0.1.0
 Id: 4426ad5b-e2a4-4046-b5ee-ebeee419a42f
-Address: @nuu-cognition/shard/meeting-notes
+Address: @nuucognition/shard/meeting-notes
 Alias: meeting-notes
 State: edited
-Request: @nuu-cognition/shard/meeting-notes
+Request: @nuucognition/shard/meeting-notes
 ```
 
 `start` of a record with `from = "source"` loads the build. When the source changed after the build, `start` prints a notice on stderr and loads the build anyway:
@@ -143,14 +143,14 @@ Skill and workflow files begin with the context line `Run \`flint shard start <s
 | `--from-path <dir>` | Copies a folder on this machine. The record is a path record, the lock is `edited` with `resolved.from = path`. |
 | `--reference` | Binds the shard with no build under `Shards/` (`use = "reference"`). The loader reads the folder on this machine. |
 
-A bare word is the package `@<org of the Flint>/<word>` (`@/<word>` in a Flint with no org); a word of the official alias table is `@nuu-cognition/<slug>`. A positional `owner/repo` still installs from GitHub (the record `{ source = "owner/repo" }`); prefer `--from-git`.
+A bare word is the package `@<org of the Flint>/<word>` (`@/<word>` in a Flint with no org); a word of the official alias table is `@nuucognition/<slug>`. A positional `owner/repo` still installs from GitHub (the record `{ source = "owner/repo" }`); prefer `--from-git`.
 
 ```
-$ flint shard install @nuu-cognition/meeting-notes@^0.1
-✓ Resolved @nuu-cognition/shard/meeting-notes 0.1.0
+$ flint shard install @nuucognition/meeting-notes@^0.1
+✓ Resolved @nuucognition/shard/meeting-notes 0.1.0
 ✓ Installed Meeting Notes 0.1.0
-  Spec    : @nuu-cognition/meeting-notes@^0.1
-  Address : @nuu-cognition/shard/meeting-notes
+  Spec    : @nuucognition/meeting-notes@^0.1
+  Address : @nuucognition/shard/meeting-notes
   State   : published 0.1.0
   Registry: published
   Alias   : meeting-notes
@@ -158,7 +158,7 @@ $ flint shard install @nuu-cognition/meeting-notes@^0.1
 $ flint shard install --from-git nuu-cognition/shard-meeting-notes
 ✓ Fetched nuu-cognition/shard-meeting-notes at 118d56d
 ✓ Installed Meeting Notes from nuu-cognition/shard-meeting-notes
-  ℹ The registry knows this build: @nuu-cognition/shard/meeting-notes 0.1.0 (published).
+  ℹ The registry knows this build: @nuucognition/shard/meeting-notes 0.1.0 (published).
   State   : published 0.1.0
   Registry: published
 ```
@@ -167,9 +167,9 @@ The records that these two commands write:
 
 ```toml
 [shards]
-meeting-notes = "@nuu-cognition/meeting-notes@^0.1"
+meeting-notes = "@nuucognition/meeting-notes@^0.1"
 # or, for the second command:
-meeting-notes = { source = "@nuu-cognition/meeting-notes@0.1.0", git = "nuu-cognition/shard-meeting-notes" }
+meeting-notes = { source = "@nuucognition/meeting-notes@0.1.0", git = "nuu-cognition/shard-meeting-notes" }
 ```
 
 | Command | Purpose |
@@ -197,7 +197,7 @@ The install refuses before any write, with the reason and a next command, when:
 The transitive plan prints one line per missing package before any write, then installs in that order and the shard last:
 
 ```
-→ will install Plan from @nuu-cognition/plan@^0.4 (needed by Tasks)
+→ will install Plan from @nuucognition/plan@^0.4 (needed by Tasks)
 ```
 
 ### Author
@@ -221,7 +221,7 @@ The transitive plan prints one line per missing package before any write, then i
 $ flint shard create 'Meeting Notes' --shorthand meet -d 'Notes of meetings.'
 Created Meeting Notes.
 Path: Shards/(Source Local) Meeting Notes
-done: source: Shards/(Source Local) Meeting Notes (shorthand meet, address @nuu-cognition/shard/meeting-notes)
+done: source: Shards/(Source Local) Meeting Notes (shorthand meet, address @nuucognition/shard/meeting-notes)
 done: build: Shards/Meeting Notes
 Next: flint shard start-dev meeting-notes
 
@@ -253,7 +253,7 @@ $ flint shard release meeting-log
 ℹ Releasing (Source Remote) Meeting Log v0.1.1…
   ✓ Created tag v0.1.1
   ✓ Pushed to origin
-  ✓ Registered nuu-cognition/meeting-log (moved from nuu-cognition/meeting-notes)
+  ✓ Registered nuucognition/meeting-log (moved from nuucognition/meeting-notes)
   ✓ Built meeting-log: published 0.1.1
 ✓ Released Meeting Log v0.1.1
 ```
@@ -274,8 +274,8 @@ The runtime does not read these inputs. Each one exits 1 with one refusal and th
 
 ```
 $ flint shard install flint://Producer/meeting-notes
-✘ flint:// is retired. Use: flint shard install @nuu-cognition/meeting-notes#producer
-  flint shard install @nuu-cognition/meeting-notes#producer
+✘ flint:// is retired. Use: flint shard install @nuucognition/meeting-notes#producer
+  flint shard install @nuucognition/meeting-notes#producer
 ```
 
 ### Setup

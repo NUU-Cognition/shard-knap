@@ -104,7 +104,7 @@ For the complete schema reference, see [[dev-knw-knap-manifest]].
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000    # The shard id, minted by flint shard create — never edit
-org: nuu-cognition                          # The package is @nuu-cognition/shard/shard-name
+org: nuucognition                          # The package is @nuucognition/shard/shard-name
 source:
   id: 00000000-0000-4000-8000-00000000000a  # The source id, minted by flint shard create — never edit
 version: "1.0.0"
@@ -112,8 +112,8 @@ name: Shard Name
 shorthand: sh
 description: What this shard does
 dependencies:
-  "@nuu-cognition/flint": "^0.2"            # Always depend on Flint (core)
-  "@nuu-cognition/notepad": "^1.0"          # A package name and a range
+  "@nuucognition/flint": "^0.2"            # Always depend on Flint (core)
+  "@nuucognition/notepad": "^1.0"          # A package name and a range
 setup: full                                 # full | flint | local
 types:
   - Task

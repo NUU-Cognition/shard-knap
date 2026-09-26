@@ -88,12 +88,12 @@ The shard id and the source id are the truth. Names are for people; the CLI stor
 
 ```toml
 [shards]
-notepad = "@nuu-cognition/notepad@^1.1"                                              # from the registry
-oracle = { source = "@nuu-cognition/oracle", from = "source" }                       # built from a local source
-seer = { source = "@nuu-cognition/seer", git = "NUU-Cognition/shard-oracle", from = "source" }  # built from a remote source
-plan = { source = "@nuu-cognition/plan@0.4.0", git = "NUU-Cognition/shard-plan" }    # from Git
-tasks = "@nuu-cognition/tasks#demo-maker"                                            # from a Flint on this machine
-drafts = { source = "@nuu-cognition/drafts", from = "source", use = "none" }         # a source with no build
+notepad = "@nuucognition/notepad@^1.1"                                              # from the registry
+oracle = { source = "@nuucognition/oracle", from = "source" }                       # built from a local source
+seer = { source = "@nuucognition/seer", git = "NUU-Cognition/shard-oracle", from = "source" }  # built from a remote source
+plan = { source = "@nuucognition/plan@0.4.0", git = "NUU-Cognition/shard-plan" }    # from Git
+tasks = "@nuucognition/tasks#demo-maker"                                            # from a Flint on this machine
+drafts = { source = "@nuucognition/drafts", from = "source", use = "none" }         # a source with no build
 ```
 
 The toml holds no id. A person never types a uuid. An `id` that a person wrote still parses: it is checked against the lock, and a different id refuses the write with `id-mismatch`.
@@ -104,7 +104,7 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 |-------|---------|
 | `alias`, `shorthand`, `name` | The key, the prefix, the name of this copy |
 | `address` | The address `@org/shard/<slug>` |
-| `request` | The spec of the record, in the full form (`@nuu-cognition/shard/notepad@^1.1`) |
+| `request` | The spec of the record, in the full form (`@nuucognition/shard/notepad@^1.1`) |
 | `formerNames`, `formerShorthands` | The rename history, as the manifest has it; filled at the next write of the record |
 | `version` | The recorded version (the row shows the version of the build) |
 | `state` | `{ kind: "published", tag, hash }`, `{ kind: "snapshot", sha, hash }`, or `{ kind: "edited", hash }` |
@@ -122,8 +122,8 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 "76d64e3e-3c05-4391-a39e-22001fb2e20a": {
   "spec": "shard-record/0.2",
   "alias": "notepad",
-  "address": "@nuu-cognition/shard/notepad",
-  "request": "@nuu-cognition/shard/notepad@^1.1",
+  "address": "@nuucognition/shard/notepad",
+  "request": "@nuucognition/shard/notepad@^1.1",
   "version": "1.1.3",
   "state": { "kind": "published", "tag": "1.1.3", "hash": "68b62feb…" },
   "source": { "id": "5b1c9e02-7a41-4c11-9d7e-0f3a2b6c8d10", "git": "NUU-Cognition/shard-notepad" },
@@ -628,9 +628,9 @@ If a shard needs another shard's artifacts or conventions, declare it in `depend
 
 ```yaml
 dependencies:
-  "@nuu-cognition/flint": "^0.2"       # Core — almost always required
-  "@nuu-cognition/notepad": "^1.0"     # If the shard creates long-lived artifacts
-  "@nuu-cognition/projects": ""        # If the shard interacts with tasks (any version)
+  "@nuucognition/flint": "^0.2"       # Core — almost always required
+  "@nuucognition/notepad": "^1.0"     # If the shard creates long-lived artifacts
+  "@nuucognition/projects": ""        # If the shard interacts with tasks (any version)
 ```
 
 ### Progressive Disclosure

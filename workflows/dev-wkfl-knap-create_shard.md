@@ -35,7 +35,7 @@ Confirm the shard design with the user:
    - Does it need scripts? (Deterministic CLI operations)
    - Does it need folders created? (Artifact storage, archive — declared in `folders:`)
    - Does it need one-time setup? (Credentials, repo clones, builds — declared via `setup:` + `dev-setup-<sh>.md`)
-4. **Identify dependencies** — which other shards must be installed first: a package name and a range for each (`"@nuu-cognition/notepad": "^1.0"`)
+4. **Identify dependencies** — which other shards must be installed first: a package name and a range for each (`"@nuucognition/notepad": "^1.0"`)
 
 Present the design to the user for confirmation. Once confirmed, progress to the next stage.
 
@@ -57,13 +57,13 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    $ flint shard create Oracle --shorthand orc
    Created Oracle.
    Path: Shards/(Source Local) Oracle
-   done: source: Shards/(Source Local) Oracle (shorthand orc, address @nuu-cognition/shard/oracle)
+   done: source: Shards/(Source Local) Oracle (shorthand orc, address @nuucognition/shard/oracle)
    done: build: Shards/Oracle
    Next: flint shard start-dev orc
    ```
 
 2. **Fill in the manifest.** Open the generated `shard.yaml` and edit per [[dev-tmp-knap-shard_yaml-v0.1]]:
-   - Add `dependencies:` as a map from package name to range (almost always `"@nuu-cognition/flint": "^0.2"`)
+   - Add `dependencies:` as a map from package name to range (almost always `"@nuucognition/flint": "^0.2"`)
    - Add `types:` for any artifact types the shard manages, or run `flint shard type add <Name> --shard <sh>` (it writes the type file, the template, the folder, and the `types:` entry, and builds the shard)
    - Add `folders:` for artifact storage / archive paths
    - Add `install:` entries for dashboards or Obsidian templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`)

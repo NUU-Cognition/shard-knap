@@ -14,7 +14,7 @@ The manifest lives in the **source** (`Shards/(Source Local) <Name>/` or `Shards
 # Required fields
 shard-spec: "0.3.0"                  # Shard spec version (conformance level)
 id: 00000000-0000-4000-8000-000000000000  # The shard id (uuid v4 or v7). `flint shard create` mints it. Optional for the parser.
-org: nuu-cognition                   # The org slug. The address is @nuu-cognition/shard/<slug>. Absent: no org (@/shard/<slug>)
+org: nuucognition                   # The org slug. The address is @nuucognition/shard/<slug>. Absent: no org (@/shard/<slug>)
 source:                              # The source block
   id: 00000000-0000-4000-8000-00000000000a  # The source id. `flint shard create` mints it.
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
@@ -30,12 +30,12 @@ formerNames:                         # One line per rename of the name (flint sh
 formerShorthands: [osh]              # One entry per rename of the shorthand (flint shard rename --shorthand)
 of:                                  # The origin of a fork (flint shard fork); source.of names the origin source
   id: 00000000-0000-4000-8000-000000000001
-  address: "@nuu-cognition/shard/notepad"
+  address: "@nuucognition/shard/notepad"
 
 # Optional fields
 dependencies:                        # A map from package name to range
-  "@nuu-cognition/flint": "^0.2"     # caret range
-  "@nuu-cognition/notepad": "~1.1.3" # tilde range; "1.1.3" is an exact version; "" is any version
+  "@nuucognition/flint": "^0.2"     # caret range
+  "@nuucognition/notepad": "~1.1.3" # tilde range; "1.1.3" is an exact version; "" is any version
 
 setup: full                          # Setup scope: full | flint | local
 
@@ -83,7 +83,7 @@ The **shard id**: the stable identity of the shard (the built package). A uuid v
 
 ### `org` (expected from spec `0.3.0`)
 
-The slug of the org that owns the package, for example `nuu-cognition`. The address is `@<org>/shard/<slug>`. The short spelling `@<org>/<slug>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<slug>`.
+The slug of the org that owns the package, for example `nuucognition`. The address is `@<org>/shard/<slug>`. The short spelling `@<org>/<slug>` is valid on input in a shard context (`[shards]`, `dependencies`, `flint shard` commands). An absent or empty `org` means no org: the package resolves in this machine only, as `@/shard/<slug>`.
 
 - `flint shard create` and `flint shard fork` write the org of the Flint (`flint.json#org`). A Flint with no org writes no `org`.
 - `flint shard id <alias>` fills an absent `org` from the Flint.
@@ -116,7 +116,7 @@ A list of shorthands, oldest first. `flint shard rename <alias> --shorthand <new
 
 ```yaml
 id: 7948fa19-469b-4ce4-ba22-888554530bd2
-org: nuu-cognition
+org: nuucognition
 name: Notepad Nathan
 shorthand: ntpn
 source:
@@ -125,7 +125,7 @@ source:
     id: 5b1c9e02-7a41-4c11-9d7e-0f3a2b6c8d10
 of:
   id: 76d64e3e-3c05-4391-a39e-22001fb2e20a
-  address: "@nuu-cognition/shard/notepad"
+  address: "@nuucognition/shard/notepad"
 ```
 
 ### `version` (required)
@@ -147,7 +147,7 @@ The name of the shard. It follows the **Display Name law** of `@nuucognition/ent
 - The slug is `slugKey(name)`, the one fold of a shard name: lowercase, drop the volatile characters, join the parts with `-`. `Meeting Notes` gives `meeting-notes`; `R&D Tools` gives `rd-tools`.
 - Proper Case (`Meeting Notes`) is the convention. `flint shard status <alias> --health` warns `name is not Proper Case: "<name>" (the convention; the name is valid)`; it never refuses.
 
-The address is `@<org>/shard/<slug>`: `name: Notepad` in `org: nuu-cognition` is `@nuu-cognition/shard/notepad`. A rename (`flint shard rename --name`) therefore moves the address; the id does not change. The build folder is the name when the alias of the shard in the Flint is the slug of the name, else the alias as a Title. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs. The rule is stated once in [[(Spec) Flint Shards . Manifest]] § The Name.
+The address is `@<org>/shard/<slug>`: `name: Notepad` in `org: nuucognition` is `@nuucognition/shard/notepad`. A rename (`flint shard rename --name`) therefore moves the address; the id does not change. The build folder is the name when the alias of the shard in the Flint is the slug of the name, else the alias as a Title. The type files keep the name in their qualifier `(<Name> Shard)` also when the alias differs. The rule is stated once in [[(Spec) Flint Shards . Manifest]] § The Name.
 
 Examples: `Projects`, `Living Documents`, `OrbCode`, `Knap`, `R&D Tools`
 
@@ -178,9 +178,9 @@ A map from a package name to a range. A dependency names a shard, never a source
 
 ```yaml
 dependencies:
-  "@nuu-cognition/flint": "^0.2"     # Core — almost always required
-  "@nuu-cognition/notepad": "~1.1.3"
-  "@nuu-cognition/plan": ""          # any version
+  "@nuucognition/flint": "^0.2"     # Core — almost always required
+  "@nuucognition/notepad": "~1.1.3"
+  "@nuucognition/plan": ""          # any version
 ```
 
 | Part | Form |
@@ -194,7 +194,7 @@ dependencies:
 - Install is transitive by default. The CLI plans every missing dependency before any write, prints one line per package with the spec that it resolves (`will install <Name> from <spec> (needed by <Name>)`), then installs them in order and the shard last. `--no-deps` installs the shard alone and prints the missing dependencies.
 - A cycle is refused, and the reason names the chain.
 - A missing dependency is a not-current line in `flint sync` with the next command `flint shard install '@org/name@<range>'`. A present dependency outside its range is a not-current line (`dependency-out-of-range`) with the same next command.
-- `flint shard status <alias>` shows the state of each dependency, for example `@nuu-cognition/shard/plan@^0.4 satisfied by plan (<id>)`.
+- `flint shard status <alias>` shows the state of each dependency, for example `@nuucognition/shard/plan@^0.4 satisfied by plan (<id>)`.
 
 > **Legacy input.** The list form of spec `0.3.0` before the package model (`- { source: NUU-Cognition/shard-flint, id?, version? }`, where `version` is a floor) and the older `depends:` list still parse. New manifests use the map. The step `s5` of the Flint migration `flint-0.6.0-to-0.7.0` rewrites a list into the map when every entry names a shard of the Flint whose source is there; an entry with no floor becomes `""`, and a floor `x.y.z` becomes `^x.y.z` only when that shard is inside it. Else the list stays, with a warning.
 
@@ -436,7 +436,7 @@ Useful for Obsidian templates and system files that need unique IDs or timestamp
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
-org: nuu-cognition
+org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -444,7 +444,7 @@ name: My Dashboard
 shorthand: md
 description: Provides tracking dashboards
 dependencies:
-  "@nuu-cognition/flint": "^0.2"
+  "@nuucognition/flint": "^0.2"
 install:
   - source: inst-md-overview_dashboard.md
     dest: Mesh/(Dashboard) Overview.md
@@ -456,7 +456,7 @@ install:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
-org: nuu-cognition
+org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -464,8 +464,8 @@ name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 dependencies:
-  "@nuu-cognition/flint": "^0.2"
-  "@nuu-cognition/notepad": "^1.0"
+  "@nuucognition/flint": "^0.2"
+  "@nuucognition/notepad": "^1.0"
 types:
   - Task
 install:
@@ -481,7 +481,7 @@ folders:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
-org: nuu-cognition
+org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -489,7 +489,7 @@ name: Living Documents
 shorthand: ld
 description: Track document lifecycle (living vs dead)
 dependencies:
-  "@nuu-cognition/flint": "^0.2"
+  "@nuucognition/flint": "^0.2"
 ```
 
 ### Shard with Obsidian Templates
@@ -497,7 +497,7 @@ dependencies:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
-org: nuu-cognition
+org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -505,8 +505,8 @@ name: Projects
 shorthand: proj
 description: Task management with lifecycle tracking
 dependencies:
-  "@nuu-cognition/flint": "^0.2"
-  "@nuu-cognition/notepad": "^1.0"
+  "@nuucognition/flint": "^0.2"
+  "@nuucognition/notepad": "^1.0"
 types:
   - Task
 install:
@@ -523,7 +523,7 @@ install:
 ```yaml
 shard-spec: "0.3.0"
 id: 00000000-0000-4000-8000-000000000000
-org: nuu-cognition
+org: nuucognition
 source:
   id: 00000000-0000-4000-8000-00000000000a
 version: "1.0.0"
@@ -531,7 +531,7 @@ name: My Integration
 shorthand: mi
 description: Integrates with an external service
 dependencies:
-  "@nuu-cognition/flint": "^0.2"
+  "@nuucognition/flint": "^0.2"
 setup: full
 ```
 
