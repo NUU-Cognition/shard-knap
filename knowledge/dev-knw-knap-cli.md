@@ -346,12 +346,13 @@ When the registry does not answer, the three registry steps are skipped with the
 | `list --json` | `{ rows: <row>[] }` |
 | `status --json`, `info --json` | `{ ...<row>, details, moved?, health? }`. `details` holds `path`, `recordedVersion`, `staleVersion?`, `dependencies`, `payloads`, `state` (the lock state with its proof), `gitState` (the Git state of the source), `reference`, and `installedAt` |
 | `start --json` (and `hstart`, `start-dev`, `hstart-dev`) | `{ ok, status, shard: <row>, state, loads, stale, moved?, notice?, next?, manifest: { text, folder, initPath, hinitPath, requiredReading }, setup: { declared, flint, local }, pending }`; a refusal adds `code`, `reason`, `next` |
+| `create --json` | `{ ok, kind, name, id, sourceId, org, address, shorthand, path, source, shard, created, updated, warnings, next, steps }`. Here `shard` is the build folder `Shards/<Name>`, not the package name, and `source` is the source folder. The package address is in `address`. |
 | `build --json` | `{ ok, id, alias, folder, path, state }` (`folder` is the source, `path` is the build) |
 | `clone --json` | `{ ok, alias, folder, spec, repo, git?, build? }` |
 | `release --json` | `{ ok, alias, version, tag, sha, hash, repo, registered, slug, state }` |
 | `versions --json` | `{ ok, address, from, versions: [{ tag, sha?, hash? }], installed }` |
-| `id --json` | `{ ok, id, sourceId, org, minted, filled, folder, notice? }` |
-| `fork --json` | `{ ok, id, sourceId, source, org, of, name, shorthand, folder, installed }` |
+| `id --json` | `{ ok, id, sourceId, org, shard, minted, filled, folder, notice? }`. `shard` is the package name (`"@<org>/<slug>"`), or `null` when the manifest has none (spec `0.3.0` and below). `org` stays for the `0.3.0` path. |
+| `fork --json` | `{ ok, id, sourceId, source, org, shard, of, name, shorthand, folder, installed }`. `shard` is the package name of the fork. |
 | `rename --json` | `{ ok: true, kind: "name" \| "shorthand", … }` |
 | Every refusal | `{ ok: false, code, reason, next? }` (no `next` when no command fixes it, e.g. `manifest-error`) |
 

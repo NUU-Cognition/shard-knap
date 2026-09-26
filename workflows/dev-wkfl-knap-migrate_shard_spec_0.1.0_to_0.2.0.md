@@ -72,4 +72,4 @@ The record of the shard in `flint.toml` (`<alias> = { source = "@org/name", from
 
 - Target shard fully conforms to the conventions in [[dev-knw-knap-architecture]] and [[dev-knw-knap-manifest]].
 - `shard-spec: "0.2.0"` in `shard.yaml`.
-- `flint sync` still gives the `outdated-spec` notice, because `0.3.0` is current. To finish, set `shard-spec: "0.3.0"` and run `flint shard id <alias>` (see [[dev-knw-knap-manifest]] § `shard-spec`).
+- `flint sync` still gives the `outdated-spec` notice, because `0.4.0` is current. To finish, set `shard-spec: "0.4.0"`, then run `flint shard id <alias>`. It fills `shard` (the package name), the shard id, and the source id (see [[dev-knw-knap-manifest]] § `shard-spec`).

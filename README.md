@@ -27,7 +27,7 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
     dev-tmp-knap-script-v0.1.md           # Script file template
   knowledge/
     dev-knw-knap-architecture.md          # Shard architecture reference
-    dev-knw-knap-manifest.md              # shard.yaml schema reference (id, org, source, dependencies)
+    dev-knw-knap-manifest.md              # shard.yaml schema reference (id, shard, source, dependencies)
     dev-knw-knap-cli.md                   # flint shard CLI reference
   install/
     type-knap-shard.md                    # Shard artifact type definition
@@ -36,7 +36,7 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
 ## What This Shard Covers
 
 - **Shard structure** — File types, naming conventions, directory layout
-- **Manifest schema** — Complete shard.yaml reference: the shard id, the org, the source id, the dependency map
+- **Manifest schema** — Complete shard.yaml reference: the shard id (`id`), the package name (`shard`), the source id (`source.id`), and the dependency map. Below spec `0.4.0`, the manifest has `org` in place of `shard`
 - **Source and shard** — the two entities, the build, the states, the lock, the registry, the rename, references, forks (the words: [[(Spec) Flint Shards#Glossary]])
 - **Shard distribution** — How to release, clone, and install shards
 - **Templates for everything** — Every shard file type has a template
