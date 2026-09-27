@@ -65,11 +65,11 @@ $ flint shard install @nuucognition/nothing
 
 ### Inspect
 
-Every inspect surface prints one row with one set of labels in one order: `Id`, `Address`, `Alias`, `Shorthand`, `Name`, `Version`, `State`, `Request`, `From`, `Registry`, `Folders`. `Version` is the version of the build here; a source that moved past its build marks the row `stale`.
+Every inspect surface prints one row with one set of labels in one order: `Id`, `Package`, `Address`, `Alias`, `Shorthand`, `Name`, `Version`, `State`, `Request`, `From`, `Registry`, `Folders`. `Version` is the version of the build here; a source that moved past its build marks the row `stale`.
 
 | Command | Purpose |
 |---------|---------|
-| `flint shard list` (alias `ls`) `[--json]` | One line per shard: `ID ADDRESS ALIAS SHORTHAND VERSION STATE` (the id in 8 characters). |
+| `flint shard list` (alias `ls`) `[--json]` | One line per shard: `ID PACKAGE ALIAS SHORTHAND VERSION STATE` (the id in 8 characters). |
 | `flint shard status <ref> [--json] [--health]` | The row, then the Git state of the source, the reference path, `stale`, the dependencies, and the pending migrations. `--health` also runs the health check and exits 1 on an error finding. |
 | `flint shard info <ref>` | An alias of `status`: the same text and the same `--json`. |
 | `flint shard <ref>` | Runs `status`. |
@@ -81,21 +81,22 @@ Every inspect surface prints one row with one set of labels in one order: `Id`, 
 ```
 $ flint shard list
 Shards
-  ID                ADDRESS                             ALIAS          SHORTHAND   VERSION     STATE
-  4426ad5b          @nuucognition/shard/meeting-notes  meeting-notes  meet        0.1.0       edited
+  ID                PACKAGE                      ALIAS          SHORTHAND   VERSION     STATE
+  4426ad5b          @nuucognition/meeting-notes  meeting-notes  meet        0.1.0       edited
 
   1 shard, 1 declared
 
 $ flint shard status meeting-notes
 Meeting Notes
   Id       : 4426ad5b-e2a4-4046-b5ee-ebeee419a42f
+  Package  : @nuucognition/meeting-notes
   Address  : @nuucognition/shard/meeting-notes
   Alias    : meeting-notes
   Shorthand: meet
   Name     : Meeting Notes
   Version  : 0.1.0
   State    : edited
-  Request  : @nuucognition/shard/meeting-notes
+  Request  : @nuucognition/meeting-notes
   From     : source
   Registry : unchecked
   Folders  : Shards/Meeting Notes, Shards/(Source Local) Meeting Notes
