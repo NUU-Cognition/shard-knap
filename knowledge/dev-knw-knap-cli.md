@@ -69,7 +69,7 @@ Every inspect surface prints one row with one set of labels in one order: `Id`, 
 
 | Command | Purpose |
 |---------|---------|
-| `flint shard list` (alias `ls`) `[--json]` | One line per shard: `ID PACKAGE ALIAS SHORTHAND VERSION STATE` (the id in 8 characters). |
+| `flint shard list` (alias `ls`) `[--json]` | One line per shard: `ID PACKAGE SHORTHAND VERSION STATE` (the id in 8 characters; the column `ALIAS` shows when an alias differs from its slug). |
 | `flint shard status <ref> [--json] [--health]` | The row, then the Git state of the source, the reference path, `stale`, the dependencies, and the pending migrations. `--health` also runs the health check and exits 1 on an error finding. |
 | `flint shard info <ref>` | An alias of `status`: the same text and the same `--json`. |
 | `flint shard <ref>` | Runs `status`. |
@@ -81,8 +81,8 @@ Every inspect surface prints one row with one set of labels in one order: `Id`, 
 ```
 $ flint shard list
 Shards
-  ID                PACKAGE                      ALIAS          SHORTHAND   VERSION     STATE
-  4426ad5b          @nuucognition/meeting-notes  meeting-notes  meet        0.1.0       edited
+  ID                PACKAGE                      SHORTHAND   VERSION     STATE
+  4426ad5b          @nuucognition/meeting-notes  meet        0.1.0       edited
 
   1 shard, 1 declared
 
@@ -91,7 +91,6 @@ Meeting Notes
   Id       : 4426ad5b-e2a4-4046-b5ee-ebeee419a42f
   Package  : @nuucognition/meeting-notes
   Address  : @nuucognition/shard/meeting-notes
-  Alias    : meeting-notes
   Shorthand: meet
   Name     : Meeting Notes
   Version  : 0.1.0
