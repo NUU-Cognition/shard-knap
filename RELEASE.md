@@ -1,5 +1,9 @@
 # Knap Releases
 
+## Release 1.2.1
+
+- `knw-knap-module`: a secret can also come from the environment of the caller; `module-secret-missing` means that the module process has no non-empty value of that name (found by the review of the Flint docs, NUU Flint Task 1129).
+
 ## Release 1.2.0
 
 - Knap covers modules too: a module is the package kind `module` (`@<org>/module/<slug>`, `Modules/`, `module.yaml`) of the Flint 0.7.0 CLI. NUU Flint Task 1128.

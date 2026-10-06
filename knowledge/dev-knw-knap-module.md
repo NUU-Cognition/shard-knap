@@ -208,7 +208,7 @@ Write the settings file of a new module with a comment above each key. The comme
 
 The syntax is dotenv: `KEY=VALUE`, `#` comment lines, an optional `export ` prefix, single quotes (literal), and double quotes (with `\n`, `\t`, `\"`, `\\`). A name that starts with `FLINT_` is refused. Every module process gets every value.
 
-Name each secret in `secrets:` of the manifest, and add its name to `flint.env.example`. In the plan, `secret(name)` gives the value, or the issue `module-secret-missing` with the next step when no env file sets it. Never print a secret: print its state ("set, 19 characters").
+Name each secret in `secrets:` of the manifest, and add its name to `flint.env.example`. In the plan, `secret(name)` gives the value, or the issue `module-secret-missing` with the next step when the module process has no non-empty value of that name. The value can come from `flint.env.local`, `flint.env`, or the environment of the caller (a person who runs `flint sync` with `DISCORD_TOKEN=…` set gives it to the module). Never print a secret: print its state ("set, 19 characters").
 
 ## Live Modules
 
