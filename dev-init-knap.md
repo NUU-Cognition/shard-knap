@@ -9,7 +9,7 @@ orbh-sessions:
 
 # Knap (Flintknapping)
 
-Shard authoring toolkit. Everything you need to create, build, validate, and release Flint shards.
+Package authoring toolkit for Flint: shards and modules. Everything you need to create, build, validate, and release them.
 
 Knap treats shard authoring as a craft — "flintknapping" — shaping raw capability into polished, reusable tools. This shard provides the templates, workflows, and knowledge to author shards that follow Flint conventions.
 
@@ -134,6 +134,12 @@ A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still 
 `flint shard create "<Name>"` makes a local source at `Shards/(Source Local) <Name>/`, mints the two ids, and builds the shard. Edit the source, then run `flint shard build <alias>` to make the shard again. `flint shard start` loads the build and prints a notice with `flint shard build <alias>` when the source changed after the build. `flint shard dev <alias> <url>` promotes the local source to a remote source; `flint shard release <alias>` tags a version and registers it. To edit a published shard, `flint shard clone @org/name` clones its source.
 
 To create a shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
+
+## Modules
+
+A **module** is the other package kind: `@<org>/module/<slug>`, in `Modules/`, with the manifest `module.yaml` and the records in `[modules]` of `flint.toml`. A shard serves agents; a module serves the machine. Its code runs as a process (Python, Node.js, or an executable): a plan at `flint sync` that returns desired objects (cron schedules, stations) and own actions, commands under `flint module <name> <command>`, and an optional live process under the Flint server. Both kinds use one package core: the spec, the walk, the lock, Git sources, and the registry.
+
+To create or change a module, use [[dev-wkfl-knap-knap_module]]. The contract for the author is [[dev-knw-knap-module]]; read it in full before you write module code. The templates are [[dev-tmp-knap-module_yaml-v0.1]], [[dev-tmp-knap-module_python-v0.1]], and [[dev-tmp-knap-module_typescript-v0.1]]. The `flint module` commands and the rules for a person who installs a module are in [[knw-f-cli]] § Modules.
 
 ## Shard CLI
 

@@ -1,6 +1,6 @@
 # Knap (Flintknapping)
 
-Shard authoring toolkit for Flint. Everything you need to create, build, validate, and release shards that follow Flint conventions.
+Package authoring toolkit for Flint: shards and modules. Everything you need to create, build, validate, and release shards and modules that follow Flint conventions.
 
 Named after flintknapping — the craft of shaping raw stone into tools.
 
@@ -16,6 +16,7 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
     dev-wkfl-knap-create_shard.md         # Scaffold a new shard
     dev-wkfl-knap-iterate.md              # Add capabilities to existing shard
     dev-wkfl-knap-knap_shard.md           # Load and edit a shard collaboratively
+    dev-wkfl-knap-knap_module.md          # Create or change a module with review stages
     dev-wkfl-knap-migrate_shard_spec_0.1.0_to_0.2.0.md  # Upgrade a 0.1.0 shard to 0.2.0
   templates/
     dev-tmp-knap-shard_yaml-v0.1.md       # shard.yaml manifest template
@@ -25,10 +26,14 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
     dev-tmp-knap-template-v0.1.md         # Template file (meta-template)
     dev-tmp-knap-knowledge-v0.1.md        # Knowledge file template
     dev-tmp-knap-script-v0.1.md           # Script file template
+    dev-tmp-knap-module_yaml-v0.1.md      # module.yaml manifest template
+    dev-tmp-knap-module_python-v0.1.md    # Starter main.py of a Python module
+    dev-tmp-knap-module_typescript-v0.1.md  # Starter src/index.ts, build.mjs, package.json of a TypeScript module
   knowledge/
     dev-knw-knap-architecture.md          # Shard architecture reference
     dev-knw-knap-manifest.md              # shard.yaml schema reference (id, shard, source, dependencies)
     dev-knw-knap-cli.md                   # flint shard CLI reference
+    dev-knw-knap-module.md                # Module authoring reference: the process contract and both SDKs
   install/
     type-knap-shard.md                    # Shard artifact type definition
 ```
@@ -43,3 +48,4 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
 - **Validation** — Check shard correctness
 - **Scaffolding workflow** — Create new shards from scratch
 - **Iteration workflow** — Add capabilities to existing shards
+- **Modules** — The module contract (`plan`, `apply`, `command`, `live`), the desired objects and the owner rule, settings, env files and secrets, both SDKs, and the workflow `knap_module` with templates for `module.yaml`, a Python module, and a TypeScript module
