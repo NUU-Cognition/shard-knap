@@ -156,7 +156,7 @@ The stdout of `plan` and of `apply` may hold `logs`: a list of `{ message, level
 | Rule | Detail |
 |------|--------|
 | A log is information | A log never fails a plan, never makes the module not current, and never changes `flint doctor`. When a person must act, give an issue, not a log |
-| At most 50 lines | Flint shows the first 50 log lines of one process, and one line that says how many it did not show. The SDKs bound their logs before they print them: the first 49 lines and one `warn` line that says how many they did not send, and at most 501 characters of a message, so a log never fills the stdout of a plan |
+| At most 50 lines | Flint shows the first 50 log lines of one process, and one line that says how many it did not show. The SDKs bound their logs before they print them: they drop each line that is not valid, keep the first valid lines, add one `warn` line for the valid lines that they did not send and one for the lines that they dropped (50 lines in all), and send at most 501 characters of a message, so a log never fills the stdout of a plan |
 | At most 500 characters | Flint cuts a longer message and adds `… (cut after 500 characters)` |
 | A bad entry is dropped | An entry with no message, an empty message, or another level is dropped. Flint shows one line that says how many it dropped |
 | No secret | Never write a secret in a log line |
