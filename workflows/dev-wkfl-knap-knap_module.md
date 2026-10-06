@@ -79,7 +79,7 @@ Once the person confirms the module works, progress to the next stage.
 
 1. Commit only your own paths: the source, the build `Modules/<Name>/`, the settings file, and `flint.env.example`. `flint.toml` and `flint.json` hold the record and the lock; commit them only when no other change of another person or session is in them, else tell the person. Never commit `flint.env` or `flint.env.local`.
 2. Ask the person whether the module must reach other machines or other Flints:
-   - The machines of this Flint get it through Git: `flint git sync`, then `flint sync` on the other machine. The owner rule keeps each schedule on its owner machine.
+   - The machines of this Flint get it through Git. Do not run `flint git sync` yourself: it stages and commits every change of the Flint, also the changes of other people and sessions. Tell the person to run it when the work of other sessions is committed, then to run `flint sync` on the other machine. The owner rule keeps each schedule on its owner machine; when two machines have the same slug, use the machine id as the owner.
    - Another Flint: `flint module install --from-path <dir>`, `--from-git <owner/repo[#ref]>`, or `@<org>/<slug>#<flint>`.
    - The registry: the source must be a Git repository with the remote `origin` on GitHub, and the registry must follow contract 1.2 or later. Run `flint module release <name>` only when the person asks; it tags, pushes, and registers.
 3. Tell the person how to stop or remove the module: `flint module stop <name>` for a live module, and `flint module uninstall <name>` (the settings file and the data folder stay; the next sync pauses its objects).

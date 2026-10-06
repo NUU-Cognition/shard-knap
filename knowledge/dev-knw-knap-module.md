@@ -129,7 +129,7 @@ Stdout is one JSON object with the full envelope (the SDKs print it):
 ```
 
 - `objects`: the desired objects. Flint applies them (see [Desired Objects](#desired-objects)).
-- `actions`: the own actions of the module, each `{ id, kind, label, detail?, payload? }`. The kind is `create`, `update`, `pause`, `resume`, `remove`, or `report`. An id must not start with `flint:`.
+- `actions`: the own actions of the module, each `{ id, kind, label, detail?, next?, payload? }`. The id is a non-empty text, unique in one plan, and it must not start with `flint:`. The label is a non-empty text; `detail` and `next` are texts. The kind is `create`, `update`, `pause`, `resume`, `remove`, or `report`. A repeated id, an empty label, or an unknown kind fails the whole plan.
 - `issues`: each `{ code, message, next? }`. The sync report, `flint module status`, and `flint doctor` show them.
 
 Rules of a plan:
@@ -138,6 +138,7 @@ Rules of a plan:
 - **A plan is stable.** It gives the same answer when nothing changed, so a second sync has no change. Compare the wanted state with the state of the data folder, and give an action only when they differ.
 - **A plan is fast.** The time limit is 30 seconds (`FLINT_MODULE_TIMEOUT_MS` sets a shorter limit in a test world).
 - **A failure is safe.** A non-zero exit, the time limit, stdout that does not parse, or stdout with no full envelope is the issue `module-plan-failed`. Sync then does not reconcile the module, and it never reads the failure as a removal.
+- **An issue does not stop the reconcile.** Flint applies the desired objects of a plan that has issues, and it pauses each managed object of the module that the plan does not list. So a plan that returns early with an issue pauses the objects that it did not list. When an input is not valid and the existing objects must stay as they are, fail the plan: raise an exception (Python) or throw (TypeScript). The SDK then exits non-zero, and the result is `module-plan-failed`, which pauses nothing.
 - Write logs to stderr. Stdout holds only the JSON (the SDKs move `print` and `console.log` of a plan to stderr).
 
 ### `apply`
@@ -161,6 +162,16 @@ A module never writes an object of Orbh itself. Its plan returns desired objects
 | Cron schedule | `{ key, expr, prompt, timezone?, description?, target?, misfire?, overlap?, machine? }` (`misfire`: `coalesce` or `skip`; `overlap`: `skip` or `allow`) |
 | Station | `{ key, target?, mode?, prompt?, description? }` (`mode`: `oneshot` or `resident`) |
 
+| Field | Rule |
+|-------|------|
+| `key` | Lower-case letters, digits, and hyphens; the first character is a letter or a digit (`^[a-z0-9][a-z0-9-]*$`) |
+| `expr` | Exactly five fields: minute, hour, day of the month, month, day of the week. With `timezone`, an IANA name (`Australia/Sydney`); with none, the local time of the machine |
+| `target` of a cron schedule | `<runtime>` or `<runtime>/<profile>` (`claude` or `claude/o55h`) |
+| `target` of a station | `<runtime>/<profile>`: a station needs a profile |
+| `machine` | Not empty when present |
+
+An object that breaks a rule is an issue of the plan, and Flint keeps the existing object of that key as it is.
+
 - The key is the name of the object in the Orb store of the Flint (`.orb/`). Flint stamps each object with the managed marker `{ flintId, module: <record name>, key, declHash }` (a cron schedule also gets `machine`).
 - Flint creates, updates, or resumes each desired object, and pauses each managed object of the module that the plan no longer desires. **Sync never deletes** an object of a module. After `flint module uninstall`, the next sync pauses each object of that module.
 - A key that a local object (no marker), a deleted schedule, or an object of another module already uses is a report, never a take-over.
@@ -177,11 +188,13 @@ A module never writes an object of Orbh itself. Its plan returns desired objects
 
 Every machine of the Flint runs `plan`. **Never** use the slug of the machine that runs the plan as the owner: then each machine fires the schedule. Take the owner from the settings file.
 
+A slug owner is compared with the slug of each machine, and a UUID owner with the machine id. Two machines with the same slug both fire a schedule that names that slug. When exactly one machine must fire, give the machine id: the `id` of `machine.json` in the NUU home of that machine (`~/.nuucognition/machine.json`), which a module process on that machine also gets as `FLINT_MACHINE_ID`, or make sure that the slugs of the machines of the Flint differ.
+
 ## The Settings File
 
 `Modules/<Name>.settings.toml` holds the settings of the module in one Flint. The Flint owns it: a build, an install, and an update never change it, and an uninstall keeps it. The module gets it as JSON: `settings` of the stdin of `plan` and `apply`, and `FLINT_MODULE_SETTINGS_JSON` for every verb. With no file the value is `null`, and each SDK gives an empty object. A file that does not parse fails the plan.
 
-**A module never writes its settings file.** It asks Flint: `flint module settings <name> set <key> <value>` (in the SDKs: `flint('module', 'settings', name, 'set', key, value)`). The key is a dotted path (`schedules.tick.machine`); the value is one TOML value, so a string needs quotes (`'"katana"'`); `--create` makes the table of a nested key. The write takes the lock of Flint, compares the bytes of the file, and keeps every comment of the person. `get <key>` reads one key. After a change, the person runs `flint sync`.
+**A module never writes its settings file.** It asks Flint: `flint module settings <name> set <key> <value>` (in the SDKs: `flint('module', 'settings', name, 'set', key, value)`). The key is a dotted path (`schedules.tick.machine`); the value is one TOML value, so a string needs quotes (`'"katana"'`), and a table is an inline table (`'{ key = "value" }'`); `--create` makes the table of a nested key. The JSON of an object or of `null` is not a TOML value, and Flint refuses it. The write takes the lock of Flint, compares the bytes of the file, and keeps every comment of the person. `get <key>` reads one key. After a change, the person runs `flint sync`.
 
 Write the settings file of a new module with a comment above each key. The comment says what the key does and what a change starts (for example, "with owner = katana, katana starts a real agent session").
 
@@ -213,7 +226,14 @@ The Flint server starts `<entry> live` for each installed live module when the s
 
 The states are `starting`, `running`, `down`, and `stopped`. The server writes the Foundation record `flint-module/<name>` for each process (`flint foundation list`), and the output goes to `.flint/run/modules/<name>.log`. Before each signal, the server proves the process by its module token and its start identity; a process that it cannot prove is `unproved`, and its live starts are blocked until a person resolves it.
 
-**The controller.** A live process can serve its own actions on a local HTTP controller. The server calls it with the module token: `GET /modules/<name>/actions` lists the actions, and `POST /modules/<name>/actions/<action>` runs one and answers `{ ok, result }` or `{ ok: false, error }` (409 when the module does not run or has no controller). The person runs `flint module control <name> [<action>] [--data <json>]`. The controller of an SDK accepts only a call with the module token.
+**The controller.** A live process can serve its own actions on a local HTTP controller, and registers its URL as `controlUrl`. The person runs `flint module control <name> [<action>] [--data <json>]`, which calls the Flint server: `GET /modules/<name>/actions` lists the actions, and `POST /modules/<name>/actions/<action>` runs one (409 when the module does not run or has no controller; 502 when the controller does not answer). The server then calls the controller with `Authorization: Bearer <FLINT_MODULE_TOKEN>`:
+
+| Route of the controller | Answer |
+|-------------------------|--------|
+| `GET /` | HTTP 200 with `{ "actions": ["<action>", …] }` (a list of texts) |
+| `POST /<action>` with one JSON object | `{ "ok": true, "result": <JSON value> }` or `{ "ok": false, "error": "<text>" }` |
+
+A controller must refuse a call with no valid token (401). The controllers of both SDKs serve these routes and check the token; write your own controller only for the `command` runtime.
 
 Keep a live process small: a heartbeat, a controller, and the work of the module. Write state to the data folder, not to the memory of the process: the process can start again at any time.
 
@@ -259,7 +279,7 @@ A field with the value `undefined` or `None` is left out of a desired object or 
 
 After an edit of the source: `flint module build <name>`, then `flint sync` (and `flint module restart <name>` for a live module when no sync runs). Sync also builds a `from = "source"` record again when its source changed.
 
-**Release.** The source must be a Git repository with the remote `origin` on GitHub. A registry version is the released tree with its build output, so the entry must be in the commit; an install from the registry runs no build step. The release needs a registry of contract 1.2 or later: a registry before 1.2 refuses before any write with `registry-no-modules`. A Flint with no org does not publish.
+**Release.** The source must be a Git repository with the remote `origin` on GitHub. A registry version is the released tree with its build output, so the entry must be in the commit; an install from the registry runs no build step. The release needs a registry of contract 1.2 or later: a registry before 1.2 refuses with `registry-no-modules` before any tag, push, or register. The build step runs before that check, so it can already have written files in the source. A Flint with no org does not publish.
 
 ## Safe Defaults
 

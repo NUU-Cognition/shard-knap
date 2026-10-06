@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
 - **Run the plan by hand first.** `flint module status <name>` runs the plan and writes nothing. Fix each issue before `flint sync`.
 - **One own action for each change.** `apply` runs once for each action, with the `payload` of the plan.
-- **Settings through Flint.** A command that changes a setting calls `m.flint("module", "settings", m.ctx["module"]["name"], "set", key, json.dumps(value))`, then tells the person to run `flint sync`.
+- **Settings through Flint.** A command that changes a setting calls `m.flint("module", "settings", m.ctx["module"]["name"], "set", key, value_text)`, then tells the person to run `flint sync`. `value_text` is one TOML value: `json.dumps(text)` for a string, `"true"` or `"false"`, a number as text, or an inline table such as `'{ key = "value" }'`. The JSON of a dict or of `None` is not TOML, and Flint refuses it.
 - **The Flint CLI.** `m.flint(*args)` runs any Flint command in the Flint root and returns `.code`, `.stdout`, `.stderr`, and `.json()`. A `flint sync` or `flint module status` inside the module runs no module process.
 - **Logs on stderr.** In `plan` and `apply` the SDK moves `print` to stderr; stdout holds only the JSON of Flint.
 - **The `live` handler returns.** After it returns, the SDK keeps the process alive with the heartbeat and the controller until SIGTERM.

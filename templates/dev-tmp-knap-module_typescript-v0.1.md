@@ -173,6 +173,6 @@ await esbuild.build({
 - **Build, then check.** `FLINT_REPO=<checkout> flint module build <name>`, then `flint module status <name>` (it runs the plan and writes nothing).
 - **One file at run time.** Bundle every dependency into `dist/index.js`. Do not rely on `node_modules` in the build folder: the build copies no `node_modules`.
 - **Await the tools that return a promise:** `m.flint(...)`, and in `live` `m.register`, `m.status`, and `m.controller`.
-- **Settings through Flint.** A command that changes a setting runs `await m.flint('module', 'settings', m.ctx.module.name, 'set', key, JSON.stringify(value))`, then tells the person to run `flint sync`.
+- **Settings through Flint.** A command that changes a setting runs `await m.flint('module', 'settings', m.ctx.module.name, 'set', key, valueText)`, then tells the person to run `flint sync`. `valueText` is one TOML value: `JSON.stringify(text)` for a string, `'true'` or `'false'`, a number as text, or an inline table such as `'{ key = "value" }'`. The JSON of an object or of `null` is not TOML, and Flint refuses it.
 - **Logs on stderr.** In `plan` and `apply` the SDK sends writes to stdout to stderr; stdout holds only the JSON of Flint.
 - **Commit `dist/`.** A release refuses a build output that is not in the commit.
