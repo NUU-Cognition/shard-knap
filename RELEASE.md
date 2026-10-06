@@ -1,5 +1,9 @@
 # Knap Releases
 
+## Release 1.2.3
+
+- `knw-knap-module`: a new section "Run Flint from a Module": a module runs any Flint command through `FLINT_CLI`; where to call it (a command or the live process, never `plan`); a `flint sync` from a module skips the module step; no API of the Flint server; `flint git sync` commits every change (`git add -A`); credentials; and a tested example of a live module that runs `flint git sync` on a timer. The anti-pattern about `flint sync` in a module is corrected.
+
 ## Release 1.2.2
 
 - The dependency on the Flint shard accepts any version (`"@nuucognition/flint": ""`), so the shard works with Flint 0.3.x and with Flint 0.4.0 (NUU Flint Task 1129).

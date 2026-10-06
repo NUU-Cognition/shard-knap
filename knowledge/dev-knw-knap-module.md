@@ -147,7 +147,7 @@ For each own action that is not a `report`, a sync that is not a dry run runs `a
 
 ### `command`
 
-`flint module <name> <command> [args...]` runs `<entry> command <command> [args...]`. The process gets the terminal of the person (stdin, stdout, stderr), and its exit code is the exit code of `flint module`. A command can run any Flint command through `FLINT_CLI` (the SDK tool `flint(...)`).
+`flint module <name> <command> [args...]` runs `<entry> command <command> [args...]`. The process gets the terminal of the person (stdin, stdout, stderr), and its exit code is the exit code of `flint module`. A command can run any Flint command through `FLINT_CLI` (the SDK tool `flint(...)`; see [Run Flint from a Module](#run-flint-from-a-module)).
 
 ### `live`
 
@@ -264,6 +264,49 @@ A field with the value `undefined` or `None` is left out of a desired object or 
 
 **The Python SDK** is one file, `flint_module.py`, standard library only. The CLI of Flint ships it and puts its folder first on `PYTHONPATH`, so `from flint_module import Module` works with no install and no build. [[dev-tmp-knap-module_python-v0.1]] gives a starter. A Python module is the easiest start: no build step and no dependency.
 
+## Run Flint from a Module
+
+A module process can run any Flint command: `flint sync`, `flint git sync`, `flint orbh …`, `flint module settings`, `flint ite`, and the others. The SDK tool `flint(...)` runs `FLINT_CLI` in the Flint root and returns the exit code, stdout, stderr, and `json()`. A module has no other API of Flint: the commands of the CLI are its API.
+
+| Rule | Detail |
+|------|--------|
+| Where | In a command and in the live process: no time limit. `apply` can run a short command (its limit is 30 seconds). Never in `plan`: a plan changes nothing |
+| No recursion | Every module process has `FLINT_MODULE_PROTOCOL=1`, the live process too. A `flint sync` from a module runs every step except the module step, and that step reports "This Flint CLI runs inside a module process, so it runs no module process." `flint git sync` works, and its local sync skips the modules for the same reason |
+| No server API | A module gets no token of the Flint server. Its only routes of the server are its own register, heartbeat, and controller |
+| `flint git sync` | It runs `git add -A`: it commits every change of the Flint, also the uncommitted work of people and of other sessions, then pushes. Run it from a module only when the person agrees, and say so in the settings file |
+| Credentials | A live process has the environment of the Flint server: Git over HTTPS with the macOS keychain works; an SSH agent may not be there. A command has the environment of the person who runs it |
+| Output | Check the exit code. Read structured output with `--json` and `json()`. Report the result with `status(...)` (live) or a short line on stderr. Never print a secret |
+
+**Example: a live module that runs `flint git sync` on a timer** (Python; `kind: live`, and the setting `every_seconds` in `module.yaml`):
+
+```python
+import threading
+from flint_module import Module
+
+module = Module()
+
+
+@module.live
+def live(m):
+    stop = threading.Event()
+    every = int(m.settings.get("every_seconds", 900))
+
+    def loop():
+        while not stop.wait(every):
+            result = m.flint("git", "sync")
+            m.status("ready" if result.code == 0 else "failing", "last git sync exit %d" % result.code)
+
+    threading.Thread(target=loop, daemon=True).start()
+    m.on_stop(stop.set)
+    m.status("ready", "first git sync in %d s" % every)
+
+
+if __name__ == "__main__":
+    module.run()
+```
+
+The handler returns after it starts the thread; the SDK keeps the process alive with the heartbeat until SIGTERM, and the stop handler ends the loop. A conflict halts `flint git sync`: the status shows `failing`, and a person runs `flint git sync --continue`.
+
 ## Build, Install, and Release
 
 | Step | Command | What it does |
@@ -303,7 +346,8 @@ A module runs in the Flint of a person, often on several machines. Follow these 
 - ❌ Editing `flint.json#modules` or `[modules]` by hand — use `flint module build`, `install`, and `uninstall`.
 - ❌ A record name that is a reserved verb of `flint module`.
 - ❌ A secret name that starts with `FLINT_`.
-- ❌ Calling `flint sync` from inside a module process — it runs no module process.
+- ❌ Expecting a `flint sync` from a module process to reconcile modules — it runs every other step and skips the module step (see [Run Flint from a Module](#run-flint-from-a-module)).
+- ❌ A timer that runs `flint git sync` with no agreement of the person — it commits every change of the Flint, also the work of other sessions.
 
 ## Examples
 
