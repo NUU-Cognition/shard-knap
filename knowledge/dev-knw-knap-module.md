@@ -1,5 +1,5 @@
 ---
-description: "Complete reference for the author of a Flint module — the package and its files, module.yaml, the process contract (plan, apply, command, live) with its JSON, desired objects and the owner rule, settings, env files and secrets, live modules, both SDKs, build, install, and release"
+description: "Complete reference for the author of a Flint module — the package and its files, module.yaml, the process contract (plan, apply, command, live) with its JSON, the log lines and how sync shows them, desired objects and the owner rule, settings, env files and secrets, live modules, both SDKs, build, install, and release"
 ---
 
 # Knowledge: Module Authoring
@@ -125,12 +125,14 @@ Stdout is one JSON object with the full envelope (the SDKs print it):
 ```json
 { "objects": { "cronSchedules": [], "stations": [] },
   "actions": [ { "id": "write-greeting", "kind": "create", "label": "write greeting.json", "detail": "Hello", "payload": { "greeting": "Hello" } } ],
-  "issues": [ { "code": "demo-placeholder-key", "message": "DEMO_API_KEY has the placeholder value.", "next": "Set DEMO_API_KEY in flint.env.local." } ] }
+  "issues": [ { "code": "demo-placeholder-key", "message": "DEMO_API_KEY has the placeholder value.", "next": "Set DEMO_API_KEY in flint.env.local." } ],
+  "logs": [ { "message": "The greeting in the settings is Hello." }, { "message": "greeting.json is not current.", "level": "warn" } ] }
 ```
 
 - `objects`: the desired objects. Flint applies them (see [Desired Objects](#desired-objects)).
 - `actions`: the own actions of the module, each `{ id, kind, label, detail?, next?, payload? }`. The id is a non-empty text, unique in one plan, and it must not start with `flint:`. The label is a non-empty text; `detail` and `next` are texts. The kind is `create`, `update`, `pause`, `resume`, `remove`, or `report`. A repeated id, an empty label, or an unknown kind fails the whole plan.
 - `issues`: each `{ code, message, next? }`. The sync report, `flint module status`, and `flint doctor` show them.
+- `logs` (optional): the log lines of the plan, each `{ message, level? }`. See [Log Lines](#log-lines).
 
 Rules of a plan:
 
@@ -139,11 +141,45 @@ Rules of a plan:
 - **A plan is fast.** The time limit is 30 seconds (`FLINT_MODULE_TIMEOUT_MS` sets a shorter limit in a test world).
 - **A failure is safe.** A non-zero exit, the time limit, stdout that does not parse, or stdout with no full envelope is the issue `module-plan-failed`. Sync then does not reconcile the module, and it never reads the failure as a removal.
 - **An issue does not stop the reconcile.** Flint applies the desired objects of a plan that has issues, and it pauses each managed object of the module that the plan does not list. So a plan that returns early with an issue pauses the objects that it did not list. When an input is not valid and the existing objects must stay as they are, fail the plan: raise an exception (Python) or throw (TypeScript). The SDK then exits non-zero, and the result is `module-plan-failed`, which pauses nothing.
-- Write logs to stderr. Stdout holds only the JSON (the SDKs move `print` and `console.log` of a plan to stderr).
+- Stdout holds only the JSON. The SDKs move `print` and `console.log` of a plan to stderr, and Flint shows stderr only when the plan fails. For a line that a person sees at each sync, use the SDK tool `log` (see [Log Lines](#log-lines)).
 
 ### `apply`
 
-For each own action that is not a `report`, a sync that is not a dry run runs `apply` once. Stdin is `{ "context": <the stdin of plan>, "action": <the action> }`. Stdout is `{ "ok": true, "detail": "…" }`. The time limit is 30 seconds. An SDK handler returns a detail text, `{ ok, detail }`, or nothing. Put the data that `apply` needs into `payload` of the action.
+For each own action that is not a `report`, a sync that is not a dry run runs `apply` once. Stdin is `{ "context": <the stdin of plan>, "action": <the action> }`. Stdout is `{ "ok": true, "detail": "…", "logs": [ … ] }` (`detail` and `logs` are optional). The time limit is 30 seconds. An SDK handler returns a detail text, `{ ok, detail }`, or nothing. Put the data that `apply` needs into `payload` of the action.
+
+The sync report shows the detail after ` — ` on the change line of the action: `✓ (module) demo: Wrote greeting.json: Hello — wrote .flint/modules/demo/greeting.json`. Write the detail as a short result in lower case, for example the file that `apply` wrote.
+
+### Log Lines
+
+The stdout of `plan` and of `apply` may hold `logs`: a list of `{ message, level? }`. `message` is a text that is not empty. `level` is `info` (the default) or `warn`. Use a log line for information that a person reads at each sync: what the module saw, what it decided, or a small warning. The protocol stays `1`, and a module with no `logs` is valid. In the SDKs, call `m.log(message)` or `m.log(message, "warn")`.
+
+| Rule | Detail |
+|------|--------|
+| A log is information | A log never fails a plan, never makes the module not current, and never changes `flint doctor`. When a person must act, give an issue, not a log |
+| At most 50 lines | Flint shows the first 50 log lines of one process, and one line that says how many it did not show |
+| At most 500 characters | Flint cuts a longer message and adds `… (cut after 500 characters)` |
+| A bad entry is dropped | An entry with no message, an empty message, or another level is dropped. Flint shows one line that says how many it dropped |
+| No secret | Never write a secret in a log line |
+
+**How sync shows the lines of a module.** Each line of a module names the module first, in the form `(module) <name>: <message>`, where `<name>` is the record name in `[modules]`:
+
+```
+Changes
+  ● (module) demo: Would write greeting.json: Hello                                      (flint sync --dry-run)
+  ✓ (module) demo: Wrote greeting.json: Hello — wrote .flint/modules/demo/greeting.json  (flint sync)
+  ✓ (module) demo: Created the station demo-desk: oneshot, target claude/o55h
+
+Module logs
+  · (module) demo: The greeting in the settings is Hello.
+  ⚠ (module) demo: greeting.json is not current.
+
+Not current
+  ! (module) demo: DEMO_API_KEY has the placeholder value.
+```
+
+- `flint sync --dry-run` shows the logs of each `plan`. A real `flint sync` shows the logs of each `plan` and of each `apply`. The section `Module logs` comes after `Changes`: `·` marks an `info` line and `⚠` marks a `warn` line.
+- `flint module status <name>` shows the lines of the plan with the same prefix, and the logs of the plan in the row `Logs` under the plan.
+- `flint sync --json` carries each log in `moduleLogs` of the report: `{ module, source, action?, level, message, cut?, flint? }`. `source` is `plan` or `apply`, `action` is the action id of an `apply`, `cut: true` marks a cut message, and `flint: true` marks a line that Flint wrote about the logs. Each module change carries `module` (the record name) and, after a real apply, `detail` (the detail of `apply`). Each issue of a module carries `module`. `flint module status --json` carries the logs of the plan as `logs` of the plan of each module, in the same form.
 
 ### `command`
 
@@ -224,7 +260,7 @@ The Flint server starts `<entry> live` for each installed live module when the s
 | A sync changed the build, the settings file, or an env file | The server starts the running module again |
 | The server stops | It stops every live module |
 
-The states are `starting`, `running`, `down`, and `stopped`. The server writes the Foundation record `flint-module/<name>` for each process (`flint foundation list`), and the output goes to `.flint/run/modules/<name>.log`. Before each signal, the server proves the process by its module token and its start identity; a process that it cannot prove is `unproved`, and its live starts are blocked until a person resolves it.
+The states are `starting`, `running`, `down`, and `stopped`. The server writes the Foundation record `flint-module/<name>` for each process (`flint foundation list`), and the output goes to `.flint/run/modules/<name>.log` (the tool `log` of the SDKs writes its line to stderr, so a log line of a live process goes there too). Before each signal, the server proves the process by its module token and its start identity; a process that it cannot prove is `unproved`, and its live starts are blocked until a person resolves it.
 
 **The controller.** A live process can serve its own actions on a local HTTP controller, and registers its URL as `controlUrl`. The person runs `flint module control <name> [<action>] [--data <json>]`, which calls the Flint server: `GET /modules/<name>/actions` lists the actions, and `POST /modules/<name>/actions/<action>` runs one (409 when the module does not run or has no controller; 502 when the controller does not answer). The server then calls the controller with `Authorization: Bearer <FLINT_MODULE_TOKEN>`:
 
@@ -253,6 +289,7 @@ Both SDKs give the same surface. A module defines its handlers and calls `run()`
 | A desired station | `m.desired.station({...})` | `m.desired.station(**fields)` |
 | An own action | `m.action({...})` | `m.action(**fields)` |
 | An issue (stderr outside `plan`) | `m.issue(code, message, next?)` | `m.issue(code, message, next=None)` |
+| A log line (stderr in `command` and `live`) | `m.log(message, level?)` | `m.log(message, level="info")` |
 | Live: register | `await m.register({ status?, controlUrl? })` | `m.register(status=None, control_url=None)` |
 | Live: status (one heartbeat now) | `await m.status(status, detail?)` | `m.status(status, detail=None)` |
 | Live: controller | `await m.controller({ action: handler })` | `m.controller({"action": handler})` |
@@ -342,6 +379,7 @@ A module runs in the Flint of a person, often on several machines. Follow these 
 - ❌ Writing an Orb object (a cron schedule, a station) with `flint orbh cron create` or a direct write — return a desired object.
 - ❌ `machine` from `FLINT_MACHINE_SLUG` — every machine runs the plan, so every machine fires.
 - ❌ Printing to stdout in `plan` or `apply` with no SDK — stdout holds only the JSON.
+- ❌ A log line for a problem that a person must fix — a log is information only; give an issue.
 - ❌ Editing `Modules/<Name>/` — the next build overwrites it; edit the source.
 - ❌ Editing `flint.json#modules` or `[modules]` by hand — use `flint module build`, `install`, and `uninstall`.
 - ❌ A record name that is a reserved verb of `flint module`.
