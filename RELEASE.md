@@ -1,5 +1,9 @@
 # Knap Releases
 
+## Release 1.2.4
+
+- `knw-knap-module` and the module templates: the `logs` of `plan` and `apply`, the SDK tool `log` (bounded by the SDK: at most 50 lines, cut after 500 characters, invalid entries dropped and counted), and how `flint sync` shows a module: each line `(module) <name>: …`, the apply detail after ` — `, and the section `Module logs` (NUU Flint Task 1130).
+
 ## Release 1.2.3
 
 - `knw-knap-module`: a new section "Run Flint from a Module": a module runs any Flint command through `FLINT_CLI`; where to call it (a command or the live process, never `plan`); a `flint sync` from a module skips the module step; no API of the Flint server; `flint git sync` commits every change (`git add -A`); credentials; and a tested example of a live module that runs `flint git sync` on a timer. The anti-pattern about `flint sync` in a module is corrected.
