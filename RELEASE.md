@@ -1,5 +1,9 @@
 # Knap Releases
 
+## Release 1.2.2
+
+- The dependency on the Flint shard accepts any version (`"@nuucognition/flint": ""`), so the shard works with Flint 0.3.x and with Flint 0.4.0 (NUU Flint Task 1129).
+
 ## Release 1.2.1
 
 - `knw-knap-module`: a secret can also come from the environment of the caller; `module-secret-missing` means that the module process has no non-empty value of that name (found by the review of the Flint docs, NUU Flint Task 1129).
