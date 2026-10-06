@@ -170,7 +170,7 @@ A module never writes an object of Orbh itself. Its plan returns desired objects
 | `target` of a station | `<runtime>/<profile>`: a station needs a profile |
 | `machine` | Not empty when present |
 
-An object that breaks a rule is an issue of the plan, and Flint keeps the existing object of that key as it is.
+An object with a key that is missing, empty, or not a text fails the whole plan (`module-plan-failed`): Flint applies none of its objects and actions. An object with a valid key that breaks another rule, or a key that the plan gives two times, is an issue of the plan: Flint keeps the existing object of that key as it is and applies the other objects.
 
 - The key is the name of the object in the Orb store of the Flint (`.orb/`). Flint stamps each object with the managed marker `{ flintId, module: <record name>, key, declHash }` (a cron schedule also gets `machine`).
 - Flint creates, updates, or resumes each desired object, and pauses each managed object of the module that the plan no longer desires. **Sync never deletes** an object of a module. After `flint module uninstall`, the next sync pauses each object of that module.
