@@ -1,5 +1,12 @@
 # Knap Releases
 
+## Release 1.3.0
+
+- New knowledge `knw-knap-invocations`: the reference of the invocation file of a workflow (`shard-invocation/0.1` and `0.2`, NUU Orbh Tasks 743 and 744). It covers when to add one, the name and the place, each field with its rule, the places and the phases of behaviours, the tokens and the quoting rules, behaviour scripts (the environment, the exit codes, record before run, the time limit, and the output cap), nesting with `calls` and outputs, a complete example (`wkfl-proj-do_task` of Projects 1.6.0), and the common mistakes.
+- `knw-knap-cli`: a new section "Invocations" with `flint shard invoke`, `flint shard step`, and `flint shard invocations`.
+- `init-knap`, `knw-knap-architecture`, `knw-knap-manifest`, and the README list invocation files among the files of a shard. `wkfl-knap-create_shard` has a new step 7: when to add an invocation file.
+- The commands need a Flint CLI with shard invocations 0.2 (NUU Orbh Task 744).
+
 ## Release 1.2.4
 
 - `knw-knap-module` and the module templates: the `logs` of `plan` and `apply`, the SDK tool `log` (bounded by the SDK: at most 50 lines, cut after 500 characters, invalid entries dropped and counted), and how `flint sync` shows a module: each line `(module) <name>: …`, the apply detail after ` — `, and the section `Module logs` (NUU Flint Task 1130).

@@ -5,6 +5,7 @@ required-reading:
   - "[[dev-knw-knap-cli]]"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
 ---
 
 # Knap (Flintknapping)
@@ -23,6 +24,7 @@ A shard is a self-contained unit of agent capabilities. Each shard focuses on on
 - **Skills** — Atomic, single-purpose tasks (no human checkpoints)
 - **Workflows** — Multi-stage tasks with human review points
 - **Headless workflows** — Alternate workflows for headless sessions (optional)
+- **Invocation files** — The machine contract of a workflow: inputs, steps, outputs, and behaviours (optional). See [[dev-knw-knap-invocations]]
 - **Templates** — Structural guides for creating artifacts
 - **Knowledge files** — Deep reference material on a topic
 - **Scripts** — Deterministic Node.js operations auto-discovered from `scripts/*.js`
@@ -57,6 +59,7 @@ Shards/(Source Remote) [Name]/     # or Shards/(Source Local) [Name]/
 │   └── dev-sk-<sh>-<name>.md
 ├── workflows/
 │   ├── dev-wkfl-<sh>-<name>.md
+│   ├── dev-wkfl-<sh>-<name>.invocation.json   # optional
 │   └── dev-hwkfl-<sh>-<name>.md
 ├── templates/
 │   └── dev-tmp-<sh>-<name>-v<X.X>.md

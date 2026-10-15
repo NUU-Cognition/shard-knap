@@ -2,6 +2,7 @@
 description: "Create a new shard from scratch"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -85,14 +86,16 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    - `knowledge/dev-knw-<sh>-<name>.md` — [[dev-tmp-knap-knowledge-v0.1]]
    - `scripts/dev-<name>.js` — [[dev-tmp-knap-script-v0.1]]. Verify discovery with `flint shard scripts <sh>`.
 
-7. **Create install payloads** (**no `dev-` prefix** inside `install/`):
+7. **Add an invocation file to a workflow** (optional): when a workflow has stages that an agent must do in order, an input artifact, a value to return, a child workflow of another shard, or edits that a script can do at the open, at a step, or at the end of the session, add `workflows/dev-wkfl-<sh>-<name>.invocation.json` beside it (`dev-hwkfl-…` for a headless workflow). Use the format `shard-invocation/0.2`, and copy each `stage` from the exact heading of the stage. Add a `# Invocation` section to the Markdown workflow. A skill and a short workflow with no steps get no invocation file. Read [[dev-knw-knap-invocations]] first.
+
+8. **Create install payloads** (**no `dev-` prefix** inside `install/`):
    - General payloads: `install/inst-<sh>-<name>.md` (dashboards, system files) — declare under `install:` in `shard.yaml`
    - Note templates: `install/otmp-<sh>-<name>.md` — declare under `install:` with dest `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` and `mode: force`. Use Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`), not `{{uuid}}` or `{{date}}`
    - Type definitions: `install/type-<sh>-<type>[_<subtype>].md` per [[dev-tmp-knap-type-v0.1]] — auto-resolved via `types:`, do **not** add an `install:` entry
 
-8. **Renames**: if you change your mind about the name or the shorthand, use `flint shard rename <alias> --name "<New Name>"` or `flint shard rename <alias> --shorthand <new-sh>` — never `mv` folders or files by hand. The id does not change. See [[dev-knw-knap-architecture]] § Renames.
+9. **Renames**: if you change your mind about the name or the shorthand, use `flint shard rename <alias> --name "<New Name>"` or `flint shard rename <alias> --shorthand <new-sh>` — never `mv` folders or files by hand. The id does not change. See [[dev-knw-knap-architecture]] § Renames.
 
-9. Create or edit `README.md` with the shard overview and structure.
+10. Create or edit `README.md` with the shard overview and structure.
 
 Once scaffold is complete, progress to the next stage.
 

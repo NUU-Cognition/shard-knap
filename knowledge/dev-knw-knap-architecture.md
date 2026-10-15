@@ -2,6 +2,7 @@
 description: "Complete reference for the two entities (source and shard), the three states, the lock, the registry, shard structure, file types, headless mode, migrations, and design principles"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
 ---
 
 # Knowledge: Shard Architecture
@@ -209,6 +210,7 @@ Shards/(Source Remote) [Name]/
 │   └── dev-sk-<sh>-<name>.md
 ├── workflows/
 │   ├── dev-wkfl-<sh>-<name>.md        # Interactive workflow
+│   ├── dev-wkfl-<sh>-<name>.invocation.json   # Invocation file of the workflow (optional)
 │   └── dev-hwkfl-<sh>-<name>.md       # Headless workflow (optional)
 ├── templates/
 │   └── dev-tmp-<sh>-<name>-v<X.X>.md
@@ -413,6 +415,10 @@ Alternate workflow files used in headless Orbh sessions. Replace the interactive
 - The action banner is required as the first body line, identical to interactive workflows — see [[#Action Banner]] below
 - The context line at the top of every `hwkfl-*` file is `flint shard hstart <sh>` (not `flint shard start`) — this is how agents know they're in headless mode
 - Emitted by `flint shard hstart <sh>` in place of the interactive `wkfl-*` counterpart when both exist; hidden from `flint shard start` output
+
+### Invocation Files (`wkfl-<sh>-<name>.invocation.json`)
+
+Optional. The machine contract of one workflow, beside its Markdown file with the same stem: the inputs, the steps (each with the heading of its stage), the outputs, and the behaviours. `flint shard invoke <sh> <name>` reads it and opens a durable record of the run. A headless workflow has its own file (`hwkfl-<sh>-<name>.invocation.json`). The file has the `dev-` prefix in a source, and `shard.yaml` declares nothing. The full reference, with when to add one: [[dev-knw-knap-invocations]].
 
 ## Action Banner
 

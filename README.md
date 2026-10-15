@@ -34,6 +34,7 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
     dev-knw-knap-manifest.md              # shard.yaml schema reference (id, shard, source, dependencies)
     dev-knw-knap-cli.md                   # flint shard CLI reference
     dev-knw-knap-module.md                # Module authoring reference: the process contract and both SDKs
+    dev-knw-knap-invocations.md           # Invocation file reference: inputs, steps, outputs, behaviours, nesting
   install/
     type-knap-shard.md                    # Shard artifact type definition
 ```
@@ -48,4 +49,5 @@ Shards/(Source Remote) Knap/             # the source; the build is Shards/Knap/
 - **Validation** — Check shard correctness
 - **Scaffolding workflow** — Create new shards from scratch
 - **Iteration workflow** — Add capabilities to existing shards
+- **Invocation files** — The machine contract of a workflow (`shard-invocation/0.1` and `0.2`): inputs, steps with their stages and hints, outputs, `calls` to the workflow of another shard, behaviours and their scripts, and the common mistakes
 - **Modules** — The module contract (`plan`, `apply`, `command`, `live`), the desired objects and the owner rule, settings, env files and secrets, both SDKs, and the workflow `knap_module` with templates for `module.yaml`, a Python module, and a TypeScript module

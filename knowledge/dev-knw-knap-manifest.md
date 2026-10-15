@@ -2,6 +2,7 @@
 description: "Complete shard.yaml schema reference — the package name (shard), the two ids (id, source.id), formerNames, of, the dependency map, install modes, setup lifecycle, scripts, types"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -376,6 +377,7 @@ Some things are not declared in `shard.yaml` — they are discovered at runtime 
 | Templates | `templates/**` (recursive) | Discovery + `description` frontmatter |
 | Knowledge | `knowledge/**` (recursive) | Discovery + `description` frontmatter |
 | Headless init / workflows | `hinit-<sh>.md`, `hwkfl-*` files | Discovery by filename prefix |
+| Invocation files | `workflows/(h)wkfl-<sh>-<name>.invocation.json`, beside the Markdown workflow | Discovery by file name. `flint shard start` lists each one under `## Invocations` with its `flint shard invoke` command. Format: [[dev-knw-knap-invocations]] |
 
 Only things with no filesystem signature of their own need explicit declaration: `types` (what type name a file represents), `folders` (paths outside `Mesh/Metadata/Types/`), `install` (source→dest mapping), `dependencies`, and `setup` scope.
 

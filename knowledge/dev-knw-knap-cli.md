@@ -1,9 +1,10 @@
 ---
 name: Knap CLI Reference
-description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall), the retired inputs, and the --json shapes
+description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall, invoke, step, invocations), the retired inputs, and the --json shapes
 type: knowledge
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
 ---
 
 # Knap CLI Reference
@@ -315,6 +316,27 @@ flint shard <ref> exec <script> [args...]   # explicit exec form
 ```
 
 Inside the script, the runtime exposes `FLINT_ROOT` (workspace root) and `FLINT_SHARD` (shard folder) as env vars. The shorthand is **not** in the filename — the file at `scripts/dev-prefix-shard.js` is invoked as `flint shard knap prefix-shard`.
+
+### Invocations
+
+A workflow with an invocation file (`workflows/dev-wkfl-<sh>-<name>.invocation.json`) runs as an **invocation**: a durable record of the run in `.flint/invocations/<id>/`, with its inputs, steps, outputs, parent, and behaviours. The format of the file, its rules, and the common mistakes are in [[dev-knw-knap-invocations]]. Use these commands to test an invocation file in a scratch Flint.
+
+| Command | Purpose |
+|---------|---------|
+| `flint shard invoke <ref> [--dev] [--headless]` | No workflow: the same output as `start`, and a load record. |
+| `flint shard invoke <ref> <workflow> [--input <name>=<value>]... [--dev] [--headless] [--parent <id> \| --root] [--json]` | Open a workflow invocation: read and check the invocation file (`invocation-file-invalid` lists each problem), check the inputs, choose the parent (the top of the stack of the session by default), record the steps, run the `invocation.open` behaviours, and print the hint. `<workflow>` is the short name (`do_task`) or the stem (`wkfl-<sh>-do_task`). |
+| `flint shard step [--invocation <id>] [--json]` | Show the steps of the top of the stack of the session, or of one invocation. |
+| `flint shard step done <step> [--evidence '<text>'] [--invocation <id>]` | Settle the current step as done. The place `step.done:<step>` runs its behaviours; a `before` behaviour can refuse the step. |
+| `flint shard step skip <step> --reason '<why>' [--invocation <id>]` | Settle the current step as skipped. No behaviour runs. |
+| `flint shard invocations [--session <id> \| --mine] [--open \| --all] [--json]` | List the invocations of this Flint (default: the open ones). |
+| `flint shard invocations show <id>` | One invocation: the summary, the steps, the outputs, the children, and the events (an id prefix of 7 or more characters is valid). |
+| `flint shard invocations stack [--session <id>]` | The open workflow invocations of one session, from the root to the top, with the current step of each. |
+| `flint shard invocations set-input [<id>] <name>=<value>` | Set an input that the file declares. |
+| `flint shard invocations set-output [<id>] <name>=<value>` | Set an output that the file declares (the default is the top of the stack). |
+| `flint shard invocations close [<id>] --outcome done\|abandoned [--reason '<why>'] [--abandon-children '<why>']` | Close a workflow invocation. `done` refuses while a step is open or a required output is not set; a parent refuses while a child is open. The parent record gets the outputs. |
+| `flint shard invocations unlock <id>` | Remove the lock of one invocation when no process holds it. |
+
+Each command that writes a record prints the hint last (`now:`, `read:`, `next:`, `part of:`, or `back in:` after a child closed); `--json` gives the commands in `next`. Outside an Orbh session (no `ORBH_SESSION_ID`), a command names the invocation: `--invocation <id>` for `step`, the id for `invocations`, and `--parent <id>` for a child. `flint orbh close` and `flint orbh session return` accept `--with <id>[=<value>]` (an opt-in behaviour) and `--no-behaviours`.
 
 ### Workspace-Level
 
