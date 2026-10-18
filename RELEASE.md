@@ -1,5 +1,13 @@
 # Knap Releases
 
+## Release 1.4.0
+
+- `knw-knap-invocations` covers the format `shard-invocation/0.3` (NUU Orbh Task 748): `ready` and `make-ready` on artifact inputs, `assumes` on artifact inputs and outputs, `then` on the file, `done-when`, `modes`, and a `next` object for each mode on steps, the operator `not`, and the reserved keys `assumed` and `session.mode`. It gives the live refusal texts and the close lines.
+- One workflow for each mode: the architecture, the templates, and `sk-knap-validate` describe `> [!headless]` callouts in each stage and a `# Headless` section of the init. Headless workflows (`hwkfl-`), headless inits (`hinit-`), `flint shard hstart`, and `--headless` are removed: the CLI reads no headless file, and `sk-knap-validate` reports a headless file as an error.
+- New workflow `wkfl-knap-migrate_headless_to_modes` (with a format 0.3 invocation file): it merges the headless files of a source into its normal files, with a ledger and a guard, a check of the machine contract of each mode, a stop of the whole source on a conflict, and a check of both modes before the commit.
+- New script `flint shard knap check-modes "<source folder>"`: the static checks of a migration (headless files, old references, callouts, and fences).
+- This version needs a Flint CLI with shard invocations 0.3 and the removal (NUU Orbh Task 748).
+
 ## Release 1.3.0
 
 - New knowledge `knw-knap-invocations`: the reference of the invocation file of a workflow (`shard-invocation/0.1` and `0.2`, NUU Orbh Tasks 743 and 744). It covers when to add one, the name and the place, each field with its rule, the places and the phases of behaviours, the tokens and the quoting rules, behaviour scripts (the environment, the exit codes, record before run, the time limit, and the output cap), nesting with `calls` and outputs, a complete example (`wkfl-proj-do_task` of Projects 1.6.0), and the common mistakes.
