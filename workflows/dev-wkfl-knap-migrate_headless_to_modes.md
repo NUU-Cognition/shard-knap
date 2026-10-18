@@ -227,14 +227,14 @@ Do this only when no conflict is open. A conflict stops the migration before thi
 
 1. `flint shard knap check-modes "<source folder>"`: no headless file, no reference, no problem. It checks that each invocation file is JSON, that each `stage` is a heading of its Markdown workflow, that no token of a `next` text stands inside quotes, and that no heading is inside a callout.
 2. `flint shard status <alias> --health`. It checks the build when this Flint has one, else the source. Read each warning of the files that you changed. No `deprecated` warning and no invocation file warning may stay.
-   - When the live `flint` does not know format 0.3 yet, use the CLI of the flint repository: `node "<flint repository>/apps/flint-cli/bin/flint-dev.js" shard status <alias> --health`.
+   - The live `flint` reads format 0.3 since deploy 1 of NUU Orbh Task 748. On a machine with an older CLI, use the CLI of the flint repository: `node "<flint repository>/apps/flint-cli/bin/flint-dev.js" shard status <alias> --health`.
    - When the health check reads the build, it shows your change only after `flint shard build <alias>`. Build only when the person or your prompt allows a build in this Flint. Else write "health: the build is older than the source" in the result.
 3. **Check both modes.** The migration is complete only when each invocation file that you changed opens in both modes with the inputs that its callers give. Do it in a scratch Flint, not in a real Flint, because the behaviours of a workflow change the Mesh:
    - Make the scratch Flint in a temporary folder: `flint create "<name>"`, then `flint shard install --from-path "<source folder>"`.
    - For each artifact input that a caller gives at the invoke, create a test artifact of its type in the Mesh of the scratch Flint.
-   - Run `flint shard invoke <sh> <name> --mode interactive` and `--mode headless`, with the inputs of the callers. Read the steps that the mode skipped, and the hint of each step. Then close the invocation: `flint shard invocations close <id> --outcome abandoned --reason 'test'`.
+   - Run `flint shard invoke <sh> <name> --mode interactive` and `--mode headless`, with the inputs of the callers. Read the `Mode:` line and `Skipped (mode):` of each run. Read the steps that the mode skipped, and the hint of each step. Then close the invocation: `flint shard invocations close <id> --outcome abandoned --reason 'test'`.
    - For a creation input (Stage 1, step 7, option 1): invoke with no value, create the file, and run `flint shard invocations set-input <id> <input>='<title>'`. The set-input must pass.
-   - When the scratch install or a run cannot work (for example, a dependency does not install), write that in the result. Then the person must do this check before the migration counts as complete.
+   - When the check cannot run (for example, a dependency does not install in the scratch Flint), the migration stops: there is no bump, no commit, and no `done` close without both checks. Save your work as a patch for the person: `git diff --binary <BASE> -- "<path>" … > "<scratch>/<sh>-modes.patch"`. Then follow the rule "A conflict stops the whole migration" ([Rules](#rules)): put back the paths of the ledger that are yours, close the invocation `abandoned`, and give the blocker: why the check could not run, the patch, and the check that the person must run.
 
 > [!headless]
 > Set `flint orbh session set phase check`. A finding that you cannot fix is a blocker: write it in the result, with the file and the line. A check of a mode that fails is a conflict: it stops the whole migration.
@@ -249,7 +249,7 @@ Do this only when no conflict is open. A conflict stops the migration before thi
 
 ## Stage 9: Commit and Version
 
-Do this only when no conflict is open, and when Stage 7 passed in both modes (or the result says why the check of the modes could not run).
+Do this only when no conflict is open, and when the check of Stage 7 passed in both modes. When it did not pass, or it could not run, do not bump, commit, or close the invocation `done`: Stage 7 gives the blocker.
 
 1. Run the guard. Then bump `version` in `shard.yaml`, and update the ledger:
    - a shard at `1.0.0` or above: a minor change (`1.6.0` to `1.7.0`);
@@ -271,7 +271,7 @@ Other shards and the Mesh can name the files that you deleted. Do not edit them:
 
 1. Search the other sources and the Mesh of the Flints of this machine for the old names: `grep -rn -E "hwkfl-<sh>-|hinit-<sh>\b|hstart(-dev)? <sh>\b" <the Flint roots> --include='*.md' --include='*.json' --include='*.js' --include='*.ts' --include='*.yaml'`. Leave out `.git/`, `.flint/`, the builds (`Shards/<Name>/` of a source that you list already: the next build overwrites them), and the release history.
 2. List each place for the person: the file, the line, and the new name (`wkfl-<sh>-<name>`, `init-<sh>#Headless`, or `flint shard start <sh>`).
-3. Close the invocation: `flint shard invocations close <id> --outcome done`.
+3. Close the invocation: `flint shard invocations close <id> --outcome done`. Close it `done` only after the commit of Stage 9, which needs the check of both modes.
 
 > [!headless]
 > Put the list in the result. Then return: `flint orbh session return --finish "<result>"`. The result has the commit, the files, the new version, the dropped lines, the choices, the proposals (`ready`, `then`, and the other 0.3 fields), and the list of references.

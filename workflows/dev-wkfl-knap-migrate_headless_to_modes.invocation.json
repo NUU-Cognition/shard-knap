@@ -74,7 +74,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 7: Check",
-      "next": "Run flint shard knap check-modes on the folder of {{source}}, and the health check of the shard. Then open each changed invocation file in a scratch Flint in both modes, with the inputs of its callers, and set each creation input after its file exists. No headless file, no reference, no problem, and no deprecated warning may stay. A mode that fails is a conflict. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
+      "next": "Run flint shard knap check-modes on the folder of {{source}}, and the health check of the shard. Then open each changed invocation file in a scratch Flint in both modes, with the inputs of its callers, and set each creation input after its file exists. No headless file, no reference, no problem, and no deprecated warning may stay. A mode that fails, or a check that cannot run, stops the migration: save a patch, and give the blocker. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
     },
     {
       "id": "review",
@@ -93,7 +93,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 9: Commit and Version",
-      "next": "Only when no conflict is open and the check of both modes passed: run the guard of your paths, bump the version of {{source}} (minor at 1.0.0 or above, patch for 0.x), run the guard again, and commit only your paths: git commit -- <path>, with each path. Then set the output: flint shard invocations set-output {{invocation}} commit='<sha>'. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
+      "next": "Only when no conflict is open and the check of both modes passed (no bump, commit, or done close without it): run the guard of your paths, bump the version of {{source}} (minor at 1.0.0 or above, patch for 0.x), run the guard again, and commit only your paths: git commit -- <path>, with each path. Then set the output: flint shard invocations set-output {{invocation}} commit='<sha>'. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
     },
     {
       "id": "references",
@@ -102,8 +102,8 @@
       "evidence": "optional",
       "stage": "Stage 10: References in Other Shards",
       "next": {
-        "interactive": "Search the other sources and the Mesh for the old names of the files of {{source}}, and list each place for the person. Do not edit another shard. Then close the invocation: flint shard invocations close {{invocation}} --outcome done.",
-        "headless": "Search the other sources and the Mesh for the old names of the files of {{source}}, and put the list in the result. Do not edit another shard. Close the invocation: flint shard invocations close {{invocation}} --outcome done. Then return with flint orbh session return --finish."
+        "interactive": "Search the other sources and the Mesh for the old names of the files of {{source}}, and list each place for the person. Do not edit another shard. After the commit, close the invocation: flint shard invocations close {{invocation}} --outcome done.",
+        "headless": "Search the other sources and the Mesh for the old names of the files of {{source}}, and put the list in the result. Do not edit another shard. After the commit, close the invocation: flint shard invocations close {{invocation}} --outcome done. Then return with flint orbh session return --finish."
       }
     }
   ]

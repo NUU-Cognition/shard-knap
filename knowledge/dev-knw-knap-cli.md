@@ -353,7 +353,7 @@ A workflow with an invocation file (`workflows/dev-wkfl-<sh>-<name>.invocation.j
 | `flint shard invocations set-output [<id>] <name>=<value>` | Set an output that the file declares (the default is the top of the stack). |
 | `flint shard invocations close [<id>] --outcome done\|abandoned [--reason '<why>'] [--abandon-children '<why>']` | Close a workflow invocation. `done` refuses while a step is open or a required output is not set; a parent refuses while a child is open. The parent record gets the outputs. |
 | `flint shard invocations unlock <id>` | Remove the lock of one invocation when no process holds it. |
-| `flint shard invocations --artifact '<artifact>' [--all] [--json]` | The invocations that took or made an artifact (a title, a wikilink, or a path under `Mesh/`), oldest first, with the `continues` links. |
+| `flint shard invocations --artifact '<artifact>' [--json]` | The invocations that took or made an artifact (a title, a wikilink, or a path under `Mesh/`), open and closed, oldest first, with the `continues` links. `--all` changes nothing here. |
 | `flint shard invocations reindex [--json]` | Rebuild the index of the artifacts (`.flint/invocations/.index/artifacts/`). The index is a cache: a reader that misses it scans the records. |
 | `flint shard ready '<artifact>' [--json]` | The workflows of the installed shards that take the artifact, each with its verdict (`ready`, `assumed`, `not-ready`), its start step (after the state entry), and the holding assumed states. |
 | `flint shard assumed ['<artifact>'] [--json]` | The assumed states of an artifact: the source invocation of each one, and why it holds or not. |
