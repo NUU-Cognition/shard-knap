@@ -5,6 +5,10 @@
 // Rules (from (Spec) Flint Shards . File Structure):
 //   - Root entry-point files (`init-<sh>.md`, `hinit-<sh>.md`, `setup-<sh>.md`)
 //     get a `dev-` prefix on their canonical name.
+//     `hinit-<sh>.md` is deprecated (NUU Orbh Task 748): one init serves both
+//     modes. The pattern stays, because an old 0.1.0 shard can still have one,
+//     and the merge comes after this prefix pass. Merge it into the `# Headless`
+//     section of the init with the workflow wkfl-knap-migrate_headless_to_modes.
 //   - Files under `skills/`, `workflows/`, `templates/`, `knowledge/`,
 //     `migrations/`, `assets/`, `scripts/` get a `dev-` prefix when they don't
 //     already have one.

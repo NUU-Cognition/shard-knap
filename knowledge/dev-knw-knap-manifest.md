@@ -3,6 +3,7 @@ description: "Complete shard.yaml schema reference — the package name (shard),
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -376,8 +377,8 @@ Some things are not declared in `shard.yaml` — they are discovered at runtime 
 | Workflows | `workflows/**` (recursive) | Discovery + `description` frontmatter |
 | Templates | `templates/**` (recursive) | Discovery + `description` frontmatter |
 | Knowledge | `knowledge/**` (recursive) | Discovery + `description` frontmatter |
-| Headless init / workflows | `hinit-<sh>.md`, `hwkfl-*` files | Discovery by filename prefix |
-| Invocation files | `workflows/(h)wkfl-<sh>-<name>.invocation.json`, beside the Markdown workflow | Discovery by file name. `flint shard start` lists each one under `## Invocations` with its `flint shard invoke` command. Format: [[dev-knw-knap-invocations]] |
+| Headless files (deprecated) | `hinit-<sh>.md`, `hwkfl-*` files | Discovery by filename prefix until the removal wave of NUU Orbh Task 748. The health check gives a `deprecated` warning. One workflow and one init serve both modes: see [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode |
+| Invocation files | `workflows/wkfl-<sh>-<name>.invocation.json`, beside the Markdown workflow | Discovery by file name. `flint shard start` lists each one under `## Invocations` with its `flint shard invoke` command. Format: [[dev-knw-knap-invocations]] |
 
 Only things with no filesystem signature of their own need explicit declaration: `types` (what type name a file represents), `folders` (paths outside `Mesh/Metadata/Types/`), `install` (source→dest mapping), `dependencies`, and `setup` scope.
 

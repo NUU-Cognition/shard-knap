@@ -3,6 +3,7 @@ description: "Create a new shard from scratch"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -75,18 +76,18 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
 
 3. **Flesh out the init.** Edit the generated `dev-init-<sh>.md` per [[dev-tmp-knap-init-v0.1]] — populate `required-reading` frontmatter with `[[knw-<sh>-…]]` wikilinks for each knowledge file you plan to write.
 
-4. **Add headless init** (optional): if the shard will run in headless Orbh sessions, create `dev-hinit-<sh>.md` at the shard root.
+4. **Add a `# Headless` section to the init** (optional): when the shard will run in headless Orbh sessions, add a `# Headless` section to `dev-init-<sh>.md` per [[dev-tmp-knap-init-v0.1]]: the interface keys with the phase values, and the result delivery. Do not create a separate headless init: `dev-hinit-<sh>.md` is deprecated. See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
 
 5. **Edit setup file** (if `--setup` was passed): the CLI created `dev-setup-<sh>.md`. Fill it in per [[dev-tmp-knap-setup-v0.1]] with the actual setup actions.
 
 6. **Create capability files** in their respective subfolders. Each MUST declare `description:` frontmatter. The `flint shard create` scaffold leaves these empty — author them by hand using the listed template:
    - `skills/dev-sk-<sh>-<name>.md` — [[dev-tmp-knap-skill-v0.1]]
-   - `workflows/dev-wkfl-<sh>-<name>.md` — [[dev-tmp-knap-workflow-v0.1]]. For headless variants add `dev-hwkfl-<sh>-<name>.md`; its top context line is `Run \`flint shard hstart <sh>\`...` (not `start`).
+   - `workflows/dev-wkfl-<sh>-<name>.md` — [[dev-tmp-knap-workflow-v0.1]]. One file serves both modes. When the workflow runs in headless Orbh sessions, add a `> [!headless]` callout inside each stage that differs. Do not create a `dev-hwkfl-` file: it is deprecated.
    - `templates/dev-tmp-<sh>-<name>-v<X.X>.md` — [[dev-tmp-knap-template-v0.1]]
    - `knowledge/dev-knw-<sh>-<name>.md` — [[dev-tmp-knap-knowledge-v0.1]]
    - `scripts/dev-<name>.js` — [[dev-tmp-knap-script-v0.1]]. Verify discovery with `flint shard scripts <sh>`.
 
-7. **Add an invocation file to a workflow** (optional): when a workflow has stages that an agent must do in order, an input artifact, a value to return, a child workflow of another shard, or edits that a script can do at the open, at a step, or at the end of the session, add `workflows/dev-wkfl-<sh>-<name>.invocation.json` beside it (`dev-hwkfl-…` for a headless workflow). Use the format `shard-invocation/0.2`, and copy each `stage` from the exact heading of the stage. Add a `# Invocation` section to the Markdown workflow. A skill and a short workflow with no steps get no invocation file. Read [[dev-knw-knap-invocations]] first.
+7. **Add an invocation file to a workflow** (optional): when a workflow has stages that an agent must do in order, an input artifact, a value to return, a child workflow of another shard, or edits that a script can do at the open, at a step, or at the end of the session, add `workflows/dev-wkfl-<sh>-<name>.invocation.json` beside it. One invocation file serves both modes. Use the format `shard-invocation/0.3`, and copy each `stage` from the exact heading of the stage. A step only for a person gets `"modes": ["interactive"]`, and a step whose hint differs in a headless session gets a `next` object for each mode. Add a `# Invocation` section to the Markdown workflow. A skill and a short workflow with no steps get no invocation file. Read [[dev-knw-knap-invocations]] first.
 
 8. **Create install payloads** (**no `dev-` prefix** inside `install/`):
    - General payloads: `install/inst-<sh>-<name>.md` (dashboards, system files) — declare under `install:` in `shard.yaml`

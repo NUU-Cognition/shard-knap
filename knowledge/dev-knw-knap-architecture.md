@@ -1,8 +1,9 @@
 ---
-description: "Complete reference for the two entities (source and shard), the three states, the lock, the registry, shard structure, file types, headless mode, migrations, and design principles"
+description: "Complete reference for the two entities (source and shard), the three states, the lock, the registry, shard structure, file types, the modes (one workflow for each mode), migrations, and design principles"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 # Knowledge: Shard Architecture
@@ -136,7 +137,7 @@ The toml holds no id. A person never types a uuid. An `id` that a person wrote s
 
 `.flint/shards.json` (`shard-local/0.2`) holds per shard id: `setup` (the local layer), `source { branch, sha, ahead, behind, dirty, fetchedAt? }` for a source that is a Git repository, `reference { resolvedPath, resolvedAt }` for a reference record, `installedAt`, and `builtAt`.
 
-A reader that meets a record of a newer shape stops with the reason and `Upgrade flint-cli`. A record of `shard-record/0.1` (a pre-release 0.7.0 build) stops every read with the next command `flint migrate run`. A Flint whose `flint.json#shards` still holds the 0.6.0 shape (`{ <sh>: "<version>" }`) is read by `list`, `status`, `start`, `hstart`, `start-dev`, and `hstart-dev` with the notice `this Flint has the 0.6.0 shard records; run flint migrate run`; every other shard command refuses with `shard records are in the legacy shape` and the next command `flint migrate run`.
+A reader that meets a record of a newer shape stops with the reason and `Upgrade flint-cli`. A record of `shard-record/0.1` (a pre-release 0.7.0 build) stops every read with the next command `flint migrate run`. A Flint whose `flint.json#shards` still holds the 0.6.0 shape (`{ <sh>: "<version>" }`) is read by `list`, `status`, `start`, `start-dev`, and the deprecated `hstart` and `hstart-dev` with the notice `this Flint has the 0.6.0 shard records; run flint migrate run`; every other shard command refuses with `shard records are in the legacy shape` and the next command `flint migrate run`.
 
 **The registry.** The NUU Shard Registry (`shards.nuucognition.com`) holds one record per shard id (`org`, `name`, the slug `<org slug>/<slug>`, `legacySlug`, `formerNames`, `shorthand`, `repo`, `sourceId`) and one row per version (`tag`, `hash`, `repo`, `ref`, `sha`). The CLI asks `GET /api/shards/<org>/<name>` (the record and its versions; an old slug answers with `moved`), `GET /api/resolve?id=` and `GET /api/resolve?hash=` (the record of a package that the CLI already holds), and `GET /api/resolve?repo=`. `flint shard release` sends `POST /api/register`. The registry refuses a second id under one slug (`slug-taken`) and a tag with another hash (`tag-taken`). `FLINT_SHARD_REGISTRY_URL` points the CLI at another registry.
 
@@ -186,7 +187,7 @@ Files in a source (`(Source Remote)` and `(Source Local)` folders) are prefixed 
 
 | Location | Prefix rule | Why |
 |----------|-------------|-----|
-| Shard root (`init`, `hinit`, `setup`) | `dev-` | Lifecycle files, stripped by the build |
+| Shard root (`init`, `setup`; a deprecated `hinit` too) | `dev-` | Lifecycle files, stripped by the build |
 | `skills/`, `workflows/`, `templates/`, `knowledge/` | `dev-` | Source files, stripped by the build |
 | `assets/` | `dev-` (as `dev-ast-<sh>-<name>.<ext>`) | Source assets, stripped by the build |
 | `scripts/` | `dev-` (as `dev-<name>.js`) | Source scripts, stripped by the build |
@@ -202,16 +203,14 @@ A source (the same tree in `Shards/(Source Local) [Name]/`):
 ```
 Shards/(Source Remote) [Name]/
 ├── shard.yaml                         # Manifest (required)
-├── dev-init-<sh>.md                   # Interactive init (required)
-├── dev-hinit-<sh>.md                  # Headless init (optional)
+├── dev-init-<sh>.md                   # Init (required); a `# Headless` section when the shard runs headless
 ├── dev-setup-<sh>.md                  # Setup lifecycle file (required if `setup:` declared)
 ├── README.md                          # Documentation
 ├── skills/
 │   └── dev-sk-<sh>-<name>.md
 ├── workflows/
-│   ├── dev-wkfl-<sh>-<name>.md        # Interactive workflow
-│   ├── dev-wkfl-<sh>-<name>.invocation.json   # Invocation file of the workflow (optional)
-│   └── dev-hwkfl-<sh>-<name>.md       # Headless workflow (optional)
+│   ├── dev-wkfl-<sh>-<name>.md        # Workflow: both modes, `> [!headless]` callouts in the stages that differ
+│   └── dev-wkfl-<sh>-<name>.invocation.json   # Invocation file of the workflow (optional)
 ├── templates/
 │   └── dev-tmp-<sh>-<name>-v<X.X>.md
 ├── knowledge/
@@ -303,14 +302,7 @@ Two facts make this safe:
 - Write for agents, not humans — focus on what's actionable
 - Link to knowledge files via `[[knw-<sh>-<name>]]`
 
-### Headless Init File (`hinit-<sh>.md`)
-
-Optional alternate init file loaded when the shard runs in a headless Orbh session. `flint shard hstart <ref>` (the headless counterpart of `flint shard start`) loads it and the files of its `required-reading:`, in place of `init-<sh>.md`. The human-facing stages and checkpoints are gone; progress is reported via Orbh session keys. The contract is in [[(Spec) Flint Shards . Content]] § Headless Init.
-
-- Auto-discovered if the file exists — no manifest declaration needed
-- Same frontmatter format as the interactive init
-- Typically refers to the interactive init for fundamentals and focuses on what's different in headless mode
-- `flint shard hstart <ref>` of a shard with no `hinit-<sh>.md` refuses (exit 1) with the next command `flint shard start <ref>`. There is no fallback: the agent runs `flint shard start <ref>` and reads the interactive init
+**The `# Headless` section.** When the shard runs in headless Orbh sessions, the init has a `# Headless` section: the interface keys, the phase values, and the result delivery. A headless session loads the same init with `flint shard start <sh>`. See [Modes: One Workflow for Each Mode](#modes-one-workflow-for-each-mode).
 
 ### Setup File (`setup-<sh>.md`)
 
@@ -405,24 +397,89 @@ Run `flint shard start <shorthand>` if you haven't already.
 - Clear stages with explicit completion conditions
 - Human checkpoints between stages (review, approval, feedback)
 - "Once X, progress to the next stage" is the canonical transition phrase
-
-### Headless Workflows (`hwkfl-<sh>-<name>.md`)
-
-Alternate workflow files used in headless Orbh sessions. Replace the interactive `wkfl-*` counterparts — stage gates are removed and progress is reported via Orbh session keys (`phase`, `task`, `progress`, etc.).
-
-- Auto-discovered alongside regular workflows
-- Same `description` frontmatter requirement
-- The action banner is required as the first body line, identical to interactive workflows — see [[#Action Banner]] below
-- The context line at the top of every `hwkfl-*` file is `flint shard hstart <sh>` (not `flint shard start`) — this is how agents know they're in headless mode
-- Emitted by `flint shard hstart <sh>` in place of the interactive `wkfl-*` counterpart when both exist; hidden from `flint shard start` output
+- One file serves both modes. A stage that differs in a headless session has a `> [!headless]` callout inside that stage. See [Modes: One Workflow for Each Mode](#modes-one-workflow-for-each-mode)
 
 ### Invocation Files (`wkfl-<sh>-<name>.invocation.json`)
 
-Optional. The machine contract of one workflow, beside its Markdown file with the same stem: the inputs, the steps (each with the heading of its stage), the outputs, and the behaviours. `flint shard invoke <sh> <name>` reads it and opens a durable record of the run. A headless workflow has its own file (`hwkfl-<sh>-<name>.invocation.json`). The file has the `dev-` prefix in a source, and `shard.yaml` declares nothing. The full reference, with when to add one: [[dev-knw-knap-invocations]].
+Optional. The machine contract of one workflow, beside its Markdown file with the same stem: the inputs, the steps (each with the heading of its stage), the outputs, and the behaviours. `flint shard invoke <sh> <name>` reads it and opens a durable record of the run. One file serves both modes: in format `shard-invocation/0.3`, a step can have `modes` and a `next` object for each mode. The file has the `dev-` prefix in a source, and `shard.yaml` declares nothing. The full reference, with when to add one: [[dev-knw-knap-invocations]].
+
+## Modes: One Workflow for Each Mode
+
+One workflow file serves both modes, and one init serves both modes. A shard has no separate headless files: no `hwkfl-<sh>-<name>.md` and no `hinit-<sh>.md` (NUU Orbh Task 748).
+
+**The mode.** The mode of an invocation is `interactive` or `headless`. It comes from the Orbh session of `ORBH_SESSION_ID`:
+
+| Mode of the Orbh session | Mode of the invocation |
+|---|---|
+| `interactive` | `interactive` |
+| `headless`, `subagent`, `ping` | `headless` |
+| No Orbh session | `interactive` |
+
+`flint shard invoke <sh> <name> --mode interactive|headless` sets the mode (for tests). The record keeps the mode in `opened.mode`. A headless session loads the shard with `flint shard start <sh>` (`start-dev` for a source), as an interactive session does, and reads the same files.
+
+**The callouts.** A stage that differs in the headless mode has a `> [!headless]` callout inside that stage, after the normal text of the stage. The callout tells a headless session what to do in place of the person gates:
+
+- Report progress with the session keys: `flint orbh session set phase <phase>` and `flint orbh session set progress "<…>"`.
+- Track each artifact: `flint orbh artifact "<path>"`.
+- When blocked: a root session sends a deferred request (`flint orbh request "$ORBH_SESSION_ID" "<question>"`). A subagent puts the blocker and the question in its return.
+- End the turn: `flint orbh session return --finish "<result>"`.
+
+For example, the review stage of a task workflow:
+
+```markdown
+## Stage 3: Task Review
+
+- Set status to `review`
+- Give the person a summary, and refine the task until the person confirms
+- Once the person confirms, proceed to Stage 4
+
+> [!headless]
+> Do not wait for a person, and do not do Stage 4.
+> - Make sure that each checkbox is ticked.
+> - Set the status to `review`, and add a last Task Log entry.
+> - Write the summary into the result. Then return: `flint orbh session return --finish "<result>"`.
+> - Never pass `--with task-confirm`.
+```
+
+**Why the callout is inside the stage.** After a compaction, the hint line `read:` names only one stage, and the agent reads only that stage again. The agent does not read a callout in a separate section at the end of the file. Thus each callout is complete for its stage. A rule that the agent needs at a stage goes into the callout of that stage, also when a callout under the title says it too.
+
+**The rules.**
+
+- A callout under the title (before `# Invocation`) MAY sum up the rules for all stages. It does not replace the callouts of the stages.
+- A stage with no difference has no callout. A workflow with no difference has no callout.
+- An interactive session ignores the callouts. A headless session reads the normal text and the callout of each stage. When they conflict, the callout wins.
+- A command never passes `--headless` and never uses `hstart`. The mode comes from the session.
+- Keep each stage heading outside a callout. The `stage` of the invocation file names a heading of the workflow.
+- The context line at the top of each workflow is `Run \`flint shard start <sh>\` if you haven't already.` in both modes.
+
+**The invocation file.** One invocation file serves both modes (format `shard-invocation/0.3`):
+
+- A step only for a person gets `"modes": ["interactive"]`. In the headless mode, the invoke settles it as skipped at the open (`via: mode`).
+- A step whose hint differs gets `next` as an object: `{ "interactive": "…", "headless": "…" }`.
+- A condition can read the reserved key `session.mode`.
+
+The details are in [[dev-knw-knap-invocations]].
+
+**The `# Headless` section of the init.** When the shard runs in headless sessions, the init has a `# Headless` section. It holds what a headless init held, with no table of headless workflows:
+
+| Subsection | Content | Required |
+|---|---|---|
+| `## Orbh Interface Keys` | The keys that the shard sets with `flint orbh session set <key> <value>`, with `### Phase Values` (and optionally `### Progress Format`) | Yes |
+| `## Result Delivery` | How the turn ends: `flint orbh session return --finish "<result>"`, and what the result says | Yes |
+| `## Interaction Model` | A table Interactive \| Headless: what replaces each person gate | Optional |
+| `## Artifact Tracking` | `flint orbh artifact "<path>"` for each artifact that the shard makes | Optional |
+
+The `# Headless` sections of `init-proj.md` (Projects) and `init-rpt.md` (Reports) are examples. The template is [[dev-tmp-knap-init-v0.1]].
+
+**The transition.**
+
+- Now, until the removal wave of NUU Orbh Task 748: an `hwkfl-` file and an `hinit-` file are deprecated. The health check gives a warning (`deprecated: merge into …`). `flint shard hstart` and `hstart-dev` print a notice. When the shard has an `hinit-` file, they behave as before; else they load the normal init. `--headless` on `flint shard invoke` is an alias of `--mode headless`, with a notice. While a source still has an `hwkfl-` file, `--mode headless` reads it first, with a notice.
+- After the removal wave: an `hwkfl-` or `hinit-` file is a problem, and `hstart`, `hstart-dev`, and `--headless` are removed.
+- To merge the headless files of a source into its normal files, use [[dev-wkfl-knap-migrate_headless_to_modes]]. `flint shard knap check-modes <source folder>` lists the headless files and the references that stay.
 
 ## Action Banner
 
-Every skill (`sk-*`), workflow (`wkfl-*`), and headless workflow (`hwkfl-*`) file declares its own pragmatic force on its first body line via a verbatim Obsidian callout:
+Every skill (`sk-*`) and workflow (`wkfl-*`) file declares its own pragmatic force on its first body line via a verbatim Obsidian callout (a deprecated `hwkfl-*` file that is not merged yet has it too):
 
 ```
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -437,9 +494,8 @@ Every skill (`sk-*`), workflow (`wkfl-*`), and headless workflow (`hwkfl-*`) fil
 | File type | Banner? | Why |
 |-----------|---------|-----|
 | `sk-<sh>-<name>.md` | Yes | Action file — load means execute |
-| `wkfl-<sh>-<name>.md` | Yes | Action file — load means execute the stages |
-| `hwkfl-<sh>-<name>.md` | Yes | Same as `wkfl-*`, headless variant |
-| `init-<sh>.md`, `hinit-<sh>.md` | No | Init files configure context, they don't produce actions |
+| `wkfl-<sh>-<name>.md` | Yes | Action file — load means execute the stages (in both modes) |
+| `init-<sh>.md` | No | Init files configure context, they don't produce actions |
 | `setup-<sh>.md` | No | Setup is human-driven lifecycle, not agent action |
 | `tmp-<sh>-<name>-v*.md` | No | Templates describe structure of artifacts; they are read for shape, not executed |
 | `knw-<sh>-<name>.md` | No | Knowledge is reference material |
@@ -656,9 +712,9 @@ Init files give the overview. Skills/workflows give the instructions. Knowledge 
 
 `flint shard start <name>` assembles a dynamic manifest by scanning shard files and reading their `description` frontmatter. The manifest lists:
 - Required reading files (from init YAML `required-reading`)
-- Init file path (or hinit path when headless)
+- Init file path (the same init in both modes)
 - Skills with descriptions
-- Workflows with descriptions (interactive and headless sections)
+- Workflows with descriptions, and each workflow with an invocation file under `## Invocations`
 - Templates with descriptions
 - Knowledge files with descriptions
 
@@ -667,7 +723,7 @@ This replaces hardcoded tables in init files — descriptions are maintained in 
 ### Convention Over Configuration
 Follow naming conventions strictly. Conventions enable tooling, discovery, and interoperability:
 - Shorthand in every filename
-- Consistent prefix patterns (`sk-`, `wkfl-`, `hwkfl-`, `tmp-`, `knw-`, `ast-`, `hinit-`)
+- Consistent prefix patterns (`sk-`, `wkfl-`, `tmp-`, `knw-`, `ast-`)
 - Standard frontmatter fields
 - Canonical state transitions
 
@@ -719,8 +775,8 @@ To move a shard to `0.3.0`: set `shard-spec: "0.3.0"` and run `flint shard id <a
 | Init file body | Hard-coded `## Skills` / `## Workflows` / `## Templates` / `## Knowledge` discovery tables | Tables removed — `flint shard start` discovers them dynamically by scanning the shard tree |
 | Init file frontmatter | None | YAML `required-reading:` list of wikilinks (e.g. `"[[knw-<sh>-<name>]]"`) |
 | Required reading entries | Wikilinks listed in a markdown body section | Wikilinks (or relative paths, legacy) in the frontmatter list |
-| Skill / workflow context line | `Ensure you have [[init-<sh>]] in context before continuing.` | `Run \`flint shard start <sh>\` if you haven't already.` (`hstart` for `hwkfl-*`) |
-| Per-file frontmatter | None | Every `sk-*`, `wkfl-*`, `hwkfl-*`, `tmp-*`, `knw-*` MUST declare `description:` |
+| Skill / workflow context line | `Ensure you have [[init-<sh>]] in context before continuing.` | `Run \`flint shard start <sh>\` if you haven't already.` (at 0.2.0, an `hwkfl-*` file used `hstart`; `hwkfl-*` files are deprecated now: see [Modes](#modes-one-workflow-for-each-mode)) |
+| Per-file frontmatter | None | Every `sk-*`, `wkfl-*`, `tmp-*`, `knw-*` (and a deprecated `hwkfl-*`) MUST declare `description:` |
 | Setup mechanism | `state: true` boolean + `requires.cli` + `requires.workspace` blocks (and sometimes `repos:` mis-used as setup) | Single `setup: full \| flint \| local` field + companion `dev-setup-<sh>.md` lifecycle file |
 | Scripts | `scripts:` list declared in the manifest | Removed — auto-discovered from `scripts/*.js` (with `dev-` prefix on dev sources) |
 | Types | `types:` could imply folder creation | Declares the type-definition file only; storage folders require an explicit `folders:` entry |

@@ -1,10 +1,11 @@
 ---
 name: Knap CLI Reference
-description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall, invoke, step, invocations), the retired inputs, and the --json shapes
+description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall, invoke, step, invocations, ready, assumed), the retired and deprecated inputs, and the --json shapes
 type: knowledge
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 # Knap CLI Reference
@@ -31,7 +32,7 @@ A former form prints `moved: <old> is now <new>` on stderr and goes on; `--json`
 
 When a ref names two shards, the command stops with the code `ambiguous` and gives one next command per shard, each with its alias (`flint shard status <alias>`). Nothing is written.
 
-The source commands (`build`, `id`, `rename`, `push`, `pull`, `dev`, `release`) act on the source of the record. `start` and `hstart` load the shard. `start-dev` and `hstart-dev` load the source.
+The source commands (`build`, `id`, `rename`, `push`, `pull`, `dev`, `release`) act on the source of the record. `start` loads the shard, and `start-dev` loads the source, in both modes. The deprecated `hstart` and `hstart-dev` print a notice (see [Start](#start-loaded-by-the-agent-runtime)).
 
 ## The Package Spec
 
@@ -111,8 +112,10 @@ The `STATE` column is the state of the build in the lock: `published`, `snapshot
 |---------|---------|
 | `flint shard start <ref> [--json] [--dump]` | The dynamic manifest of the shard (the build, or the source folder of a reference record): header, `init-<sh>.md`, required reading, skills, workflows, templates, knowledge. |
 | `flint shard start-dev <ref> [--json]` | The same for the source (`dev-init-<sh>.md`). |
-| `flint shard hstart <ref> [--json] [--dump]` | The headless manifest: `hinit-<sh>.md` and the `hwkfl-*` workflows. A shard with no `hinit-<sh>.md` is refused with the next command `flint shard start <ref>`. |
-| `flint shard hstart-dev <ref> [--json]` | The headless manifest of the source. |
+| `flint shard hstart <ref> [--json] [--dump]` | Deprecated. It prints a notice. When the shard has an `hinit-<sh>.md`, it loads that file and the `hwkfl-*` workflows, as before; else it loads the normal init (no refusal). The removal wave of NUU Orbh Task 748 removes it. Use `flint shard start <ref>`. |
+| `flint shard hstart-dev <ref> [--json]` | Deprecated, as `hstart`, for the source. Use `flint shard start-dev <ref>`. |
+
+A headless Orbh session loads a shard with `flint shard start <ref>`, as an interactive session does. One init and one workflow file serve both modes: a headless session reads the `# Headless` section of the init and the `> [!headless]` callouts of the workflow ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode).
 
 The header of every start names the shard:
 
@@ -133,7 +136,7 @@ Request: @nuucognition/shard/meeting-notes
 
 The start refuses and exits 1 when a setup layer is `required` (`FORCE SETUP`, the setup file, then `SETUP REQUIRED`), when shard migrations are pending, when the record has no build here, when the reference source is gone (`reference-missing`, next `flint sync`), and when the ref is `not-found` or `ambiguous`. With `--json` every end is one JSON value (see [--json Shapes](#--json-shapes)).
 
-Skill and workflow files begin with the context line `Run \`flint shard start <sh>\` if you haven't already.` (`hstart` for `hwkfl-*`, and `start-dev` / `hstart-dev` in a source).
+Skill and workflow files begin with the context line `Run \`flint shard start <sh>\` if you haven't already.` (`start-dev` in a source), in both modes.
 
 ### Install and Update
 
@@ -281,6 +284,17 @@ $ flint shard install flint://Producer/meeting-notes
   flint shard install @nuucognition/meeting-notes#producer
 ```
 
+**Deprecated inputs.** These inputs still work, with a notice or a health warning, until the removal wave of NUU Orbh Task 748. Then they are retired.
+
+| Deprecated input | Now | Use |
+|------------------|-----|-----|
+| `flint shard hstart <ref>`, `hstart-dev <ref>` | A notice; the `hinit-` file when it exists, else the normal init | `flint shard start <ref>`, `start-dev <ref>` |
+| `flint shard invoke <ref> <workflow> --headless` | An alias of `--mode headless`, with a notice | No flag: the mode comes from the Orbh session. `--mode headless` for a test |
+| `hinit-<sh>.md` | A health warning (`deprecated: merge into …`) | The `# Headless` section of `init-<sh>.md` |
+| `hwkfl-<sh>-<name>.md` and its invocation file | A health warning (`deprecated: merge into …`). `--mode headless` reads the `hwkfl-` file first, with a notice | `> [!headless]` callouts in `wkfl-<sh>-<name>.md`, and one invocation file with `modes` and `next` objects |
+
+Merge the headless files of a source with [[dev-wkfl-knap-migrate_headless_to_modes]].
+
 ### Setup
 
 When `shard.yaml` declares `setup: full|flint|local`, the shard ships a `dev-setup-<sh>.md` and the lock keeps the setup state per layer:
@@ -323,20 +337,30 @@ A workflow with an invocation file (`workflows/dev-wkfl-<sh>-<name>.invocation.j
 
 | Command | Purpose |
 |---------|---------|
-| `flint shard invoke <ref> [--dev] [--headless]` | No workflow: the same output as `start`, and a load record. |
-| `flint shard invoke <ref> <workflow> [--input <name>=<value>]... [--dev] [--headless] [--parent <id> \| --root] [--json]` | Open a workflow invocation: read and check the invocation file (`invocation-file-invalid` lists each problem), check the inputs, choose the parent (the top of the stack of the session by default), record the steps, run the `invocation.open` behaviours, and print the hint. `<workflow>` is the short name (`do_task`) or the stem (`wkfl-<sh>-do_task`). |
+| `flint shard invoke <ref> [--dev]` | No workflow: the same output as `start`, and a load record. A load ignores the flags of a workflow invocation. |
+| `flint shard invoke <ref> <workflow> [--input <name>=<value>]... [--dev] [--mode interactive\|headless] [--parent <id> \| --root] [--not-ready '<why>'] [--toward '<shard> <workflow>'] [--fresh] [--json]` | Open a workflow invocation: read and check the invocation file (`invocation-file-invalid` lists each problem), check the inputs and the readiness of each artifact input (`input-not-found`, `input-wrong-type`, `input-not-ready` with its ways), choose the parent (the top of the stack of the session by default), link the earlier invocation on the same artifact and copy its settled steps (`continues`), settle the steps that the state shows (`done-when`) and the steps of the other mode (`modes`), record the steps, run the `invocation.open` behaviours, and print the hint. `<workflow>` is the short name (`do_task`) or the stem (`wkfl-<sh>-do_task`). |
+| `--mode interactive\|headless` | The mode of the invocation. The default is the mode of the Orbh session (`headless`, `subagent`, and `ping` are headless; no session is interactive). Use it for a test. The deprecated `--headless` is an alias of `--mode headless`, with a notice. |
+| `--not-ready '<why>'` | Open even when an artifact input is not ready. The record keeps the reason. Pass it only when the person asks for it. |
+| `--toward '<shard> <workflow>'` | The workflow that this invocation makes the artifact ready for. The record keeps it, and the close of a `done` frame checks that workflow first. |
+| `--fresh` | Copy no settled step from an earlier invocation on the same artifact. The `continues` link stays. |
 | `flint shard step [--invocation <id>] [--json]` | Show the steps of the top of the stack of the session, or of one invocation. |
 | `flint shard step done <step> [--evidence '<text>'] [--invocation <id>]` | Settle the current step as done. The place `step.done:<step>` runs its behaviours; a `before` behaviour can refuse the step. |
 | `flint shard step skip <step> --reason '<why>' [--invocation <id>]` | Settle the current step as skipped. No behaviour runs. |
 | `flint shard invocations [--session <id> \| --mine] [--open \| --all] [--json]` | List the invocations of this Flint (default: the open ones). |
 | `flint shard invocations show <id>` | One invocation: the summary, the steps, the outputs, the children, and the events (an id prefix of 7 or more characters is valid). |
 | `flint shard invocations stack [--session <id>]` | The open workflow invocations of one session, from the root to the top, with the current step of each. |
-| `flint shard invocations set-input [<id>] <name>=<value>` | Set an input that the file declares. |
+| `flint shard invocations set-input [<id>] <name>=<value> [--not-ready '<why>']` | Set an input that the file declares. An artifact input gets the readiness check of `invoke` before any write; `--not-ready '<why>'` sets it anyway, and the record keeps the reason. |
 | `flint shard invocations set-output [<id>] <name>=<value>` | Set an output that the file declares (the default is the top of the stack). |
 | `flint shard invocations close [<id>] --outcome done\|abandoned [--reason '<why>'] [--abandon-children '<why>']` | Close a workflow invocation. `done` refuses while a step is open or a required output is not set; a parent refuses while a child is open. The parent record gets the outputs. |
 | `flint shard invocations unlock <id>` | Remove the lock of one invocation when no process holds it. |
+| `flint shard invocations --artifact '<artifact>' [--all] [--json]` | The invocations that took or made an artifact (a title, a wikilink, or a path under `Mesh/`), oldest first, with the `continues` links. |
+| `flint shard invocations reindex [--json]` | Rebuild the index of the artifacts (`.flint/invocations/.index/artifacts/`). The index is a cache: a reader that misses it scans the records. |
+| `flint shard ready '<artifact>' [--json]` | The workflows of the installed shards that take the artifact, each with its verdict (`ready`, `assumed`, `not-ready`), its start step (after the state entry), and the holding assumed states. |
+| `flint shard assumed ['<artifact>'] [--json]` | The assumed states of an artifact: the source invocation of each one, and why it holds or not. |
+| `flint shard assumed set '<artifact>' <state> --reason '<why>'` | Set an assumed state by hand (an `assumption` record). |
+| `flint shard assumed withdraw '<artifact>' <state> --reason '<why>'` | Withdraw an assumed state (an `assumption` record). |
 
-Each command that writes a record prints the hint last (`now:`, `read:`, `next:`, `part of:`, or `back in:` after a child closed); `--json` gives the commands in `next`. Outside an Orbh session (no `ORBH_SESSION_ID`), a command names the invocation: `--invocation <id>` for `step`, the id for `invocations`, and `--parent <id>` for a child. `flint orbh close` and `flint orbh session return` accept `--with <id>[=<value>]` (an opt-in behaviour) and `--no-behaviours`.
+Each command that writes a record prints the hint last (`now:`, `read:`, `next:`, `part of:`, or `back in:` after a child closed); `--json` gives the commands in `next`. Outside an Orbh session (no `ORBH_SESSION_ID`), a command names the invocation: `--invocation <id>` for `step`, the id for `invocations`, and `--parent <id>` for a child. `flint orbh close` and `flint orbh session return` accept `--with <id>[=<value>]` (an opt-in behaviour) and `--no-behaviours`. The format `shard-invocation/0.3` adds readiness (`ready`, `make-ready`), continuation (`then`, `done-when`), assumed states (`assumes`), and modes (`modes`, `next` objects): see [[dev-knw-knap-invocations]].
 
 ### Workspace-Level
 
@@ -369,7 +393,7 @@ When the registry does not answer, the three registry steps are skipped with the
 |---------|--------|
 | `list --json` | `{ rows: <row>[] }` |
 | `status --json`, `info --json` | `{ ...<row>, details, moved?, health? }`. `details` holds `path`, `recordedVersion`, `staleVersion?`, `dependencies`, `payloads`, `state` (the lock state with its proof), `gitState` (the Git state of the source), `reference`, and `installedAt` |
-| `start --json` (and `hstart`, `start-dev`, `hstart-dev`) | `{ ok, status, shard: <row>, state, loads, stale, moved?, notice?, next?, manifest: { text, folder, initPath, hinitPath, requiredReading }, setup: { declared, flint, local }, pending }`; a refusal adds `code`, `reason`, `next` |
+| `start --json` (and `start-dev`, and the deprecated `hstart`, `hstart-dev`) | `{ ok, status, shard: <row>, state, loads, stale, moved?, notice?, next?, manifest: { text, folder, initPath, hinitPath, requiredReading }, setup: { declared, flint, local }, pending }`; a refusal adds `code`, `reason`, `next`. `hinitPath` is deprecated: it names an `hinit-<sh>.md` only until the removal wave |
 | `create --json` | `{ ok, kind, name, id, sourceId, org, address, shorthand, path, source, shard, created, updated, warnings, next, steps }`. Here `shard` is the build folder `Shards/<Name>`, not the package name, and `source` is the source folder. The package address is in `address`. |
 | `build --json` | `{ ok, id, alias, folder, path, state }` (`folder` is the source, `path` is the build) |
 | `clone --json` | `{ ok, alias, folder, spec, repo, git?, build? }` |
@@ -424,3 +448,4 @@ For a source at `shard-spec: "0.3.0"`: run `flint migrate run` (the step `flint-
 - ❌ Running `git mv`/`mv` to add or remove `dev-` prefixes — use the `prefix-shard` script (`flint shard knap prefix-shard <path>`).
 - ❌ Editing files in the build — the next build or install overwrites them. Edit the source, then `flint shard build <alias>`.
 - ❌ Calling `flint shard heal` or `flint shard check` — neither command exists; `flint sync` and `flint shard status <alias> --health` cover them.
+- ❌ Writing a new `hwkfl-` or `hinit-` file — they are deprecated. Put the headless differences in `> [!headless]` callouts of the workflow and in the `# Headless` section of the init.

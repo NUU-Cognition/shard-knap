@@ -54,7 +54,7 @@ Run `flint shard start [shorthand]` if you haven't already.
      Templates:  [[dev-tmp-<sh>-<name>-vX.Y]]   (templates carry a version suffix)
      Skills:     [[dev-sk-<sh>-<name>]]
      Knowledge:  [[dev-knw-<sh>-<name>]]
-     Workflows:  [[dev-wkfl-<sh>-<name>]]  /  [[dev-hwkfl-<sh>-<name>]] (headless) */
+     Workflows:  [[dev-wkfl-<sh>-<name>]]  (one file for both modes) */
 
 # Output
 

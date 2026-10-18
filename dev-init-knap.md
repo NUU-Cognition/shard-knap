@@ -6,6 +6,7 @@ required-reading:
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 # Knap (Flintknapping)
@@ -18,12 +19,10 @@ Knap treats shard authoring as a craft — "flintknapping" — shaping raw capab
 
 A shard is a self-contained unit of agent capabilities. Each shard focuses on one domain and provides:
 
-- **Init file** — Interactive context loaded when the agent needs this shard
-- **Headless init** — Alternate init used when running in a headless Orbh session (optional)
+- **Init file** — Context loaded when the agent needs this shard, in both modes; a `# Headless` section when the shard runs in headless Orbh sessions
 - **Setup file** — One-time setup lifecycle instructions (required if `setup:` is declared)
 - **Skills** — Atomic, single-purpose tasks (no human checkpoints)
-- **Workflows** — Multi-stage tasks with human review points
-- **Headless workflows** — Alternate workflows for headless sessions (optional)
+- **Workflows** — Multi-stage tasks with human review points. One file serves both modes: a stage that differs in a headless Orbh session has a `> [!headless]` callout
 - **Invocation files** — The machine contract of a workflow: inputs, steps, outputs, and behaviours (optional). See [[dev-knw-knap-invocations]]
 - **Templates** — Structural guides for creating artifacts
 - **Knowledge files** — Deep reference material on a topic
@@ -51,16 +50,14 @@ Source files are prefixed `dev-` (e.g., `dev-init-<sh>.md`). The build strips th
 ```
 Shards/(Source Remote) [Name]/     # or Shards/(Source Local) [Name]/
 ├── shard.yaml                # Manifest (required)
-├── dev-init-<sh>.md          # Interactive init (required)
-├── dev-hinit-<sh>.md         # Headless init (optional)
+├── dev-init-<sh>.md          # Init (required), with a `# Headless` section when the shard runs headless
 ├── dev-setup-<sh>.md         # Setup lifecycle file (if setup: declared)
 ├── README.md                 # Documentation
 ├── skills/
 │   └── dev-sk-<sh>-<name>.md
 ├── workflows/
-│   ├── dev-wkfl-<sh>-<name>.md
-│   ├── dev-wkfl-<sh>-<name>.invocation.json   # optional
-│   └── dev-hwkfl-<sh>-<name>.md
+│   ├── dev-wkfl-<sh>-<name>.md                 # both modes
+│   └── dev-wkfl-<sh>-<name>.invocation.json   # optional
 ├── templates/
 │   └── dev-tmp-<sh>-<name>-v<X.X>.md
 ├── knowledge/
@@ -84,11 +81,9 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | File Type | Pattern | Example |
 |-----------|---------|---------|
 | Init | `init-<sh>.md` | `init-proj.md` |
-| Headless Init | `hinit-<sh>.md` | `hinit-proj.md` |
 | Setup | `setup-<sh>.md` | `setup-proj.md` |
 | Skill | `sk-<sh>-<name>.md` | `sk-proj-create_task.md` |
 | Workflow | `wkfl-<sh>-<name>.md` | `wkfl-proj-do_task.md` |
-| Headless Workflow | `hwkfl-<sh>-<name>.md` | `hwkfl-proj-do_task.md` |
 | Template | `tmp-<sh>-<name>-v<X.X>.md` | `tmp-proj-task-v0.1.md` |
 | Knowledge | `knw-<sh>-<name>.md` | `knw-proj-lifecycle.md` |
 | Asset | `ast-<sh>-<name>.<ext>` | `ast-proj-diagram.svg` |
@@ -99,6 +94,15 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | Script | `<name>.js` (under `scripts/`; in the shard: `<name>.js`, in the source: `dev-<name>.js`) | `newtasknum.js` |
 
 Source files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast-proj-diagram.svg`, `dev-mig-proj-1.0.0-to-1.1.0.md`). The only exception is `install/` — its contents are user-facing artifacts and carry no prefix.
+
+## Modes
+
+One workflow file serves both modes, and one init serves both modes. The mode (`interactive` or `headless`) comes from the Orbh session. A stage that differs in a headless session has a `> [!headless]` callout inside that stage, and the init has a `# Headless` section for the interface keys, the phase values, and the result delivery. The convention is in [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
+
+A headless workflow file (`hwkfl-<sh>-<name>.md`) and a headless init (`hinit-<sh>.md`) are deprecated. The health check gives a warning now. After the removal wave of NUU Orbh Task 748, each one is a problem.
+
+- [[dev-wkfl-knap-migrate_headless_to_modes]]: merge the headless files of one shard source (`hwkfl-`, `hinit-`) into its normal files: `> [!headless]` callouts, one invocation file, and a `# Headless` section of the init.
+- `flint shard knap check-modes <source folder>`: lists the headless files and the references that stay, and checks each invocation file: JSON, each `stage` heading, the quoting of tokens.
 
 ## Shard Manifest (shard.yaml)
 

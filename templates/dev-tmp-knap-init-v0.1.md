@@ -9,7 +9,7 @@ description: "Shard init file structure"
 | Dev source path | `dev-init-<sh>.md` (at the shard root) |
 | Installed path | `init-<sh>.md` (the installer strips `dev-`) |
 | Wikilink form | dev source: `[[dev-init-<sh>]]` → installer strips to `[[init-<sh>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
-| Headless variant | `dev-hinit-<sh>.md` → `hinit-<sh>.md`, loaded by `flint shard hstart` in place of the init; `hstart` refuses a shard without one |
+| Modes | One init for both modes. A headless session loads it with `flint shard start <sh>` and reads its `# Headless` section. A separate `dev-hinit-<sh>.md` is deprecated: merge it into the `# Headless` section ([[dev-wkfl-knap-migrate_headless_to_modes]]) |
 
 **Every shard MUST have an init file.** This is the entry point agents load when they need the shard's capabilities. `flint shard start <name>` returns the init body plus a dynamically-assembled manifest of skills, workflows, templates, and knowledge files.
 
@@ -23,6 +23,7 @@ The init file provides:
 - Lifecycle / state diagrams (if applicable).
 - Dashboard, script, and CLI references (if applicable).
 - Any domain-specific rules or conventions.
+- A `# Headless` section (only when the shard runs in headless Orbh sessions): the interface keys, the phase values, and the result delivery.
 
 ```markdown
 ---
@@ -78,6 +79,56 @@ required-reading:
 |--------|---------|--------|
 | [Name] | `flint shard [shorthand] [name]` | [what it outputs] |
 | (continue) |
+
+/* Only when the shard runs in headless Orbh sessions. One init serves both modes:
+   a headless session loads this init with `flint shard start [shorthand]` and reads
+   this section. The workflows carry their differences in `> [!headless]` callouts
+   inside their stages, so this section has no table of headless workflows. */
+
+# Headless
+
+[1-2 sentences: a headless or subagent Orbh session has no person at the terminal. It loads this init with `flint shard start [shorthand]`. Name what does not change (the lifecycle, the templates), and say: follow the `> [!headless]` callouts of each workflow.]
+
+/* Optional: what replaces each person gate. */
+## Interaction Model
+
+| Interactive | Headless |
+|-------------|----------|
+| [What the workflow does with a person, for example "Present the findings to the person"] | [What a headless session does in its place, for example "Set the interface keys"] |
+| (continue) |
+
+## Orbh Interface Keys
+
+Report progress with `flint orbh session set <key> <value>`. [Say who reads the keys.]
+
+| Key | Type | Description | When to update |
+|-----|------|-------------|----------------|
+| `phase` | string | The current phase of the work | At each change of phase |
+| `[key]` | [type] | [description] | [when] |
+| (continue) |
+
+### Phase Values
+
+**[Workflow name]:**
+
+| Phase | Meaning |
+|-------|---------|
+| `[phase]` | [what the session does in this phase] |
+| (continue) |
+
+/* Optional: the format of the `progress` key. */
+### Progress Format
+
+[Example values of `progress`, for example "3/5 requirements"]
+
+/* Optional: when the shard makes Mesh artifacts. */
+## Artifact Tracking
+
+When you create or change a Mesh artifact, track it: `flint orbh artifact "[path of the artifact]"`.
+
+## Result Delivery
+
+Each headless workflow ends with `flint orbh session return --finish "<result>"`. [Say what the result contains, with one example.] A subagent puts a blocker and its question in the result.
 ```
 
 /* Note: Skills, Workflows, Templates, and Knowledge tables are NOT included in the init file.
@@ -96,3 +147,4 @@ required-reading:
 - State/lifecycle diagrams are valuable — they help agents understand artifact transitions
 - Link to knowledge files for deep reference: `[[knw-<sh>-<name>]]`
 - Keep the init concise — discovery sections are handled by `flint shard start`
+- Add the `# Headless` section only when the shard runs in headless Orbh sessions. It needs `## Orbh Interface Keys` (with `### Phase Values`) and `## Result Delivery` (with `flint orbh session return --finish`). See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode

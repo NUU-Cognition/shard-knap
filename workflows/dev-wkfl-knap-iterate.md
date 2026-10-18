@@ -13,7 +13,7 @@ Add new capabilities to an existing shard — new skills, workflows, templates, 
 # Input
 
 - Target shard (path or name)
-- What capability to add (skill, workflow, headless workflow, template, knowledge, script, type, migration)
+- What capability to add (skill, workflow, headless instructions for a workflow, template, knowledge, script, type, migration)
 - Description of the new capability
 
 # Actions
@@ -35,7 +35,7 @@ Present the plan to the user. Once confirmed, progress to the next stage.
 1. Create the new file(s) using the appropriate Knap template:
    - Skill → [[dev-tmp-knap-skill-v0.1]]
    - Workflow → [[dev-tmp-knap-workflow-v0.1]]
-   - Headless workflow → [[dev-tmp-knap-workflow-v0.1]] (file uses `hwkfl-` prefix; context line at the top is `flint shard hstart <sh>`, not `start`)
+   - Headless instructions → no new file. Add a `> [!headless]` callout inside each stage of the `dev-wkfl-` file that differs in a headless session, and a `# Headless` section to the init when it has none ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode). An `hwkfl-` file is deprecated
    - Template → [[dev-tmp-knap-template-v0.1]]
    - Knowledge → [[dev-tmp-knap-knowledge-v0.1]]
    - Script → [[dev-tmp-knap-script-v0.1]] as `scripts/dev-<name>.js` (auto-discovered; no manifest declaration)

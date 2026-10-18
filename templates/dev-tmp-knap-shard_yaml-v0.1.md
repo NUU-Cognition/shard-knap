@@ -2,6 +2,7 @@
 description: "Shard manifest (shard.yaml) file structure"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 # Naming and Placement
@@ -121,7 +122,7 @@ YAML is permissive. Do NOT quote plain strings, enum values, or paths with paren
 
 ## Not Declared Here
 
-Scripts, skills, workflows, headless workflows, templates, knowledge files, headless init, setup file — all auto-discovered from the filesystem. Drop the file in the right folder with the right filename and it's picked up.
+Scripts, skills, workflows, invocation files, templates, knowledge files, setup file — all auto-discovered from the filesystem. One workflow file and one init serve both modes; a headless workflow (`hwkfl-`) or a headless init (`hinit-`) is deprecated. Drop the file in the right folder with the right filename and it's picked up.
 
 ## Deprecated
 

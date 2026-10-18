@@ -2,6 +2,7 @@
 description: "Validate shard structure and manifest integrity"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
+  - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -41,10 +42,10 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] `required-reading` YAML frontmatter listing knowledge files the agent must read (if the shard has knowledge files)
    - [ ] No hardcoded Skills/Workflows/Templates/Knowledge tables (discovered dynamically by `flint shard start`)
 
-3. **Check headless init (optional).** If `hinit-<shorthand>.md` (or `dev-hinit-<shorthand>.md`) exists:
-   - [ ] Has a heading
-   - [ ] Has `required-reading` frontmatter if it references knowledge files
-   - [ ] Focuses on headless session differences (Orbh session keys, no stage gates)
+3. **Check the modes.** One init and one workflow file serve both modes ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode). For a quick check, run `flint shard knap check-modes <source folder>`: it lists the headless files and the references that stay, and checks each invocation file.
+   - [ ] No `hwkfl-*` file and no `hinit-<shorthand>.md` (with or without `dev-`). Each one is a **warning** now: the file is deprecated, and the health check says `deprecated: merge into …`. Merge it with [[dev-wkfl-knap-migrate_headless_to_modes]]. After the removal wave of NUU Orbh Task 748, each one is an **error**.
+   - [ ] No reference to `hstart`, `hstart-dev`, `--headless`, `[[hwkfl-`, or `[[hinit-` in a shard file (warning), except a note that says the term is deprecated
+   - [ ] When the shard runs in headless Orbh sessions (a workflow has a `> [!headless]` callout): the init has a `# Headless` section with `## Orbh Interface Keys` (and `### Phase Values`) and `## Result Delivery` that names `flint orbh session return` (warning otherwise)
 
 4. **Check setup file.** If `shard.yaml` declares `setup`:
    - [ ] `setup-<shorthand>.md` (or `dev-setup-<shorthand>.md`) exists at the shard root
@@ -54,7 +55,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In a source, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
    - [ ] Skills: `dev-sk-<sh>-<name>.md` / built `sk-<sh>-<name>.md`
-   - [ ] Workflows: `dev-wkfl-<sh>-<name>.md` (and `dev-hwkfl-` for headless)
+   - [ ] Workflows: `dev-wkfl-<sh>-<name>.md`, one file for both modes (a `dev-hwkfl-` file is deprecated: see step 3)
    - [ ] Templates: `dev-tmp-<sh>-<name>-v<X.X>.md`
    - [ ] Knowledge: `dev-knw-<sh>-<name>.md`
    - [ ] Assets: `dev-ast-<sh>-<name>.<ext>`
@@ -66,7 +67,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Shorthand matches `shard.yaml`
    - [ ] **Error** on any `install/dev-*` file — install payloads never have dev prefix
 
-6. **Check description frontmatter.** For every skill, workflow, headless workflow, template, and knowledge file:
+6. **Check description frontmatter.** For every skill, workflow, template, and knowledge file (and a deprecated headless workflow that is not merged yet):
    - [ ] Has YAML frontmatter with a `description` field
    - [ ] Description is a non-empty single-line string
 
@@ -77,14 +78,17 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Has `# Skill: [Name]` heading
    - [ ] Has `# Input`, `# Actions`, `# Output` sections
 
-8. **Check workflow structure.** For each workflow (and headless workflow) file, verify:
+8. **Check workflow structure.** For each workflow file, verify:
    - [ ] Has `description` in YAML frontmatter
-   - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered. Applies to both `wkfl-*` and `hwkfl-*`.
-   - [ ] Next non-blank line is the correct shard context line — `wkfl-*` uses `flint shard start <sh>`; `hwkfl-*` uses `flint shard hstart <sh>` (or `start-dev` / `hstart-dev` in a source)
+   - [ ] **First body line (immediately after closing frontmatter `---`) is the action banner, verbatim:** `> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.` — **error** if missing or altered
+   - [ ] Next non-blank line is the shard context line `Run \`flint shard start <sh>\` if you haven't already.` (or `start-dev` in a source), in both modes
    - [ ] Has `# Workflow: [Name]` heading
    - [ ] Has staged actions (`## Stage N:`)
-   - [ ] Interactive workflows have at least one human checkpoint; headless workflows report via Orbh keys
+   - [ ] The normal text has at least one human checkpoint
+   - [ ] Each `> [!headless]` callout is inside a stage: under the heading of that stage, after its normal text. A callout under the title (before `# Invocation`) MAY sum up the rules for all stages. A callout in a separate section at the end of the file is a warning: after a compaction, the agent reads only the stage that `read:` names
+   - [ ] No stage heading is inside a callout
    - [ ] Has `# Output` section
+   - [ ] If the workflow has an invocation file (`dev-wkfl-<sh>-<name>.invocation.json`): it parses as JSON, `workflow` is the stem with no `dev-` prefix, and each `stage` is the exact text of a heading of the workflow. For format `shard-invocation/0.3`, apply the checks of [[dev-knw-knap-invocations]] § Common Mistakes
 
 9. **Check template structure.** For each template file, verify:
    - [ ] Has `description` in YAML frontmatter
@@ -119,7 +123,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 15. **Report.** Output a validation summary:
     - Pass/fail for each check
-    - Warnings vs errors (warnings for spec version, Proper Case of the name, deprecated fields; errors for missing required fields, traversal, format, dev-prefix violations)
+    - Warnings vs errors (warnings for spec version, Proper Case of the name, deprecated fields, deprecated headless files; errors for missing required fields, traversal, format, dev-prefix violations)
     - List of issues found
     - Suggestions for fixes
 
