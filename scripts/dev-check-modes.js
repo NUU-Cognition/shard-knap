@@ -104,6 +104,8 @@ for (const path of files) {
 // - A block quote line starts with up to 3 spaces and `>`; each further `>` (after up to 3 spaces) is one more depth.
 // - A fence opens with 3 or more backquotes or tildes after up to 3 spaces. It closes with a fence of the same
 //   character and at least the same length, at the same depth. The lines between are code, not headings.
+// - A fence inside a block quote also ends when its block quote ends (a line with a smaller depth, for example a
+//   blank line or a heading after the callout). That line is then read again, outside the fence.
 // - A heading is 1 to 6 `#` after up to 3 spaces, then a space or the end of the line. A closing `#` run is not text.
 function markdownLines(text) {
   const out = [];
@@ -116,6 +118,7 @@ function markdownLines(text) {
       rest = rest.slice(quote[0].length);
     }
     const fenceMark = /^ {0,3}(`{3,}|~{3,})/.exec(rest);
+    if (fence && depth < fence.depth) fence = null; // the block quote of the fence ended, so the fence ended too
     if (fence) {
       const closes = fenceMark && fenceMark[1][0] === fence.char && fenceMark[1].length >= fence.length
         && depth === fence.depth && /^ {0,3}(`+|~+)[ \t]*$/.test(rest);

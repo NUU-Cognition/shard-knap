@@ -33,6 +33,7 @@ You can run this workflow as a shard invocation. The invocation is a durable rec
 - Mark each step when it is done: `flint shard step done <step> --evidence "<…>"`. The steps are `inventory`, `workflows`, `invocation_files`, `init`, `alone`, `links`, `check`, `review`, `commit`, and `references`. A step that has no work in this source (for example `init` for a source with no `dev-hinit-` file) is skipped with a reason: `flint shard step skip <step> --reason "<why>"`.
 - After the commit, set the output: `flint shard invocations set-output <id> commit="<sha>"`.
 - At the end, close the invocation: `flint shard invocations close <id> --outcome done`.
+- When a conflict stops the migration ([Rules](#rules): a conflict stops the whole migration), close the invocation with `flint shard invocations close <id> --outcome abandoned --reason "<the conflict>"`, and give the blocker.
 - Outside an Orbh session (no `ORBH_SESSION_ID`), give `--invocation <id>` to `flint shard step`. The hint after each write prints the id.
 - When no invocation is open, follow the stages with no record.
 
@@ -46,8 +47,12 @@ You can run this workflow as a shard invocation. The invocation is a durable rec
 - **One source.** Change only the files of this source. Do not edit another shard: Stage 10 lists its references for the person.
 - **Nothing lost.** Each instruction of a headless file goes into the normal text, into a callout, or into the `# Headless` section.
 - **Rewrite the old reference, keep the line.** A line that names `hwkfl-`, `hinit-`, `hstart`, `hstart-dev`, or `--headless` can also hold a rule, for example "Do not run [[dev-hwkfl-orba-wake]], do not load the agent mind, and never write to it". Replace only the old reference with the new one (`wkfl-`, `init-<sh>#Headless`, `start`, `start-dev`, or no flag). Keep each other instruction of the line. Drop only text that selects a headless file and has no other meaning (for example "Use these instead of the interactive counterparts", or the column `Replaces` of a table). Write each dropped text in the commit body.
-- **The machine contract stays.** The merged invocation file must keep the contract of each mode: the steps, `calls`, `repeat`, `evidence`, the outputs and `required`, `enforced`, and the behaviours (Stage 3). When format 0.3 cannot keep both contracts, stop the merge of that workflow and report the conflict. A note in the commit body never replaces a guard.
-- **The meaning stays.** Do not add `ready`, `make-ready`, `assumes`, `then`, or `done-when` in this migration: they change what the workflow does. Write each one that the workflow could use as a proposal in the result.
+- **The machine contract stays.** The merged invocation file must keep the contract of each mode: the steps, `calls`, `repeat`, `evidence`, the outputs and `required`, `enforced`, and the behaviours (Stage 3). When format 0.3 cannot keep both contracts, it is a conflict. A note in the commit body never replaces a guard.
+- **A conflict stops the whole migration.** A conflict that is not resolved stops the migration of the whole source: a merge that format 0.3 cannot hold (Stage 3), an artifact input that a stage creates and that no option of Stage 1 can bind, or a difference that the guard shows. There is no partial migration. Then:
+  1. Put back each path of the ledger as it is at BASE, but only a path whose content the guard shows as yours. Never restore or overwrite a path that another session changed. A path that was present at BASE: `git restore --source <BASE> --staged --worktree -- "<path>"`. A path that was `absent` at BASE: `git rm -q -f --ignore-unmatch -- "<path>"`.
+  2. Do not delete the headless init, do not replace links, do not bump the version, and do not commit.
+  3. Give the blocker: the conflict, the files, and the decision that the person must make (for example, "The headless step `report-headless` needs the output `report`, and the interactive step does not. Keep it required in both modes, or make it optional?"). In an interactive session, give it to the person and stop. In a headless session, return it as the blocker of the result.
+- **The meaning stays.** Do not add `ready`, `make-ready`, `assumes`, `then`, or `done-when` in this migration: they change what the workflow does. Write each one that the workflow could use as a proposal in the result. The one change of a binding that this workflow makes is the creation input of Stage 1, step 7.
 - **Current command forms.** Write the Orbh commands as the Orbh shard gives them now: `flint orbh session set <key> <value>` (no id), `flint orbh session return --finish "<result>"`, `flint orbh artifact "<path>"`, `flint orbh request "$ORBH_SESSION_ID" "<question>"`. Check a form with `--help` when you are not sure.
 - **Shared workspace.** Other sessions can work in the same repository. Do not revert, stash, or commit their changes. Commit only your own paths.
 - **The guard of your paths.** At the inventory, record the base commit and the content hash of each path that you plan to change, create, rename, or delete (the **ledger**). Before each write to a path, and before the commit, run the guard. After each of your own writes, put the new hash in the ledger. Run the commands in the source folder:
@@ -76,15 +81,20 @@ You can run this workflow as a shard invocation. The invocation is a durable rec
 3. Run `git status --short` in the source. When a file that you must change has changes of another session, stop: tell the person (or put it in the result), and do not edit that file.
 4. Write the plan: for each headless file, the stage of this workflow that handles it (Stage 2, 3, 4, or 5), and for each pair, the stages of the two Markdown files side by side. List each path that you will change, create, rename, or delete: the files of each pair, the invocation files, the init, `README.md`, and `shard.yaml`.
 5. Record the base commit and the ledger of these paths ([Rules](#rules): the guard of your paths).
-6. For each workflow with two invocation files, compare their machine fields now (Stage 3, step 3). A workflow with a conflict that format 0.3 cannot hold is not merged: leave its files out of Stages 2 and 3, and report the conflict.
-7. Give the inventory, the plan, and each conflict to the person.
+6. For each workflow with two invocation files, compare their machine fields now (Stage 3, step 3).
+7. **Find each creation input.** Look in each invocation file of the source (of both modes) for an artifact input whose artifact the workflow itself creates: a stage creates the file (for example "Create the task"), or a caller gives the value at the invoke before the file exists. Find the callers: `grep -rn "invoke <sh> <name>"` in this source, in the other sources and the Mesh of the Flints of this machine, and in the cron and station prompts. In format 0.3, `invoke` refuses such a value with `input-not-found` before the stage that creates the file. Choose one option for each such input, in this order:
+   1. **Bind it as `create_and_do_task` does** (preferred). The input is not `required`, and no caller gives it at the invoke. The creation stage sets it after the file exists: `flint shard invocations set-input <id> <input>='<title>'`. Or the workflow declares an output for the new artifact. Update each caller in this source (the `# Invocation` section, the `next` texts, and each workflow that invokes it). List each caller in another shard for the person (Stage 10).
+   2. **Keep the old format.** When a caller cannot change safely (for example, a caller in another shard, a script, or a cron or station prompt that gives the value at the invoke), keep the invocation file at its format (0.1 or 0.2): it has no readiness check. Then the differences of the modes go only into the Markdown callouts, because `modes`, `next` objects, and `session.mode` need format 0.3. This works only when the two invocation files differ only in their `next` texts: keep the `next` of the base, and say in the callout of each stage what the headless mode does. When they differ in another machine field, this option cannot keep both contracts.
+   3. **Else it is a conflict.** It stops the whole migration ([Rules](#rules)).
+8. When Stage 1 finds a conflict that is not resolved, the migration stops here, before any write. Give the blocker ([Rules](#rules)).
+9. Give the inventory, the plan, the option of each creation input, and each conflict to the person.
 
 > [!headless]
-> Do not wait for a person. Keep the inventory and the plan for the result. Set `flint orbh session set phase inventory` and `flint orbh session set progress "0/<N> files"`, where `<N>` is the count of headless files.
+> Do not wait for a person. Keep the inventory, the plan, and the option of each creation input for the result. A conflict stops the migration: close the invocation `abandoned`, and return the blocker with `flint orbh session return --finish "<the blocker>"`. Set `flint orbh session set phase inventory` and `flint orbh session set progress "0/<N> files"`, where `<N>` is the count of headless files.
 
 ## Stage 2: Merge the Workflows
 
-Do this for each `dev-hwkfl-<sh>-<name>.md` that has a partner `dev-wkfl-<sh>-<name>.md`, and that Stage 1 found no conflict for. Run the guard before each write, and update the ledger after it.
+Do this for each `dev-hwkfl-<sh>-<name>.md` that has a partner `dev-wkfl-<sh>-<name>.md`. Run the guard before each write, and update the ledger after it.
 
 1. Read both files fully. `diff "workflows/dev-wkfl-<sh>-<name>.md" "workflows/dev-hwkfl-<sh>-<name>.md"` shows the lines that differ.
 2. The `dev-wkfl-` file is the base. Keep each stage heading as it is: the `stage` of the invocation file names it.
@@ -128,7 +138,7 @@ Do this for each workflow that has a headless invocation file (`dev-hwkfl-<sh>-<
 1. **The base.**
    - **Two files** (a `dev-wkfl-` and a `dev-hwkfl-` invocation file): the `dev-wkfl-` file is the base. Merge the headless file into it (steps 2 to 9). Then delete the headless file (step 10).
    - **One file** (only the `dev-hwkfl-` invocation file): `git mv` it to `dev-wkfl-<sh>-<name>.invocation.json`, and set `workflow` to `wkfl-<sh>-<name>`. It is the base, and nothing is deleted. When the Markdown has an interactive partner, the interactive mode gets this file for the first time: add the interactive side with steps 3 to 9. When the Markdown has no partner (Stage 5), keep each other field as it is, and keep the format.
-2. **The format.** Set `"format": "shard-invocation/0.3"` when the merged file uses a 0.3 field (`modes`, a `next` object, or `session.mode`). Else keep the format of the base. Format 0.3 also turns on the checks of each artifact input at the open: the file must exist, and its type must match. When the workflow gives a value at the open for an artifact that does not exist yet, write it in the result.
+2. **The format.** Set `"format": "shard-invocation/0.3"` when the merged file uses a 0.3 field (`modes`, a `next` object, or `session.mode`). Else keep the format of the base. Keep the old format for a creation input of option 2 of Stage 1, step 7. Format 0.3 also turns on the checks of each artifact input at the open: the file must exist, and its type must match. Each creation input must have its option from Stage 1, step 7. A creation input that you find only now is a conflict.
 3. **Compare the machine fields.** Make a table of each field that differs between the two modes:
    - for each pair of steps of the same stage of the merged Markdown: `next`, `calls`, `repeat`, `evidence`, `title`, and `by`;
    - each step that only one file has;
@@ -151,7 +161,7 @@ Do this for each workflow that has a headless invocation file (`dev-hwkfl-<sh>-<
    - The same `id` with other content: one behaviour for each mode. The behaviour of the base keeps the id and gets `"session.mode": ["interactive"]`. The headless one gets a new id (for example `<id>-headless`) and `"session.mode": ["headless"]`.
    - A behaviour on `step.done:<step>` of a step that step 4 split goes on the step of its mode.
    - **The id map.** Write each id that changed: the old id of a step or a behaviour of the headless file, and its new id. Then update each place that names an old id: the Markdown (`# Invocation`, the stages, the callouts), the `next` texts, each `--with <id>` command, each `flint shard step done|skip <id>` command, and each `step.done:<old step>` place. Put the id map in the commit body.
-8. **A conflict.** When format 0.3 cannot keep the contract of both modes (`kind` or `type` differs, an `enforced` that the other mode cannot meet, or another row with no rule), stop the merge of this workflow. Stage 1 finds most conflicts. When you find one now, put back the files of this workflow as they are at BASE, only the paths that the guard shows as yours (`git restore --source <BASE> --staged --worktree -- "<path>" …`), and report the conflict: the workflow, the field, the value of each mode, and why format 0.3 cannot hold both. Continue with the other workflows.
+8. **A conflict.** When format 0.3 cannot keep the contract of both modes (`kind` or `type` differs, an `enforced` that the other mode cannot meet, or another row with no rule), the migration of the whole source stops ([Rules](#rules): a conflict stops the whole migration). Stage 1 finds most conflicts before any write. When you find one now, put back each path of the ledger that the guard shows as yours, as it is at BASE. Do not go on to Stage 4: do not delete the headless init, replace links, bump the version, or commit. Give the blocker: the workflow, the field, the value of each mode, why format 0.3 cannot hold both, and the decision that the person must make.
 9. **The quoting rules.** Each text of a `next` object follows the rules of [[dev-knw-knap-invocations]] § Tokens and Quoting: each token outside quotes, no `$(`, `${`, or backquote in a text with a token.
 10. **Delete only in a two-file merge.** Run the guard, then `git rm "workflows/dev-hwkfl-<sh>-<name>.invocation.json"`. Put `absent` in the ledger. In a one-file case, the `git mv` of step 1 already removed the old name.
 
@@ -160,7 +170,7 @@ Do this for each workflow that has a headless invocation file (`dev-hwkfl-<sh>-<
 
 ## Stage 4: Merge the Init
 
-Do this when the source has `dev-hinit-<sh>.md`. Ten sources have only this file.
+Do this when the source has `dev-hinit-<sh>.md`, and only when no conflict is open: a conflict stops the migration before this stage. Ten sources have only this file.
 
 1. Read `dev-hinit-<sh>.md` and `dev-init-<sh>.md` fully.
 2. Add a section `# Headless` to `dev-init-<sh>.md`, after the sections on the workflows (before `# Dashboards` when the init has one). Start it with: "A headless or subagent Orbh session has no person at the terminal. It loads this init with `flint shard start <sh>`, as an interactive session does. Follow the `> [!headless]` callouts of the workflows."
@@ -199,6 +209,8 @@ Why a normal workflow, and not one callout for the whole text:
 
 ## Stage 6: Update the Links
 
+Do this only when no conflict is open. A conflict stops the migration before this stage.
+
 1. In each file of the source, replace:
    - `[[dev-hwkfl-<sh>-<name>]]` and `[[hwkfl-<sh>-<name>]]` with the `wkfl-` name;
    - `[[dev-hinit-<sh>]]` and `[[hinit-<sh>]]` with `[[dev-init-<sh>#Headless]]` (or `[[init-<sh>#Headless]]`, in the same form as the old link);
@@ -217,10 +229,15 @@ Why a normal workflow, and not one callout for the whole text:
 2. `flint shard status <alias> --health`. It checks the build when this Flint has one, else the source. Read each warning of the files that you changed. No `deprecated` warning and no invocation file warning may stay.
    - When the live `flint` does not know format 0.3 yet, use the CLI of the flint repository: `node "<flint repository>/apps/flint-cli/bin/flint-dev.js" shard status <alias> --health`.
    - When the health check reads the build, it shows your change only after `flint shard build <alias>`. Build only when the person or your prompt allows a build in this Flint. Else write "health: the build is older than the source" in the result.
-3. (Optional) Run each merged workflow one time in a scratch Flint, in each mode: `flint shard invoke <sh> <name> --dev --mode interactive` and `--mode headless`. Read the steps that the mode skipped, and the hint of each step. Do not run a workflow with behaviours in a real Flint for a test: its scripts change the Mesh.
+3. **Check both modes.** The migration is complete only when each invocation file that you changed opens in both modes with the inputs that its callers give. Do it in a scratch Flint, not in a real Flint, because the behaviours of a workflow change the Mesh:
+   - Make the scratch Flint in a temporary folder: `flint create "<name>"`, then `flint shard install --from-path "<source folder>"`.
+   - For each artifact input that a caller gives at the invoke, create a test artifact of its type in the Mesh of the scratch Flint.
+   - Run `flint shard invoke <sh> <name> --mode interactive` and `--mode headless`, with the inputs of the callers. Read the steps that the mode skipped, and the hint of each step. Then close the invocation: `flint shard invocations close <id> --outcome abandoned --reason 'test'`.
+   - For a creation input (Stage 1, step 7, option 1): invoke with no value, create the file, and run `flint shard invocations set-input <id> <input>='<title>'`. The set-input must pass.
+   - When the scratch install or a run cannot work (for example, a dependency does not install), write that in the result. Then the person must do this check before the migration counts as complete.
 
 > [!headless]
-> Set `flint orbh session set phase check`. A finding that you cannot fix is a blocker: write it in the result, with the file and the line.
+> Set `flint orbh session set phase check`. A finding that you cannot fix is a blocker: write it in the result, with the file and the line. A check of a mode that fails is a conflict: it stops the whole migration.
 
 ## Stage 8: Review
 
@@ -232,10 +249,12 @@ Why a normal workflow, and not one callout for the whole text:
 
 ## Stage 9: Commit and Version
 
+Do this only when no conflict is open, and when Stage 7 passed in both modes (or the result says why the check of the modes could not run).
+
 1. Run the guard. Then bump `version` in `shard.yaml`, and update the ledger:
    - a shard at `1.0.0` or above: a minor change (`1.6.0` to `1.7.0`);
    - a `0.x` shard: a patch change (`0.4.2` to `0.4.3`). A minor change of a `0.x` shard breaks the caret ranges of its dependents: `^0.4` does not accept `0.5.0`.
-2. Run the guard again on each path of the ledger. On a difference, stop: do not commit. Report the conflict.
+2. Run the guard again on each path of the ledger. On a difference, stop: do not commit. Follow the rule "A conflict stops the whole migration" ([Rules](#rules)), and give the blocker.
 3. Stage the new and the renamed paths: `git add <path>…`. `git rm` and `git mv` stage the deletions and the renames.
 4. Commit only your paths: `git commit -m "<subject>" -m "<body>" -- <path>…`. Name each path: the changed files, the deleted files, the renamed files (the old and the new path), and `shard.yaml`. Never use `git add -A`, `git add .`, or `git commit -a`.
    - The subject: the subject that the caller gave, else `Merge the headless files into one workflow for each mode`.
