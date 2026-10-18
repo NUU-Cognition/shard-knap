@@ -360,7 +360,7 @@ At the open, `invoke` finds the newest invocation of any session (open or closed
 
 - **The copy.** When that invocation is of the same workflow and its outcome is not `done` (for example `session-closed`), `invoke` copies its settled steps (in order, from the first) and its outputs into the new record (`via: continued`). Then the state entry runs from the first step that is still current.
 - **`continue-open`.** When that invocation is still open in a live session, `invoke` refuses: close it, or use `--fresh`.
-- **`--fresh`.** It copies nothing. The link stays.
+- **`--fresh`.** It copies no settled step or output from the earlier invocation. The state entry and the mode skips still apply. The link stays.
 - `flint shard invocations --artifact '<artifact>'` lists the chain of an artifact, oldest first: for example `scope_task` (session A), `do_task` (session B), `review_task` (session C).
 
 For the author: a copied step is a step that an earlier session did. Write each stage so that a later session can continue after it: the work of a settled stage is in the artifact or in the outputs, not in the context of the earlier session.

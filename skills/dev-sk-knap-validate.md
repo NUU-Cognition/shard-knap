@@ -84,7 +84,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Next non-blank line is the shard context line `Run \`flint shard start <sh>\` if you haven't already.` (or `start-dev` in a source), in both modes
    - [ ] Has `# Workflow: [Name]` heading
    - [ ] Has staged actions (`## Stage N:`)
-   - [ ] The normal text has at least one human checkpoint
+   - [ ] The normal text has at least one human checkpoint. The exception: a workflow that runs only in a headless session (a former `hwkfl-` file with no interactive partner). Its first line under the title says "This workflow runs in a headless Orbh session." It has no human checkpoint: it reports with the Orbh session keys, and it ends with `flint orbh session return`
    - [ ] Each `> [!headless]` callout is inside a stage: under the heading of that stage, after its normal text. A callout under the title (before `# Invocation`) MAY sum up the rules for all stages. A callout in a separate section at the end of the file is a warning: after a compaction, the agent reads only the stage that `read:` names
    - [ ] No stage heading is inside a callout
    - [ ] Has `# Output` section

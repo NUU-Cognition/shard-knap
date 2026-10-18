@@ -11,7 +11,10 @@
 //   - problem:   an invocation file that is not JSON; a `workflow` that is not the stem of the file;
 //                a step `stage` that is not a heading of the Markdown workflow beside it; a token of a
 //                `next` text (a string, or each text of a `next` object) inside quotes, or in a text with
-//                `$(`, `${`, or a backquote; a heading inside a callout (`> #`) of a workflow.
+//                `$(`, `${`, or a backquote; a heading inside a callout (`> #`, also nested) of a workflow;
+//                an invocation file whose JSON value is not an object.
+//   The Markdown checks skip the fenced code blocks (``` and ~~~), accept up to 3 spaces of indentation, and
+//   read nested block quotes (`> >`, `>>`). Only a heading outside a fence and outside a callout is a stage heading.
 //   - warning:   a `# Headless` section in a workflow file (the callouts go inside the stages).
 //
 // The validator of the Flint CLI is the authority for the invocation file: also run
@@ -96,8 +99,52 @@ for (const path of files) {
   });
 }
 
+// The lines of a Markdown file, each with its block quote depth, whether it is inside a fenced code block, and its
+// heading (level and text) when it is one.
+// - A block quote line starts with up to 3 spaces and `>`; each further `>` (after up to 3 spaces) is one more depth.
+// - A fence opens with 3 or more backquotes or tildes after up to 3 spaces. It closes with a fence of the same
+//   character and at least the same length, at the same depth. The lines between are code, not headings.
+// - A heading is 1 to 6 `#` after up to 3 spaces, then a space or the end of the line. A closing `#` run is not text.
+function markdownLines(text) {
+  const out = [];
+  let fence = null; // { char, length, depth }
+  text.split('\n').forEach((raw, index) => {
+    let rest = raw;
+    let depth = 0;
+    for (let quote = /^ {0,3}> ?/.exec(rest); quote; quote = /^ {0,3}> ?/.exec(rest)) {
+      depth += 1;
+      rest = rest.slice(quote[0].length);
+    }
+    const fenceMark = /^ {0,3}(`{3,}|~{3,})/.exec(rest);
+    if (fence) {
+      const closes = fenceMark && fenceMark[1][0] === fence.char && fenceMark[1].length >= fence.length
+        && depth === fence.depth && /^ {0,3}(`+|~+)[ \t]*$/.test(rest);
+      if (closes) fence = null;
+      out.push({ line: index + 1, depth, inFence: true, heading: null });
+      return;
+    }
+    if (fenceMark) {
+      fence = { char: fenceMark[1][0], length: fenceMark[1].length, depth };
+      out.push({ line: index + 1, depth, inFence: true, heading: null });
+      return;
+    }
+    const heading = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/.exec(rest);
+    out.push({
+      line: index + 1,
+      depth,
+      inFence: false,
+      heading: heading ? { level: heading[1].length, text: (heading[2] ?? '').trim() } : null,
+    });
+  });
+  return out;
+}
+
+// The stage headings of a workflow: each heading outside a fence and outside a block quote.
+const stageHeadings = (text) => markdownLines(text)
+  .filter((entry) => !entry.inFence && entry.depth === 0 && entry.heading)
+  .map((entry) => entry.heading.text);
+
 // 3. The invocation files.
-const HEADING = /^#{1,6}\s+(.*?)\s*#*\s*$/;
 const TOKEN = /\{\{[^{}]+\}\}/g;
 
 // The tokens of a text that stand inside quotes: a ' or a $' opens a single quote until the next ';
@@ -147,17 +194,17 @@ for (const path of files) {
     add('problem', file, `not JSON: ${err.message}`);
     continue;
   }
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    add('problem', file, `the JSON value is ${data === null ? 'null' : Array.isArray(data) ? 'an array' : `a ${typeof data}`}; it must be an object`);
+    continue;
+  }
   const stem = basename(path).replace(/\.invocation\.json$/, '').replace(/^dev-/, '');
   if (data.workflow !== stem) add('problem', file, `"workflow" is "${data.workflow}"; it must be "${stem}"`);
 
   const markdownPath = path.replace(/\.invocation\.json$/, '.md');
   let headings = null;
   try {
-    headings = (await readFile(markdownPath, 'utf-8'))
-      .split('\n')
-      .map((line) => HEADING.exec(line))
-      .filter(Boolean)
-      .map((match) => match[1].trim());
+    headings = stageHeadings(await readFile(markdownPath, 'utf-8'));
   } catch {
     headings = null; // no Markdown beside the file: the hint has no read: line
   }
@@ -179,15 +226,14 @@ for (const path of files) {
 for (const path of files) {
   const name = basename(path);
   if (!/^(?:dev-)?h?wkfl-.+\.md$/.test(name)) continue;
-  const lines = (await readFile(path, 'utf-8')).split('\n');
-  lines.forEach((line, index) => {
-    if (/^>\s*#{1,6}\s/.test(line)) {
-      add('problem', rel(path), 'a heading inside a callout is not a stage heading; put the heading outside the callout', index + 1);
+  for (const entry of markdownLines(await readFile(path, 'utf-8'))) {
+    if (entry.inFence || !entry.heading) continue;
+    if (entry.depth > 0) {
+      add('problem', rel(path), 'a heading inside a callout is not a stage heading; put the heading outside the callout', entry.line);
+    } else if (entry.heading.level === 1 && /^headless$/i.test(entry.heading.text)) {
+      add('warning', rel(path), 'a "# Headless" section in a workflow: put a > [!headless] callout inside each stage that differs', entry.line);
     }
-    if (/^#\s+Headless\s*$/i.test(line)) {
-      add('warning', rel(path), 'a "# Headless" section in a workflow: put a > [!headless] callout inside each stage that differs', index + 1);
-    }
-  });
+  }
 }
 
 const failing = findings.filter((finding) => finding.kind !== 'warning');

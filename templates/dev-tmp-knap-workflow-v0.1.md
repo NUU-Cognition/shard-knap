@@ -75,7 +75,7 @@ Run `flint shard start [shorthand]` if you haven't already.
 /* Add more stages as needed. Each stage should have:
    1. Clear actions
    2. A completion condition
-   3. At least one stage with a human checkpoint
+   3. At least one stage with a human checkpoint (not in a workflow that runs only in a headless session)
    4. A `> [!headless]` callout when the stage differs in a headless session */
 
 # Output
@@ -88,6 +88,7 @@ Run `flint shard start [shorthand]` if you haven't already.
 
 - Name stages descriptively: "Design", "Create", "Review", "Finalize".
 - The normal text of a workflow needs at least one human checkpoint between stages. In a headless session, the `> [!headless]` callouts replace the checkpoints.
+- The exception: a workflow that runs only in a headless session (for example a worker loop, or a former `hwkfl-` file with no interactive partner). Say it in one line under the title: "This workflow runs in a headless Orbh session." It has no human checkpoint and no callouts: its normal text reports with the Orbh session keys and ends with `flint orbh session return`.
 - Use "Once [condition], progress to the next stage" consistently.
 - The `description:` frontmatter line is **required** — `flint shard start` reads it for the dynamic manifest.
 - The **action banner** (`> [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.`) is **required** as the first body line, immediately after the closing frontmatter `---`. Applies in both modes. Verbatim wording — `sk-knap-validate` checks for this exact line.

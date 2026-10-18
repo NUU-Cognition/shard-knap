@@ -24,8 +24,8 @@
       "evidence": "required",
       "stage": "Stage 1: Inventory",
       "next": {
-        "interactive": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, check git status, and write the plan: each headless file and the stage that handles it. Give the plan to the person.",
-        "headless": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, check git status, and write the plan: each headless file and the stage that handles it. Keep the plan for the result. Do not wait for a person."
+        "interactive": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, and check git status. Write the plan and the list of paths, record BASE and the ledger of their hashes, and compare the machine fields of each pair of invocation files. Give the plan and each conflict to the person.",
+        "headless": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, and check git status. Write the plan and the list of paths, record BASE and the ledger of their hashes, and compare the machine fields of each pair of invocation files. Keep the plan and each conflict for the result. Do not wait for a person."
       }
     },
     {
@@ -34,7 +34,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 2: Merge the Workflows",
-      "next": "Merge each dev-hwkfl- workflow of {{source}} that has a partner into its dev-wkfl- workflow: a headless callout at the end of each stage that differs, nothing lost, no --headless. Then git rm the headless file. When the source has no pair, skip this step: flint shard step skip workflows --invocation {{invocation}} --reason '<why>'."
+      "next": "Merge each dev-hwkfl- workflow of {{source}} that has a partner and no conflict into its dev-wkfl- workflow: a headless callout at the end of each stage that differs, nothing lost, no --headless. In a line that names a headless file, rewrite only the old reference. Run the guard before each write, then git rm the headless file. When the source has no pair, skip this step: flint shard step skip workflows --invocation {{invocation}} --reason '<why>'."
     },
     {
       "id": "invocation_files",
@@ -42,7 +42,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 3: Merge the Invocation Files",
-      "next": "Merge each headless invocation file of {{source}} into the dev-wkfl- file: format 0.3, a next object where the texts differ, modes on a step of one mode, the union of the behaviours. Then git rm the headless file. When the source has no headless invocation file, skip this step: flint shard step skip invocation_files --invocation {{invocation}} --reason '<why>'."
+      "next": "Merge each headless invocation file of {{source}}: compare the machine fields, use a next object where only the text differs, split a step whose calls, repeat, or evidence differ into one step for each mode, keep each required output and enforced guard of each mode, give a behaviour of one mode a session.mode key, and update each old id. Report a conflict that format 0.3 cannot hold. Delete the headless file only in a two-file merge; a lone file is renamed with git mv. When the source has no headless invocation file, skip this step: flint shard step skip invocation_files --invocation {{invocation}} --reason '<why>'."
     },
     {
       "id": "init",
@@ -50,7 +50,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 4: Merge the Init",
-      "next": "Move the content of the headless init of {{source}} into a section # Headless of the init: the interface keys, the phase values, the result delivery. Then git rm the headless init. When the source has no headless init, skip this step: flint shard step skip init --invocation {{invocation}} --reason '<why>'."
+      "next": "Move the content of the headless init of {{source}} into a section # Headless of the init: the interface keys, the phase values, the result delivery, and each rule. In a line that names a headless file, rewrite only the old reference, and keep each safety rule. Run the guard, then git rm the headless init. When the source has no headless init, skip this step: flint shard step skip init --invocation {{invocation}} --reason '<why>'."
     },
     {
       "id": "alone",
@@ -58,7 +58,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 5: A Headless Workflow with No Partner",
-      "next": "Rename each dev-hwkfl- workflow of {{source}} with no partner to dev-wkfl-, keep it as a normal workflow with real stage headings, and add the line that it runs in a headless Orbh session. When each headless workflow has a partner, skip this step: flint shard step skip alone --invocation {{invocation}} --reason '<why>'."
+      "next": "Rename the Markdown of each dev-hwkfl- workflow of {{source}} with no partner to dev-wkfl- with git mv, check that Stage 3 renamed its invocation file, keep it as a normal workflow with real stage headings, and add the line that it runs in a headless Orbh session. When each headless workflow has a partner, skip this step: flint shard step skip alone --invocation {{invocation}} --reason '<why>'."
     },
     {
       "id": "links",
@@ -82,7 +82,9 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 8: Review",
-      "modes": ["interactive"],
+      "modes": [
+        "interactive"
+      ],
       "next": "Give the person the summary of the migration of {{source}}: the merged, renamed, and deleted files, each dropped line, each choice, and the check. Refine until the person confirms."
     },
     {
@@ -91,7 +93,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 9: Commit and Version",
-      "next": "Bump the version of {{source}} (minor at 1.0.0 or above, patch for 0.x), and commit only your paths: git commit -- <path>, with each path. Then set the output: flint shard invocations set-output {{invocation}} commit='<sha>'."
+      "next": "Run the guard of your paths. Bump the version of {{source}} (minor at 1.0.0 or above, patch for 0.x), run the guard again, and commit only your paths: git commit -- <path>, with each path. On a difference, stop and report the conflict. Then set the output: flint shard invocations set-output {{invocation}} commit='<sha>'."
     },
     {
       "id": "references",
