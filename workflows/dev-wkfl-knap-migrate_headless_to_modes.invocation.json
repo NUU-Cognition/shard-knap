@@ -1,0 +1,108 @@
+{
+  "format": "shard-invocation/0.3",
+  "workflow": "wkfl-knap-migrate_headless_to_modes",
+  "title": "Migrate Headless Files to Modes",
+  "inputs": {
+    "source": {
+      "kind": "text",
+      "required": true,
+      "description": "The shard source: its alias, its shorthand, or its folder, for example \"proj\" or \"Shards/(Source Remote) Projects\"."
+    }
+  },
+  "outputs": {
+    "commit": {
+      "kind": "text",
+      "required": false,
+      "description": "The SHA of the commit of the migration in the source. Set it in the step commit."
+    }
+  },
+  "steps": [
+    {
+      "id": "inventory",
+      "title": "Inventory",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 1: Inventory",
+      "next": {
+        "interactive": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, check git status, and write the plan: each headless file and the stage that handles it. Give the plan to the person.",
+        "headless": "Load the source {{source}} with flint shard start-dev, run flint shard knap check-modes on its folder, check git status, and write the plan: each headless file and the stage that handles it. Keep the plan for the result. Do not wait for a person."
+      }
+    },
+    {
+      "id": "workflows",
+      "title": "Merge the Workflows",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 2: Merge the Workflows",
+      "next": "Merge each dev-hwkfl- workflow of {{source}} that has a partner into its dev-wkfl- workflow: a headless callout at the end of each stage that differs, nothing lost, no --headless. Then git rm the headless file. When the source has no pair, skip this step: flint shard step skip workflows --invocation {{invocation}} --reason '<why>'."
+    },
+    {
+      "id": "invocation_files",
+      "title": "Merge the Invocation Files",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 3: Merge the Invocation Files",
+      "next": "Merge each headless invocation file of {{source}} into the dev-wkfl- file: format 0.3, a next object where the texts differ, modes on a step of one mode, the union of the behaviours. Then git rm the headless file. When the source has no headless invocation file, skip this step: flint shard step skip invocation_files --invocation {{invocation}} --reason '<why>'."
+    },
+    {
+      "id": "init",
+      "title": "Merge the Init",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 4: Merge the Init",
+      "next": "Move the content of the headless init of {{source}} into a section # Headless of the init: the interface keys, the phase values, the result delivery. Then git rm the headless init. When the source has no headless init, skip this step: flint shard step skip init --invocation {{invocation}} --reason '<why>'."
+    },
+    {
+      "id": "alone",
+      "title": "A Headless Workflow with No Partner",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 5: A Headless Workflow with No Partner",
+      "next": "Rename each dev-hwkfl- workflow of {{source}} with no partner to dev-wkfl-, keep it as a normal workflow with real stage headings, and add the line that it runs in a headless Orbh session. When each headless workflow has a partner, skip this step: flint shard step skip alone --invocation {{invocation}} --reason '<why>'."
+    },
+    {
+      "id": "links",
+      "title": "Update the Links",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 6: Update the Links",
+      "next": "Replace each link to a headless file, each hstart, and each --headless in the files of {{source}}. Keep the release history. Then run flint shard knap check-modes on the folder again."
+    },
+    {
+      "id": "check",
+      "title": "Check",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 7: Check",
+      "next": "Run flint shard knap check-modes on the folder of {{source}}, and the health check of the shard. No headless file, no reference, no problem, and no deprecated warning may stay."
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 8: Review",
+      "modes": ["interactive"],
+      "next": "Give the person the summary of the migration of {{source}}: the merged, renamed, and deleted files, each dropped line, each choice, and the check. Refine until the person confirms."
+    },
+    {
+      "id": "commit",
+      "title": "Commit and Version",
+      "by": "agent",
+      "evidence": "required",
+      "stage": "Stage 9: Commit and Version",
+      "next": "Bump the version of {{source}} (minor at 1.0.0 or above, patch for 0.x), and commit only your paths: git commit -- <path>, with each path. Then set the output: flint shard invocations set-output {{invocation}} commit='<sha>'."
+    },
+    {
+      "id": "references",
+      "title": "References in Other Shards",
+      "by": "agent",
+      "evidence": "optional",
+      "stage": "Stage 10: References in Other Shards",
+      "next": {
+        "interactive": "Search the other sources and the Mesh for the old names of the files of {{source}}, and list each place for the person. Do not edit another shard. Then close the invocation: flint shard invocations close {{invocation}} --outcome done.",
+        "headless": "Search the other sources and the Mesh for the old names of the files of {{source}}, and put the list in the result. Do not edit another shard. Close the invocation: flint shard invocations close {{invocation}} --outcome done. Then return with flint orbh session return --finish."
+      }
+    }
+  ]
+}
