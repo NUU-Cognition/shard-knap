@@ -24,7 +24,7 @@ A cognitive program — a self-contained package that extends agent capabilities
 - `shard.yaml` — Manifest (required)
 - `init-<sh>.md` — Context (required), in both modes; a `# Headless` section when the shard runs in headless Orbh sessions
 - `skills/`, `workflows/` (one file for both modes, with `> [!headless]` callouts), `templates/`, `knowledge/`, `assets/`, `scripts/`, `install/`, `migrations/`
-- An `hinit-<sh>.md` or `hwkfl-*` file is deprecated: merge it with `wkfl-knap-migrate_headless_to_modes`
+- An `hinit-<sh>.md` or `hwkfl-*` file is removed: the CLI does not read it. Merge it with `wkfl-knap-migrate_headless_to_modes`
 
 ## Templates
 

@@ -18,7 +18,7 @@ description: "Shard workflow file structure"
 - A stage that differs in a headless session gets a `> [!headless]` callout **inside that stage**, after the normal text of the stage. The callout replaces the person gates of the stage: the session keys (`flint orbh session set phase …`, `progress`), `flint orbh artifact "<path>"`, a deferred request (`flint orbh request "$ORBH_SESSION_ID" "<question>"`) in a root session or the blocker in the return of a subagent, and the return (`flint orbh session return --finish "<result>"`).
 - Why inside the stage: after a compaction, the hint line `read:` names only one stage, and the agent reads only that stage again. So each callout is complete for its stage, also when a callout under the title says the same rule.
 - A callout under the title MAY sum up the rules for all stages. A stage with no difference has no callout. A workflow with no difference has no callout.
-- Do not write a separate `hwkfl-*` file: it is deprecated. Do not write `--headless` or `hstart` in a command: the mode comes from the session. See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
+- Do not write a separate `hwkfl-*` file: it is removed, and the CLI does not read it. Do not write `--headless` or `hstart` in a command: both refuse, and the mode comes from the session. See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
 - If the task has no checkpoints at all and no need for staging, author it as a **skill** instead (`[[sk-<sh>-<name>]]`).
 
 Each stage should have a clear completion condition. Canonical transition phrase: `"Once [condition], progress to the next stage."` Subfolder groupings under `workflows/` are allowed; the filename convention does not change.

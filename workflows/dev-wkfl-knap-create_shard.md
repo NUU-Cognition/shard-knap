@@ -76,13 +76,13 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
 
 3. **Flesh out the init.** Edit the generated `dev-init-<sh>.md` per [[dev-tmp-knap-init-v0.1]] — populate `required-reading` frontmatter with `[[knw-<sh>-…]]` wikilinks for each knowledge file you plan to write.
 
-4. **Add a `# Headless` section to the init** (optional): when the shard will run in headless Orbh sessions, add a `# Headless` section to `dev-init-<sh>.md` per [[dev-tmp-knap-init-v0.1]]: the interface keys with the phase values, and the result delivery. Do not create a separate headless init: `dev-hinit-<sh>.md` is deprecated. See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
+4. **Add a `# Headless` section to the init** (optional): when the shard will run in headless Orbh sessions, add a `# Headless` section to `dev-init-<sh>.md` per [[dev-tmp-knap-init-v0.1]]: the interface keys with the phase values, and the result delivery. Do not create a separate headless init: `dev-hinit-<sh>.md` is removed, and the CLI does not read it. See [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
 
 5. **Edit setup file** (if `--setup` was passed): the CLI created `dev-setup-<sh>.md`. Fill it in per [[dev-tmp-knap-setup-v0.1]] with the actual setup actions.
 
 6. **Create capability files** in their respective subfolders. Each MUST declare `description:` frontmatter. The `flint shard create` scaffold leaves these empty — author them by hand using the listed template:
    - `skills/dev-sk-<sh>-<name>.md` — [[dev-tmp-knap-skill-v0.1]]
-   - `workflows/dev-wkfl-<sh>-<name>.md` — [[dev-tmp-knap-workflow-v0.1]]. One file serves both modes. When the workflow runs in headless Orbh sessions, add a `> [!headless]` callout inside each stage that differs. Do not create a `dev-hwkfl-` file: it is deprecated.
+   - `workflows/dev-wkfl-<sh>-<name>.md` — [[dev-tmp-knap-workflow-v0.1]]. One file serves both modes. When the workflow runs in headless Orbh sessions, add a `> [!headless]` callout inside each stage that differs. Do not create a `dev-hwkfl-` file: it is removed, and the CLI does not read it.
    - `templates/dev-tmp-<sh>-<name>-v<X.X>.md` — [[dev-tmp-knap-template-v0.1]]
    - `knowledge/dev-knw-<sh>-<name>.md` — [[dev-tmp-knap-knowledge-v0.1]]
    - `scripts/dev-<name>.js` — [[dev-tmp-knap-script-v0.1]]. Verify discovery with `flint shard scripts <sh>`.

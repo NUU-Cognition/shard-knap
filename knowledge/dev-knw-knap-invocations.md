@@ -80,7 +80,7 @@ The invocation file is beside the Markdown workflow, with the same stem and the 
 - `flint shard start <ref>` lists each workflow with an invocation file under `## Invocations`, with its command, for example `- wkfl-proj-do_task — flint shard invoke proj do_task`.
 - `shard.yaml` declares nothing. Discovery is by the file name.
 
-**Deprecated: the headless invocation file.** A source can still have `workflows/dev-hwkfl-<sh>-<name>.invocation.json` of the old headless workflow. Until the removal wave of NUU Orbh Task 748, `invoke --mode headless` reads the `hwkfl-` file first, with the notice `This invoke reads the headless invocation file of hwkfl-<sh>-<name>. The hwkfl- files are deprecated: merge …`, and the health check gives a warning (`deprecated: merge into wkfl-<sh>-<name>.invocation.json (modes on its steps)`). After the removal wave, the file is a problem. Merge it into the `wkfl-` file with [[dev-wkfl-knap-migrate_headless_to_modes]].
+**Removed: the headless invocation file.** The CLI reads no `hwkfl-<sh>-<name>.invocation.json` (NUU Orbh Task 748). `invoke --mode headless` reads the `wkfl-` file, also when the shard still has an `hwkfl-` file, and `invoke <sh> hwkfl-<sh>-<name>` refuses with `invocation-file-missing`. The health check gives a problem: `removed: merge into wkfl-<sh>-<name>.invocation.json with wkfl-knap-migrate_headless_to_modes`. Merge it into the `wkfl-` file with [[dev-wkfl-knap-migrate_headless_to_modes]].
 
 ## The Formats
 
@@ -101,7 +101,7 @@ A field of a later format in an earlier file is a problem that names the format,
 | Field | Format | Rule |
 |-------|--------|------|
 | `format` | 0.1 | Required. `"shard-invocation/0.1"`, `"shard-invocation/0.2"`, or `"shard-invocation/0.3"`. |
-| `workflow` | 0.1 | Required. The stem with no `dev-` prefix. It matches `^h?wkfl-[a-z0-9][a-z0-9-]*-[a-z0-9][a-z0-9_-]*$` and equals the stem of the file name. The `hwkfl-` form is deprecated. |
+| `workflow` | 0.1 | Required. The stem with no `dev-` prefix. It matches `^h?wkfl-[a-z0-9][a-z0-9-]*-[a-z0-9][a-z0-9_-]*$` and equals the stem of the file name. The `hwkfl-` form is removed: the reader returns no file for an `hwkfl-` stem. |
 | `title` | 0.1 | Optional string. The invoke shows it. With no title, the invoke uses `<shard name>: <short name>`. |
 | `inputs` | 0.1 | Optional. An object from an input name to an input. |
 | `steps` | 0.1 | Optional. A list of steps, in order. |
@@ -422,7 +422,7 @@ One workflow file serves two **modes**: `interactive` and `headless`. The mode o
 - **`session.mode` in conditions.** A behaviour, a `then` entry, `ready`, or a `from` can read it. `do_task` has `then: review_task` with `"when": { "session.mode": ["headless"] }`: a headless session hands the task to a reviewer, and an interactive session keeps the confirm of the person.
 - **Close `done` before the return.** A headless session that must print a next workflow closes its frame with `--outcome done` before `flint orbh session return`. A return closes an open frame with `session-returned`, and that outcome prints no next workflow and writes no assumed state.
 
-**Deprecated: `--headless`.** Until the removal wave of NUU Orbh Task 748, `invoke --headless` is an alias of `--mode headless`, with a notice. While a source still has an `hwkfl-` file, `--mode headless` reads it first, with a notice. After the removal wave, `--headless` is removed. Do not write `--headless` in a workflow or in a `next` text.
+**Removed: `--headless`.** `invoke --headless` refuses with `headless-flag-removed` before any write (NUU Orbh Task 748). `--mode headless` reads the `wkfl-` file, also when the shard still has an `hwkfl-` file. Do not write `--headless` in a workflow or in a `next` text.
 
 ## Tokens and Quoting
 
@@ -709,7 +709,7 @@ In an Orbh session, at the top of the stack, the commands have no `--parent` and
 ## Check a File
 
 1. `flint shard knap check-modes <source folder>` checks the files of the source with no build: each invocation file parses as JSON, each `stage` is a heading of its Markdown workflow, no token stands inside quotes, and no `hwkfl-`, `hinit-`, `hstart`, or `--headless` reference stays.
-2. `flint shard build <alias>`, then `flint shard status <alias> --health`. The health check reads the build, and it gives one warning for each invocation file that is not valid, with up to five problems. Each problem has a JSON path, for example `$.inputs.task['make-ready'][0]`. An `hwkfl-` or `hinit-` file gives a `deprecated` warning.
+2. `flint shard build <alias>`, then `flint shard status <alias> --health`. The health check reads the build, and it gives one warning for each invocation file that is not valid, with up to five problems. Each problem has a JSON path, for example `$.inputs.task['make-ready'][0]`. An `hwkfl-` file, its invocation file, or an `hinit-` file gives a problem: `removed: merge into <target> with wkfl-knap-migrate_headless_to_modes`.
 3. `flint shard invoke <sh> <name> --dev` refuses a file that is not valid (`invocation-file-invalid`) and lists each problem. `--json` gives the full list in `reason`.
 4. `flint shard start-dev <alias>` lists the file under `## Invocations`.
 5. Run the workflow in a scratch Flint, one time in each mode (`--mode interactive`, `--mode headless`): `flint shard invoke`, `flint shard step done` for each step, `flint shard invocations set-output`, and `flint shard invocations close <id> --outcome done`. Read each hint, the steps that the mode skipped, and the next-workflow lines of the close.
@@ -752,5 +752,5 @@ In an Orbh session, at the top of the stack, the commands have no `--parent` and
 | An input or an output named `session` in a 0.3 file | A problem: `"session" is a reserved name in format 0.3`. | Rename it. |
 | Work in a `step.done:<step>` behaviour of a step that the state can settle | The state entry settles the step, and the behaviour never runs. | Put the work into the stage, or into a behaviour of another place. |
 | A `next` object with one mode only | The other mode prints no instruction for the step. | Give both texts. |
-| `--headless` or `hstart` in a `next` text or in the Markdown | Deprecated now, removed after the removal wave. The mode comes from the session. | Remove the flag. Use `flint shard start <sh>`. |
+| `--headless` or `hstart` in a `next` text or in the Markdown | Removed: the command refuses (`headless-flag-removed`, `hstart-removed`). The mode comes from the session. | Remove the flag. Use `flint shard start <sh>`. |
 | The headless instructions in one `# Headless` section at the end of the workflow | After a compaction, the agent reads only the stage that `read:` names, and it does not see them. | Put a `> [!headless]` callout in each stage that differs. |

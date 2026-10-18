@@ -10,7 +10,7 @@ Run `flint shard start knap` if you haven't already.
 
 # Workflow: Migrate Headless Files to Modes
 
-One workflow file serves both modes (NUU Orbh Task 748). The headless workflow (`dev-hwkfl-<sh>-<name>.md`), its invocation file, the headless init (`dev-hinit-<sh>.md`), and `flint shard hstart` are deprecated. This workflow merges the headless files of **one shard source** into its normal files, with no loss of an instruction:
+One workflow file serves both modes (NUU Orbh Task 748). The headless workflow (`dev-hwkfl-<sh>-<name>.md`), its invocation file, the headless init (`dev-hinit-<sh>.md`), `flint shard hstart`, and `--headless` are removed. The CLI reads no headless file: until the merge, a headless session of the shard reads only the normal files and loses the headless instructions. `hstart` and `--headless` refuse, and the health check gives a problem for each headless file (`removed: merge into <target> with wkfl-knap-migrate_headless_to_modes`). This workflow merges the headless files of **one shard source** into its normal files, with no loss of an instruction:
 
 - each `dev-hwkfl-` workflow goes into its `dev-wkfl-` workflow as `> [!headless]` callouts, inside the stages;
 - the two invocation files become one file of format `shard-invocation/0.3`, with `modes` and `next` objects;
@@ -226,8 +226,8 @@ Do this only when no conflict is open. A conflict stops the migration before thi
 ## Stage 7: Check
 
 1. `flint shard knap check-modes "<source folder>"`: no headless file, no reference, no problem. It checks that each invocation file is JSON, that each `stage` is a heading of its Markdown workflow, that no token of a `next` text stands inside quotes, and that no heading is inside a callout.
-2. `flint shard status <alias> --health`. It checks the build when this Flint has one, else the source. Read each warning of the files that you changed. No `deprecated` warning and no invocation file warning may stay.
-   - The live `flint` reads format 0.3 since deploy 1 of NUU Orbh Task 748. On a machine with an older CLI, use the CLI of the flint repository: `node "<flint repository>/apps/flint-cli/bin/flint-dev.js" shard status <alias> --health`.
+2. `flint shard status <alias> --health`. It checks the build when this Flint has one, else the source. Read each finding of the files that you changed. No `removed: merge into …` problem and no invocation file warning may stay.
+   - The live `flint` reads format 0.3 and gives the `removed:` problems (NUU Orbh Task 748). On a machine with an older CLI, use the CLI of the flint repository: `node "<flint repository>/apps/flint-cli/bin/flint-dev.js" shard status <alias> --health`.
    - When the health check reads the build, it shows your change only after `flint shard build <alias>`. Build only when the person or your prompt allows a build in this Flint. Else write "health: the build is older than the source" in the result.
 3. **Check both modes.** The migration is complete only when each invocation file that you changed opens in both modes with the inputs that its callers give. Do it in a scratch Flint, not in a real Flint, because the behaviours of a workflow change the Mesh:
    - Make the scratch Flint in a temporary folder: `flint create "<name>"`, then `flint shard install --from-path "<source folder>"`.
@@ -270,7 +270,7 @@ Do this only when no conflict is open, and when the check of Stage 7 passed in b
 Other shards and the Mesh can name the files that you deleted. Do not edit them: each source has its owner.
 
 1. Search the other sources and the Mesh of the Flints of this machine for the old names: `grep -rn -E "hwkfl-<sh>-|hinit-<sh>\b|hstart(-dev)? <sh>\b" <the Flint roots> --include='*.md' --include='*.json' --include='*.js' --include='*.ts' --include='*.yaml'`. Leave out `.git/`, `.flint/`, the builds (`Shards/<Name>/` of a source that you list already: the next build overwrites them), and the release history.
-2. List each place for the person: the file, the line, and the new name (`wkfl-<sh>-<name>`, `init-<sh>#Headless`, or `flint shard start <sh>`).
+2. List each place for the person: the file, the line, and the new name (`wkfl-<sh>-<name>`, `init-<sh>#Headless`, or `flint shard start <sh>`). A prompt or a workflow that still runs `hstart` or `--headless` refuses now (`hstart-removed`, `headless-flag-removed`), so mark these places first.
 3. Close the invocation: `flint shard invocations close <id> --outcome done`. Close it `done` only after the commit of Stage 9, which needs the check of both modes.
 
 > [!headless]

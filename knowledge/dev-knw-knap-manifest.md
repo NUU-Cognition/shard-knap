@@ -377,7 +377,7 @@ Some things are not declared in `shard.yaml` — they are discovered at runtime 
 | Workflows | `workflows/**` (recursive) | Discovery + `description` frontmatter |
 | Templates | `templates/**` (recursive) | Discovery + `description` frontmatter |
 | Knowledge | `knowledge/**` (recursive) | Discovery + `description` frontmatter |
-| Headless files (deprecated) | `hinit-<sh>.md`, `hwkfl-*` files | Discovery by filename prefix until the removal wave of NUU Orbh Task 748. The health check gives a `deprecated` warning. One workflow and one init serve both modes: see [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode |
+| Headless files (removed) | `hinit-<sh>.md`, `hwkfl-*` files | Not read (NUU Orbh Task 748). The health check gives a `removed: merge into …` problem. One workflow and one init serve both modes: see [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode |
 | Invocation files | `workflows/wkfl-<sh>-<name>.invocation.json`, beside the Markdown workflow | Discovery by file name. `flint shard start` lists each one under `## Invocations` with its `flint shard invoke` command. Format: [[dev-knw-knap-invocations]] |
 
 Only things with no filesystem signature of their own need explicit declaration: `types` (what type name a file represents), `folders` (paths outside `Mesh/Metadata/Types/`), `install` (source→dest mapping), `dependencies`, and `setup` scope.

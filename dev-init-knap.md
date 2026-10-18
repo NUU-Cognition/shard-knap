@@ -99,7 +99,7 @@ Source files add a `dev-` prefix (e.g., `dev-sk-proj-create_task.md`, `dev-ast-p
 
 One workflow file serves both modes, and one init serves both modes. The mode (`interactive` or `headless`) comes from the Orbh session. A stage that differs in a headless session has a `> [!headless]` callout inside that stage, and the init has a `# Headless` section for the interface keys, the phase values, and the result delivery. The convention is in [[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode.
 
-A headless workflow file (`hwkfl-<sh>-<name>.md`) and a headless init (`hinit-<sh>.md`) are deprecated. The health check gives a warning now. After the removal wave of NUU Orbh Task 748, each one is a problem.
+A headless workflow file (`hwkfl-<sh>-<name>.md`) and a headless init (`hinit-<sh>.md`) are removed (NUU Orbh Task 748). The CLI reads neither, and the health check gives a problem for each one: `removed: merge into <target> with wkfl-knap-migrate_headless_to_modes`.
 
 - [[dev-wkfl-knap-migrate_headless_to_modes]]: merge the headless files of one shard source (`hwkfl-`, `hinit-`) into its normal files: `> [!headless]` callouts, one invocation file, and a `# Headless` section of the init.
 - `flint shard knap check-modes <source folder>`: lists the headless files and the references that stay, and checks each invocation file: JSON, each `stage` heading, the quoting of tokens.

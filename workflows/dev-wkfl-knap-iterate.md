@@ -35,7 +35,7 @@ Present the plan to the user. Once confirmed, progress to the next stage.
 1. Create the new file(s) using the appropriate Knap template:
    - Skill → [[dev-tmp-knap-skill-v0.1]]
    - Workflow → [[dev-tmp-knap-workflow-v0.1]]
-   - Headless instructions → no new file. Add a `> [!headless]` callout inside each stage of the `dev-wkfl-` file that differs in a headless session, and a `# Headless` section to the init when it has none ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode). An `hwkfl-` file is deprecated
+   - Headless instructions → no new file. Add a `> [!headless]` callout inside each stage of the `dev-wkfl-` file that differs in a headless session, and a `# Headless` section to the init when it has none ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode). An `hwkfl-` file is removed (the CLI does not read it)
    - Template → [[dev-tmp-knap-template-v0.1]]
    - Knowledge → [[dev-tmp-knap-knowledge-v0.1]]
    - Script → [[dev-tmp-knap-script-v0.1]] as `scripts/dev-<name>.js` (auto-discovered; no manifest declaration)

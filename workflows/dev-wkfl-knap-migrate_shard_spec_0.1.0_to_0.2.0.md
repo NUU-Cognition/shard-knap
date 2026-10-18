@@ -34,7 +34,7 @@ Make the shard match what Knap teaches. The order doesn't matter much; a reasona
 
 1. **Filename prefixes** — run `flint shard knap prefix-shard <path>` (preview with `--dry-run` first). It handles the entire `dev-` prefix pass automatically. After it runs, manually verify asset names follow `ast-<sh>-<name>.<ext>` and migration filenames follow `mig-<sh>-<from>-to-<to>[-s<n>]` — the script only touches the `dev-` prefix, not the body.
 
-2. **Per-file frontmatter** — every `sk-*`, `wkfl-*`, `hwkfl-*`, `tmp-*`, `knw-*` file gets a `description:` frontmatter line. Replace any legacy `Ensure you have [[init-<sh>]] in context before continuing.` line with `Run `flint shard start <sh>` if you haven't already.` in each file. An `hwkfl-*` file or an `hinit-<sh>.md` is deprecated: after this migration, merge them into the normal files with [[dev-wkfl-knap-migrate_headless_to_modes]].
+2. **Per-file frontmatter** — every `sk-*`, `wkfl-*`, `hwkfl-*`, `tmp-*`, `knw-*` file gets a `description:` frontmatter line. Replace any legacy `Ensure you have [[init-<sh>]] in context before continuing.` line with `Run `flint shard start <sh>` if you haven't already.` in each file. An `hwkfl-*` file or an `hinit-<sh>.md` is removed (the CLI does not read it): after this migration, merge them into the normal files with [[dev-wkfl-knap-migrate_headless_to_modes]].
 
 3. **Init file** — strip the discovery sections (`## Required Reading`, `## Skills`, `## Workflows`, `## Templates`, `## Knowledge`). Add YAML frontmatter `required-reading:` listing the old required-reading wikilinks (e.g. `"[[knw-<sh>-<name>]]"`). See [[dev-knw-knap-architecture]] § Init File.
 

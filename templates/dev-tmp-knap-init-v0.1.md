@@ -9,7 +9,7 @@ description: "Shard init file structure"
 | Dev source path | `dev-init-<sh>.md` (at the shard root) |
 | Installed path | `init-<sh>.md` (the installer strips `dev-`) |
 | Wikilink form | dev source: `[[dev-init-<sh>]]` → installer strips to `[[init-<sh>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
-| Modes | One init for both modes. A headless session loads it with `flint shard start <sh>` and reads its `# Headless` section. A separate `dev-hinit-<sh>.md` is deprecated: merge it into the `# Headless` section ([[dev-wkfl-knap-migrate_headless_to_modes]]) |
+| Modes | One init for both modes. A headless session loads it with `flint shard start <sh>` and reads its `# Headless` section. A separate `dev-hinit-<sh>.md` is removed: the CLI does not read it. Merge it into the `# Headless` section ([[dev-wkfl-knap-migrate_headless_to_modes]]) |
 
 **Every shard MUST have an init file.** This is the entry point agents load when they need the shard's capabilities. `flint shard start <name>` returns the init body plus a dynamically-assembled manifest of skills, workflows, templates, and knowledge files.
 

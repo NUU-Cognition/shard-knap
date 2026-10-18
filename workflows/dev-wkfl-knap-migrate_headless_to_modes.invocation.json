@@ -74,7 +74,7 @@
       "by": "agent",
       "evidence": "required",
       "stage": "Stage 7: Check",
-      "next": "Run flint shard knap check-modes on the folder of {{source}}, and the health check of the shard. Then open each changed invocation file in a scratch Flint in both modes, with the inputs of its callers, and set each creation input after its file exists. No headless file, no reference, no problem, and no deprecated warning may stay. A mode that fails, or a check that cannot run, stops the migration: save a patch, and give the blocker. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
+      "next": "Run flint shard knap check-modes on the folder of {{source}}, and the health check of the shard. Then open each changed invocation file in a scratch Flint in both modes, with the inputs of its callers, and set each creation input after its file exists. No headless file, no reference, no problem, and no removed: problem may stay. A mode that fails, or a check that cannot run, stops the migration: save a patch, and give the blocker. A conflict stops the whole migration: put back each path of the ledger that is yours as it is at BASE, do not delete, link, bump, or commit, close this invocation with flint shard invocations close {{invocation}} --outcome abandoned --reason '<the conflict>', and give the blocker."
     },
     {
       "id": "review",

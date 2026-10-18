@@ -122,7 +122,7 @@ YAML is permissive. Do NOT quote plain strings, enum values, or paths with paren
 
 ## Not Declared Here
 
-Scripts, skills, workflows, invocation files, templates, knowledge files, setup file — all auto-discovered from the filesystem. One workflow file and one init serve both modes; a headless workflow (`hwkfl-`) or a headless init (`hinit-`) is deprecated. Drop the file in the right folder with the right filename and it's picked up.
+Scripts, skills, workflows, invocation files, templates, knowledge files, setup file — all auto-discovered from the filesystem. One workflow file and one init serve both modes; a headless workflow (`hwkfl-`) or a headless init (`hinit-`) is removed: the CLI does not read it. Drop the file in the right folder with the right filename and it's picked up.
 
 ## Deprecated
 

@@ -187,7 +187,7 @@ Files in a source (`(Source Remote)` and `(Source Local)` folders) are prefixed 
 
 | Location | Prefix rule | Why |
 |----------|-------------|-----|
-| Shard root (`init`, `setup`; a deprecated `hinit` too) | `dev-` | Lifecycle files, stripped by the build |
+| Shard root (`init`, `setup`) | `dev-` | Lifecycle files, stripped by the build |
 | `skills/`, `workflows/`, `templates/`, `knowledge/` | `dev-` | Source files, stripped by the build |
 | `assets/` | `dev-` (as `dev-ast-<sh>-<name>.<ext>`) | Source assets, stripped by the build |
 | `scripts/` | `dev-` (as `dev-<name>.js`) | Source scripts, stripped by the build |
@@ -473,13 +473,14 @@ The `# Headless` sections of `init-proj.md` (Projects) and `init-rpt.md` (Report
 
 **The transition.**
 
-- Now, until the removal wave of NUU Orbh Task 748: an `hwkfl-` file and an `hinit-` file are deprecated. The health check gives a warning (`deprecated: merge into …`). `flint shard hstart` and `hstart-dev` print a notice. When the shard has an `hinit-` file, they behave as before; else they load the normal init. `--headless` on `flint shard invoke` is an alias of `--mode headless`, with a notice. While a source still has an `hwkfl-` file, `--mode headless` reads it first, with a notice.
-- After the removal wave: an `hwkfl-` or `hinit-` file is a problem, and `hstart`, `hstart-dev`, and `--headless` are removed.
+- The headless files and commands are removed (NUU Orbh Task 748). The CLI reads no `hwkfl-` or `hinit-` file. The health check gives a problem for each one: `removed: merge into <target> with wkfl-knap-migrate_headless_to_modes`.
+- `flint shard hstart` and `hstart-dev` refuse with `hstart-removed` (next `flint shard start '<ref>'`). `--headless` on `flint shard invoke` refuses with `headless-flag-removed` before any write.
+- An old record of an `hwkfl-` workflow with no recorded mode still reads as a headless frame. A step write on it refuses, because its file is gone: close it `abandoned`.
 - To merge the headless files of a source into its normal files, use [[dev-wkfl-knap-migrate_headless_to_modes]]. `flint shard knap check-modes <source folder>` lists the headless files and the references that stay.
 
 ## Action Banner
 
-Every skill (`sk-*`) and workflow (`wkfl-*`) file declares its own pragmatic force on its first body line via a verbatim Obsidian callout (a deprecated `hwkfl-*` file that is not merged yet has it too):
+Every skill (`sk-*`) and workflow (`wkfl-*`) file declares its own pragmatic force on its first body line via a verbatim Obsidian callout (an old `hwkfl-*` file that is not merged yet has it too):
 
 ```
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -775,8 +776,8 @@ To move a shard to `0.3.0`: set `shard-spec: "0.3.0"` and run `flint shard id <a
 | Init file body | Hard-coded `## Skills` / `## Workflows` / `## Templates` / `## Knowledge` discovery tables | Tables removed — `flint shard start` discovers them dynamically by scanning the shard tree |
 | Init file frontmatter | None | YAML `required-reading:` list of wikilinks (e.g. `"[[knw-<sh>-<name>]]"`) |
 | Required reading entries | Wikilinks listed in a markdown body section | Wikilinks (or relative paths, legacy) in the frontmatter list |
-| Skill / workflow context line | `Ensure you have [[init-<sh>]] in context before continuing.` | `Run \`flint shard start <sh>\` if you haven't already.` (at 0.2.0, an `hwkfl-*` file used `hstart`; `hwkfl-*` files are deprecated now: see [Modes](#modes-one-workflow-for-each-mode)) |
-| Per-file frontmatter | None | Every `sk-*`, `wkfl-*`, `tmp-*`, `knw-*` (and a deprecated `hwkfl-*`) MUST declare `description:` |
+| Skill / workflow context line | `Ensure you have [[init-<sh>]] in context before continuing.` | `Run \`flint shard start <sh>\` if you haven't already.` (at 0.2.0, an `hwkfl-*` file used `hstart`; `hwkfl-*` files and `hstart` are removed now: see [Modes](#modes-one-workflow-for-each-mode)) |
+| Per-file frontmatter | None | Every `sk-*`, `wkfl-*`, `tmp-*`, `knw-*` MUST declare `description:` |
 | Setup mechanism | `state: true` boolean + `requires.cli` + `requires.workspace` blocks (and sometimes `repos:` mis-used as setup) | Single `setup: full \| flint \| local` field + companion `dev-setup-<sh>.md` lifecycle file |
 | Scripts | `scripts:` list declared in the manifest | Removed — auto-discovered from `scripts/*.js` (with `dev-` prefix on dev sources) |
 | Types | `types:` could imply folder creation | Declares the type-definition file only; storage folders require an explicit `folders:` entry |

@@ -22,7 +22,7 @@ Edit and refine an existing shard by loading its full context and collaborating 
 Load the entire target shard into context.
 
 1. Read the shard's `shard.yaml` manifest
-2. Read the shard's `init-<sh>.md` context file, with its `# Headless` section if it has one. If the shard still has a deprecated `hinit-<sh>.md` or `hwkfl-*` file, read it too, and propose the merge with [[dev-wkfl-knap-migrate_headless_to_modes]]
+2. Read the shard's `init-<sh>.md` context file, with its `# Headless` section if it has one. If the shard still has a removed `hinit-<sh>.md` or `hwkfl-*` file (the CLI does not read it, and the health check gives a problem), read it too, and propose the merge with [[dev-wkfl-knap-migrate_headless_to_modes]]
 3. Read the shard's `setup-<sh>.md` if the manifest declares `setup:`
 4. List all files in the shard directory **recursively** — `skills/`, `workflows/`, `templates/`, and `knowledge/` may contain arbitrary subfolder groupings
 5. Read every file in the shard — skills, workflows, templates, knowledge, scripts, install files, README

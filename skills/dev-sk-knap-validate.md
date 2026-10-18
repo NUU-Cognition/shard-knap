@@ -43,8 +43,8 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] No hardcoded Skills/Workflows/Templates/Knowledge tables (discovered dynamically by `flint shard start`)
 
 3. **Check the modes.** One init and one workflow file serve both modes ([[dev-knw-knap-architecture]] § Modes: One Workflow for Each Mode). For a quick check, run `flint shard knap check-modes <source folder>`: it lists the headless files and the references that stay, and checks each invocation file.
-   - [ ] No `hwkfl-*` file and no `hinit-<shorthand>.md` (with or without `dev-`). Each one is a **warning** now: the file is deprecated, and the health check says `deprecated: merge into …`. Merge it with [[dev-wkfl-knap-migrate_headless_to_modes]]. After the removal wave of NUU Orbh Task 748, each one is an **error**.
-   - [ ] No reference to `hstart`, `hstart-dev`, `--headless`, `[[hwkfl-`, or `[[hinit-` in a shard file (warning), except a note that says the term is deprecated
+   - [ ] No `hwkfl-*` file, no `hwkfl-*.invocation.json`, and no `hinit-*.md` (with or without `dev-`). Each one is an **error**: the CLI does not read it, and the health check says `removed: merge into <target> with wkfl-knap-migrate_headless_to_modes`. Merge it with [[dev-wkfl-knap-migrate_headless_to_modes]].
+   - [ ] No reference to `hstart`, `hstart-dev`, `--headless`, `[[hwkfl-`, or `[[hinit-` in a shard file (**error**: the commands refuse, and the files do not exist), except a history note (a release note, a migration entry) or a note that says the term is removed
    - [ ] When the shard runs in headless Orbh sessions (a workflow has a `> [!headless]` callout): the init has a `# Headless` section with `## Orbh Interface Keys` (and `### Phase Values`) and `## Result Delivery` that names `flint orbh session return` (warning otherwise)
 
 4. **Check setup file.** If `shard.yaml` declares `setup`:
@@ -55,7 +55,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 5. **Check file naming and dev-prefix rules.** Verify all files follow naming conventions. In a source, `dev-` prefix rules apply per location — see [[dev-knw-knap-architecture#Dev Prefix Rules]]. Files may live in arbitrary subfolder groupings (e.g. `templates/containers/dev-tmp-<sh>-<name>.md`); subfolders are cosmetic and the filename convention still applies:
    - [ ] Skills: `dev-sk-<sh>-<name>.md` / built `sk-<sh>-<name>.md`
-   - [ ] Workflows: `dev-wkfl-<sh>-<name>.md`, one file for both modes (a `dev-hwkfl-` file is deprecated: see step 3)
+   - [ ] Workflows: `dev-wkfl-<sh>-<name>.md`, one file for both modes (a `dev-hwkfl-` file is removed: see step 3)
    - [ ] Templates: `dev-tmp-<sh>-<name>-v<X.X>.md`
    - [ ] Knowledge: `dev-knw-<sh>-<name>.md`
    - [ ] Assets: `dev-ast-<sh>-<name>.<ext>`
@@ -67,7 +67,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Shorthand matches `shard.yaml`
    - [ ] **Error** on any `install/dev-*` file — install payloads never have dev prefix
 
-6. **Check description frontmatter.** For every skill, workflow, template, and knowledge file (and a deprecated headless workflow that is not merged yet):
+6. **Check description frontmatter.** For every skill, workflow, template, and knowledge file (and an old headless workflow that is not merged yet):
    - [ ] Has YAML frontmatter with a `description` field
    - [ ] Description is a non-empty single-line string
 
@@ -123,7 +123,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
 
 15. **Report.** Output a validation summary:
     - Pass/fail for each check
-    - Warnings vs errors (warnings for spec version, Proper Case of the name, deprecated fields, deprecated headless files; errors for missing required fields, traversal, format, dev-prefix violations)
+    - Warnings vs errors (warnings for spec version, Proper Case of the name, deprecated fields; errors for removed headless files and references, missing required fields, traversal, format, dev-prefix violations)
     - List of issues found
     - Suggestions for fixes
 
