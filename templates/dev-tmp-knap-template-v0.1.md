@@ -1,5 +1,7 @@
 ---
 description: "Shard template file structure"
+orb:
+  - "@v1/nuucognition/session/9f552ce0-0455-44ed-b8ec-d749c3ae9b2f#flint/nuu-orbh"
 ---
 
 # Naming and Placement
@@ -35,7 +37,8 @@ tags:
   - "#[type-tag]"
   - "#[shard-shorthand]/[artifact-type]"
 status: [status-option-1|status-option-2|...]
-orbh-sessions: 
+orb:
+  - "[the output of flint address me]"
 template: "[[tmp-[shorthand]-[name]-vX.X]]"
 authors: /* from .flint/identity.json; omit if no identity set */
   - "[[@Person Name]]"
@@ -70,7 +73,7 @@ authors: /* from .flint/identity.json; omit if no identity set */
 - The template filename stem (including `vX.Y`) becomes the `template` field value in created artifacts.
 - Always include `id`, `tags`, and `template` in frontmatter.
 - Include `status` if the artifact has a lifecycle.
-- Include `orbh-sessions` for unified session tracking across agent runtimes.
+- Include `orb:` for session tracking: one field for all agent runtimes. Its item is `"[the output of flint address me]"`. Old notes keep `orbh-sessions`: never remove it, and add no new item to it. See [[knw-f-artifacts]] § Session Tracking.
 - Include `authors` for person attribution (reads from `.flint/identity.json`).
 - Use `/* comments */` to explain non-obvious conventions to the agent.
 - Use `[instruction]` placeholders that describe both what and how to generate.

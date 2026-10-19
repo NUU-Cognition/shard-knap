@@ -3,6 +3,8 @@ description: "Complete reference for the invocation file of a workflow (shard-in
 orbh-sessions:
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/9f552ce0-0455-44ed-b8ec-d749c3ae9b2f#flint/nuu-orbh"
 ---
 
 # Knowledge: Invocation Files
@@ -669,7 +671,7 @@ What each part does:
 | `done-when` of `work`, `report`, `review` | A task in `review` opens at `review`; a task in `reviewed` opens at `close`. A task in `todo` or `in-progress` settles nothing. |
 | `modes` of `close` | In the headless mode, the invoke skips `close` at the open: only a person confirms a task. |
 | `next` objects | The hint of `work` and `review` differs for each mode. The headless text of `review` closes the frame `done` before the return, so that `then` prints. |
-| `task-open` | At the invoke, when the task is `todo`, the script sets `in-progress`, adds the session to `orbh-sessions`, and pins the task. |
+| `task-open` | At the invoke, when the task is `todo`, the script sets `in-progress`, stamps the session in `orb:` (the `by` address of `flint address me`; the old `orbh-sessions` does not change), and pins the task. |
 | `task-confirm` | `flint orbh close --with task-confirm` (or `return --with task-confirm`) runs `task-close` before the verb, when the task is `review`, `reviewed`, or `done`. A failure stops the verb. |
 | `task-defer` | `--with task-defer="<reason>"` runs `task-defer`; the script reads the reason from `FLINT_BEHAVIOUR_VALUE`. |
 | `task-hint`, `task-return-check` | Lines for the actor before a close or a `return --finish`. |

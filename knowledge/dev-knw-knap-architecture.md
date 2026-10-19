@@ -4,6 +4,8 @@ orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/9f552ce0-0455-44ed-b8ec-d749c3ae9b2f#flint/nuu-orbh"
 ---
 
 # Knowledge: Shard Architecture
@@ -515,7 +517,7 @@ See [[dev-tmp-knap-template-v0.1]] for full template syntax reference.
 **Design principles:**
 - `description` frontmatter is required
 - The template filename stem becomes the `template` field in created artifacts
-- Include `[agent]-sessions` for session tracking
+- Include `orb:` for session tracking, with the item `"[the output of flint address me]"` (see [[knw-f-artifacts]] § Session Tracking)
 - Use `/* comment */` to explain non-obvious conventions
 
 ### Knowledge Files (`knw-<sh>-<name>.md`)
