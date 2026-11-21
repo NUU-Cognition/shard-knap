@@ -15,7 +15,6 @@ A cognitive program — a self-contained package that extends agent capabilities
 |----------|-------|
 | Tag | N/A (meta-type) |
 | Location | `Shards/(Source Remote) [Name]/` or `Shards/(Source Local) [Name]/` (the source), `Shards/[Name]/` (the shard) |
-| Archive | N/A (released to repositories and the NUU Shard Registry) |
 | Naming | Source folder: `(Source Remote) Name/` or `(Source Local) Name/`, source files: `dev-init-sh.md`, `dev-sk-sh-*.md`, `dev-wkfl-sh-*.md`, etc. The package: `@org/shard/<name>` |
 | Numbering | None |
 

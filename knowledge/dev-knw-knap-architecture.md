@@ -6,6 +6,9 @@ orbh-sessions:
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 orb:
   - "@v1/nuucognition/session/9f552ce0-0455-44ed-b8ec-d749c3ae9b2f#flint/nuu-orbh"
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Knowledge: Shard Architecture
@@ -592,7 +595,6 @@ types:
   - Task                              # Installs type definition file
 folders:
   - "Mesh/Types/Tasks (Task)"        # Creates artifact storage folder
-  - Mesh/Archive/Tasks                # Creates archive folder
 ```
 
 See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
@@ -663,7 +665,7 @@ The shard installer ensures these workspace-scoped folders exist on every instal
 | Folder | Purpose | Tracked? |
 |--------|---------|----------|
 | `Shards/(Shards) Obsidian Templates/` | Destination for the note templates (`otmp-<sh>-<name>.md` install entries); Templater reads it | Yes |
-| `Shards/(Shards) Repos/` | External git repositories cloned via the manifest `repos:` field. One folder per declared `name` (the repo name, each word with a capital letter). Pinned SHAs live in `flint.json#repos[]`. | Yes (the folder; clone contents may be partially gitignored depending on workspace policy) |
+| `Workspace/Repos/` | External git repositories cloned via the manifest `repos:` field, in the folder of the workspace repos of `flint.toml`. One folder per declared `name` (the repo name, each word with a capital letter). Pinned SHAs live in `flint.json#repos[]`. | No (Git ignores `Workspace/Repos/`) |
 
 There are no state folders. The setup flags are in the records (see Setup and State).
 

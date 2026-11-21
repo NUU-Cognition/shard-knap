@@ -1,5 +1,10 @@
 # Knap Releases
 
+## Release 1.5.0
+
+- No archive folder (NUU Flint Task 1362). The manifest knowledge, the init, the `shard.yaml` template, and the workflow `create_shard` tell an author not to declare an archive folder: an archived artifact stays in its folder with the status `archived`. The examples of `folders:` have no `Mesh/Archive/` entry, and the type file of the type Shard has no `Archive` row.
+- The manifest field `repos:` clones into `Workspace/Repos/<Name>/`, not into `Shards/(Shards) Repos/` (`knw-knap-manifest` § `repos`, `knw-knap-architecture` § Workspace System Folders).
+
 ## Release 1.4.0
 
 - `knw-knap-invocations` covers the format `shard-invocation/0.3` (NUU Orbh Task 748): `ready` and `make-ready` on artifact inputs, `assumes` on artifact inputs and outputs, `then` on the file, `done-when`, `modes`, and a `next` object for each mode on steps, the operator `not`, and the reserved keys `assumed` and `session.mode`. It gives the live refusal texts and the close lines.

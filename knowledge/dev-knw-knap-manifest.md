@@ -4,6 +4,10 @@ orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Knowledge: Shard Manifest (shard.yaml)
@@ -49,7 +53,6 @@ types:                               # Artifact types managed by the shard
 
 folders:                             # Directories to create in flint root
   - "Mesh/Types/Tasks (Task)"       # Artifact storage folder
-  - Mesh/Archive/Tasks/              # Archive folder
 
 install:                                      # Files to install into the workspace
   - source: inst-proj-backlog_dashboard.md    # inst-<sh>-<name>.md in install/
@@ -273,12 +276,13 @@ Naming rules (parser-enforced):
 
 ### `folders` (optional)
 
-Plain directory paths (from flint root) to create during installation. Created empty if they don't exist. Use for artifact storage folders, archive directories, and any other folders the shard needs.
+Plain directory paths (from flint root) to create during installation. Created empty if they don't exist. Use for artifact storage folders and any other folders the shard needs.
+
+Do not declare an archive folder (NUU Flint Task 1362). An archived artifact stays in its folder with the status `archived`. `Mesh/Archive/` is gone: the flat section `Mesh/Sections/(Section) Archive/` holds the old archive files, and no shard moves a new file there.
 
 ```yaml
 folders:
   - "Mesh/Types/Tasks (Task)"     # Artifact storage
-  - Mesh/Archive/Tasks             # Archive
 ```
 
 Since `types:` only installs type definition files, shards that need artifact storage folders must declare them explicitly here.
@@ -315,7 +319,7 @@ Type definition files (`type-<sh>-<type>.md`) also live in `install/` but are **
 
 ### `repos` (optional)
 
-External git repositories the shard expects to be cloned into the workspace at install time. Each entry pins a remote at an immutable ref (SHA or tag). Repos are cloned into a flat workspace-scoped folder — `Shards/(Shards) Repos/<Name>/` — so multiple shards can share the same clone without nesting.
+External git repositories the shard expects to be cloned into the workspace at install time. Each entry pins a remote at an immutable ref (SHA or tag). Repos are cloned into the workspace repo folder of the Flint — `Workspace/Repos/<Name>/` — so multiple shards can share the same clone without nesting. Git ignores `Workspace/Repos/`.
 
 ```yaml
 repos:
@@ -331,7 +335,7 @@ repos:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `name` | string | The repo name, each word with a capital letter. Becomes the folder name under `Shards/(Shards) Repos/`. Must be unique workspace-wide. |
+| `name` | string | The repo name, each word with a capital letter. Becomes the folder name under `Workspace/Repos/`. Must be unique workspace-wide. |
 | `remote` | string | Git remote in `owner/repo` form. The installer clones `https://github.com/<owner>/<repo>.git`. |
 | `ref` | string | Immutable ref — a tag or a 40-char SHA. Branch names (`main`, `master`, `develop`, `development`, `trunk`, `HEAD`) are rejected at parse time. |
 
@@ -415,7 +419,6 @@ version: "1.0.0"                                # quoted (version string)
 setup: full                                     # no quotes (enum)
 folders:
   - Mesh/Types/Tasks (Task)                     # no quotes (parens are fine)
-  - Mesh/Archive/Tasks                          # no quotes
 install:
   - source: inst-proj-backlog_dashboard.md      # inst-<sh>-<name> source
     dest: Mesh/(Dashboard) Backlog.md           # literal target name
@@ -490,7 +493,7 @@ install:
     dest: Mesh/(Dashboard) Backlog.md
     mode: once
 folders:
-  - Mesh/Archive/Tasks/
+  - Mesh/Types/Tasks/
 ```
 
 ### Minimal Shard

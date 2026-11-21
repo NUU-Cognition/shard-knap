@@ -7,6 +7,10 @@ orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Knap (Flintknapping)
@@ -131,7 +135,7 @@ install:
     dest: Mesh/(Dashboard) X.md
     mode: once
 folders:
-  - Mesh/Archive/Tasks/
+  - Mesh/Types/Tasks/
 ```
 
 A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still parses. To upgrade it, run `flint migrate run` (the step `flint-0.6.0-to-0.7.0-s8` rewrites every source and its build; the Flint version stays `0.7.0`), then commit, then release.

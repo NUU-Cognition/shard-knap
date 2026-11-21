@@ -1,5 +1,9 @@
 ---
 description: "Shard skill file structure"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Naming and Placement
@@ -9,7 +13,7 @@ description: "Shard skill file structure"
 | Dev source path | `skills/dev-sk-<sh>-<name>.md` |
 | Installed path | `skills/sk-<sh>-<name>.md` (the installer strips `dev-`) |
 | Wikilink form | dev source: `[[dev-sk-<sh>-<name>]]` → installer strips to `[[sk-<sh>-<name>]]` (see [[dev-knw-knap-architecture]] § Cross-Reference Links) |
-| `<name>` | snake_case verb or verb-phrase: `create_note`, `validate`, `sync`, `archive_tasks` |
+| `<name>` | snake_case verb or verb-phrase: `create_note`, `validate`, `sync`, `deprecate_task` |
 
 Skills are atomic, single-purpose tasks that run to completion without human checkpoints. If the task needs human review or approval, author it as a workflow instead. Subfolder groupings under `skills/` are allowed; the filename convention does not change.
 

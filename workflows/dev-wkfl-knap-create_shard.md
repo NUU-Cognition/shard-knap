@@ -4,6 +4,10 @@ orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -37,7 +41,7 @@ Confirm the shard design with the user:
    - What knowledge does it need? (Deep reference material)
    - Does it need dashboards or other install files? (Dashboards, system files, note templates)
    - Does it need scripts? (Deterministic CLI operations)
-   - Does it need folders created? (Artifact storage, archive — declared in `folders:`)
+   - Does it need folders created? (Artifact storage — declared in `folders:`; never an archive folder)
    - Does it need one-time setup? (Credentials, repo clones, builds — declared via `setup:` + `dev-setup-<sh>.md`)
 4. **Identify dependencies** — which other shards must be installed first: a package name and a range for each (`"@nuucognition/notepad": "^1.0"`)
 
@@ -69,7 +73,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
 2. **Fill in the manifest.** Open the generated `shard.yaml` and edit per [[dev-tmp-knap-shard_yaml-v0.1]]:
    - Add `dependencies:` as a map from package name to range (almost always `"@nuucognition/flint": "^0.2"`)
    - Add `types:` for any artifact types the shard manages, or run `flint shard type add <Name> --shard <sh>` (it writes the type file, the template, the folder, and the `types:` entry, and builds the shard)
-   - Add `folders:` for artifact storage / archive paths
+   - Add `folders:` for artifact storage paths. Do not add an archive folder: an archived artifact stays in its folder with the status `archived`
    - Add `install:` entries for dashboards or note templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`)
    - Add `repos:` if external git clones are required
    - Do **not** declare scripts/skills/workflows/templates/knowledge — they are auto-discovered

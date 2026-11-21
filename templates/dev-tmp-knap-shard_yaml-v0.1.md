@@ -3,6 +3,10 @@ description: "Shard manifest (shard.yaml) file structure"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Naming and Placement
@@ -73,10 +77,10 @@ types:
   - (continue)
 
 /* Optional: directory paths (from flint root) to create during installation.
-   Used for artifact storage folders, archive folders, and any other directories the shard needs. */
+   Used for artifact storage folders and any other directories the shard needs.
+   Never an archive folder: an archived artifact stays in its folder with the status archived. */
 folders:
   - ["Mesh/Types/Tasks (Task)"]
-  - [Mesh/Archive/Tasks/]
   - (continue)
 
 /* Optional: files to install outside the shard folder.

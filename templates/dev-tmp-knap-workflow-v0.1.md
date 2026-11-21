@@ -1,5 +1,9 @@
 ---
 description: "Shard workflow file structure"
+orb:
+  - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+orbh-fleet:
+  - flint-cleanup-1122
 ---
 
 # Naming and Placement
@@ -10,7 +14,7 @@ description: "Shard workflow file structure"
 | Installed path | `workflows/wkfl-<sh>-<name>.md` |
 | Wikilink form | dev source `[[dev-wkfl-<sh>-<name>]]` → installs `[[wkfl-<sh>-<name>]]` |
 | Context line (top) | `Run \`flint shard start <sh>\` if you haven't already.` (in both modes) |
-| `<name>` | snake_case noun phrase: `create_shard`, `migrate_spec`, `archive_completed` |
+| `<name>` | snake_case noun phrase: `create_shard`, `migrate_spec`, `review_task` |
 
 **One file for both modes:**
 
