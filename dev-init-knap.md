@@ -33,7 +33,7 @@ A shard is a self-contained unit of agent capabilities. Each shard focuses on on
 - **Scripts** — Deterministic Node.js operations auto-discovered from `scripts/*.js`
 - **Types** — Artifact type definitions installed to `Mesh/Metadata/Types/`
 - **Assets** — Non-markdown files (images, data, configs)
-- **Install files** — Dashboards and system files placed into the Mesh
+- **Install files** — System files, folder anchors, and note templates placed into the Flint. A shard installs no dashboard (NUU Flint Task 1375)
 - **Migrations** — Upgrade scripts for bumping installed shard versions
 
 ## Source and Shard
@@ -92,7 +92,7 @@ All shard files use the shorthand (`<sh>`) as a namespace:
 | Knowledge | `knw-<sh>-<name>.md` | `knw-proj-lifecycle.md` |
 | Asset | `ast-<sh>-<name>.<ext>` | `ast-proj-diagram.svg` |
 | Migration | `mig-<sh>-<from>-to-<to>.md` | `mig-proj-1.0.0-to-1.1.0.md` |
-| Install Payload | `inst-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `inst-proj-backlog_dashboard.md` |
+| Install Payload | `inst-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `inst-mem-index.md` |
 | Note Template | `otmp-<sh>-<name>.md` (under `install/`, no `dev-` prefix) | `otmp-proj-task.md` |
 | Type Definition | `type-<sh>-<type>[_<subtype>].md` (under `install/`, no `dev-` prefix) | `type-proj-task.md` |
 | Script | `<name>.js` (under `scripts/`; in the shard: `<name>.js`, in the source: `dev-<name>.js`) | `newtasknum.js` |
@@ -131,8 +131,8 @@ setup: full                                 # full | flint | local
 types:
   - Task
 install:
-  - source: (Dashboard) X.md
-    dest: Mesh/(Dashboard) X.md
+  - source: inst-sh-guide.md
+    dest: Mesh/(System) Shard Name Guide.md
     mode: once
 folders:
   - Mesh/Types/Tasks/

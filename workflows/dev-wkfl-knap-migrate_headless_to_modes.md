@@ -173,7 +173,7 @@ Do this for each workflow that has a headless invocation file (`dev-hwkfl-<sh>-<
 Do this when the source has `dev-hinit-<sh>.md`, and only when no conflict is open: a conflict stops the migration before this stage. Ten sources have only this file.
 
 1. Read `dev-hinit-<sh>.md` and `dev-init-<sh>.md` fully.
-2. Add a section `# Headless` to `dev-init-<sh>.md`, after the sections on the workflows (before `# Dashboards` when the init has one). Start it with: "A headless or subagent Orbh session has no person at the terminal. It loads this init with `flint shard start <sh>`, as an interactive session does. Follow the `> [!headless]` callouts of the workflows."
+2. Add a section `# Headless` to `dev-init-<sh>.md`, after the sections on the workflows. Start it with: "A headless or subagent Orbh session has no person at the terminal. It loads this init with `flint shard start <sh>`, as an interactive session does. Follow the `> [!headless]` callouts of the workflows."
 3. Move the content of the headless init into the section:
    - `## Orbh Interface Keys`: the table of keys, `### Phase Values`, and `### Progress Format` (and the example of the session interface);
    - `## Result Delivery`: `flint orbh session return --finish "<result>"`, and what the result holds;

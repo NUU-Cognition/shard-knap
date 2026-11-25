@@ -26,7 +26,7 @@ Add new capabilities to an existing shard — new skills, workflows, templates, 
    - Does it complement existing skills/workflows?
    - Does it introduce a new concept that needs knowledge documentation?
    - Does it create a new artifact type that needs a template?
-   - Does it need a dashboard or install file?
+   - Does it need an install file (a system file, a folder anchor, or a note template)? A shard installs no dashboard
 
 Present the plan to the user. Once confirmed, progress to the next stage.
 

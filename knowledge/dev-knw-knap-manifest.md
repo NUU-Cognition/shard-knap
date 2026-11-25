@@ -54,9 +54,9 @@ types:                               # Artifact types managed by the shard
 folders:                             # Directories to create in flint root
   - "Mesh/Types/Tasks (Task)"       # Artifact storage folder
 
-install:                                      # Files to install into the workspace
-  - source: inst-proj-backlog_dashboard.md    # inst-<sh>-<name>.md in install/
-    dest: Mesh/(Dashboard) Backlog.md          # literal target filename in dest
+install:                                      # Files to install into the workspace (never a dashboard)
+  - source: inst-proj-guide.md                # inst-<sh>-<name>.md in install/
+    dest: Mesh/(System) Projects Guide.md      # literal target filename in dest
     mode: once                                 # Install only if not present (default)
   - source: inst-proj-init.md
     dest: Mesh/(System) Init.md
@@ -293,8 +293,8 @@ Array of file mappings. Each entry copies a file from the shard's `install/` fol
 
 ```yaml
 install:
-  - source: inst-proj-backlog_dashboard.md
-    dest: Mesh/(Dashboard) Backlog.md
+  - source: inst-proj-guide.md
+    dest: Mesh/(System) Projects Guide.md
     mode: once
 ```
 
@@ -303,10 +303,12 @@ install:
 | Field | Type | Default | Purpose |
 |-------|------|---------|---------|
 | `source` | string | required | Filename in `install/` folder. Must be `inst-<sh>-<name>.md` or `otmp-<sh>-<name>.md`. No `dev-` prefix — install files are user-facing artifacts. |
-| `dest` | string | required | Destination path from flint root — this is where the literal target filename (e.g. `(Dashboard) Backlog.md`) lives |
+| `dest` | string | required | Destination path from flint root — this is where the literal target filename (e.g. `(System) Flint Init.md`) lives |
 | `mode` | `once` \| `force` | `once` | Overwrite behavior |
 
-**Source naming convention:** the `source` file inside `install/` is shard-namespaced (`inst-<sh>-<name>.md` for general payloads, `otmp-<sh>-<name>.md` for note templates). The user-facing filename — e.g. `(System) Flint Init.md` or `(Dashboard) Backlog.md` — appears only in `dest`. This keeps the `install/` folder self-describing (every file clearly belongs to this shard) and keeps target naming at the workspace layer.
+**Source naming convention:** the `source` file inside `install/` is shard-namespaced (`inst-<sh>-<name>.md` for general payloads, `otmp-<sh>-<name>.md` for note templates). The user-facing filename — e.g. `(System) Flint Init.md` or `(Memory) INDEX.md` — appears only in `dest`. This keeps the `install/` folder self-describing (every file clearly belongs to this shard) and keeps target naming at the workspace layer.
+
+**No dashboard.** A shard installs no `(Dashboard)` file (NUU Flint Task 1375). An `install:` entry holds a system file, a folder anchor, or a note template. A dashboard is a note that a person makes. When a new version of a shard drops an entry, its install deletes the payload when the payload has no change, and keeps a changed copy (NUU Flint Task 1371).
 
 Type definition files (`type-<sh>-<type>.md`) also live in `install/` but are **not** declared under `install:` — they are driven by the `types:` field and resolved automatically.
 
@@ -420,8 +422,8 @@ setup: full                                     # no quotes (enum)
 folders:
   - Mesh/Types/Tasks (Task)                     # no quotes (parens are fine)
 install:
-  - source: inst-proj-backlog_dashboard.md      # inst-<sh>-<name> source
-    dest: Mesh/(Dashboard) Backlog.md           # literal target name
+  - source: inst-proj-guide.md                  # inst-<sh>-<name> source
+    dest: Mesh/(System) Projects Guide.md       # literal target name
     mode: once                                  # no quotes
 ```
 
@@ -447,29 +449,9 @@ Files in the `install/` folder support these placeholders, resolved at install t
 | `{{uuid}}` | Random UUID v4 | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` |
 | `{{date}}` | Current date | `2026-04-14` |
 
-Use them in system files and dashboards that need a unique id or a date at install. A note template (`otmp-`) does not use them. The install copies a note template byte for byte, and Templater resolves its own syntax when a person makes a note: `<% crypto.randomUUID() %>` for the id, `<% tp.date.now("YYYY-MM-DD") %>` for the date. A health rule gives a warning for each `{{uuid}}` or `{{date}}` in a note template.
+Use them in system files that need a unique id or a date at install. A note template (`otmp-`) does not use them. The install copies a note template byte for byte, and Templater resolves its own syntax when a person makes a note: `<% crypto.randomUUID() %>` for the id, `<% tp.date.now("YYYY-MM-DD") %>` for the date. A health rule gives a warning for each `{{uuid}}` or `{{date}}` in a note template.
 
 ## Common Patterns
-
-### Dashboard-Only Shard
-
-```yaml
-shard-spec: "0.4.0"
-shard: "@nuucognition/my-dashboard"
-id: 00000000-0000-4000-8000-000000000000
-source:
-  id: 00000000-0000-4000-8000-00000000000a
-version: "1.0.0"
-name: My Dashboard
-shorthand: md
-description: Provides tracking dashboards
-dependencies:
-  "@nuucognition/flint": "^0.2"
-install:
-  - source: inst-md-overview_dashboard.md
-    dest: Mesh/(Dashboard) Overview.md
-    mode: once
-```
 
 ### Full Artifact Shard
 
@@ -488,10 +470,6 @@ dependencies:
   "@nuucognition/notepad": "^1.0"
 types:
   - Task
-install:
-  - source: inst-proj-backlog_dashboard.md
-    dest: Mesh/(Dashboard) Backlog.md
-    mode: once
 folders:
   - Mesh/Types/Tasks/
 ```
@@ -530,9 +508,6 @@ dependencies:
 types:
   - Task
 install:
-  - source: inst-proj-backlog_dashboard.md
-    dest: Mesh/(Dashboard) Backlog.md
-    mode: once
   - source: otmp-proj-task.md
     dest: Shards/(Shards) Obsidian Templates/otmp-proj-task.md
     mode: force

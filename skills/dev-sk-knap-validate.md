@@ -63,7 +63,8 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] Migrations: `dev-mig-<sh>-<from>-to-<to>.md` (dev-prefix applies — migrations ship with the shard)
    - [ ] Note templates (in `install/`): `otmp-<sh>-<name>.md` — **no dev prefix**. Warning on `{{uuid}}` or `{{date}}` in a note template: use Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`)
    - [ ] Type definitions (in `install/`): `type-<sh>-<type>[_<subtype>].md` — **no dev prefix**
-   - [ ] Dashboards / system files (in `install/`): bare names like `(Dashboard) X.md` — **no dev prefix**
+   - [ ] System files (in `install/`): `inst-<sh>-<name>.md` — **no dev prefix**
+   - [ ] **Error** on an `install:` entry whose `dest` is a `(Dashboard)` file — a shard installs no dashboard (NUU Flint Task 1375)
    - [ ] Shorthand matches `shard.yaml`
    - [ ] **Error** on any `install/dev-*` file — install payloads never have dev prefix
 

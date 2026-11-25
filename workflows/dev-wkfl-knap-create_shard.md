@@ -39,7 +39,7 @@ Confirm the shard design with the user:
    - What skills does it provide? (Atomic tasks)
    - What workflows does it provide? (Multi-stage tasks)
    - What knowledge does it need? (Deep reference material)
-   - Does it need dashboards or other install files? (Dashboards, system files, note templates)
+   - Does it need install files? (System files, folder anchors, note templates. Never a dashboard: a shard installs no `(Dashboard)` file)
    - Does it need scripts? (Deterministic CLI operations)
    - Does it need folders created? (Artifact storage — declared in `folders:`; never an archive folder)
    - Does it need one-time setup? (Credentials, repo clones, builds — declared via `setup:` + `dev-setup-<sh>.md`)
@@ -74,7 +74,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    - Add `dependencies:` as a map from package name to range (almost always `"@nuucognition/flint": "^0.2"`)
    - Add `types:` for any artifact types the shard manages, or run `flint shard type add <Name> --shard <sh>` (it writes the type file, the template, the folder, and the `types:` entry, and builds the shard)
    - Add `folders:` for artifact storage paths. Do not add an archive folder: an archived artifact stays in its folder with the status `archived`
-   - Add `install:` entries for dashboards or note templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`)
+   - Add `install:` entries for system files or note templates (sources must be `inst-<sh>-…` or `otmp-<sh>-…`). Do not add a dashboard
    - Add `repos:` if external git clones are required
    - Do **not** declare scripts/skills/workflows/templates/knowledge — they are auto-discovered
 
@@ -94,7 +94,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
 7. **Add an invocation file to a workflow** (optional): when a workflow has stages that an agent must do in order, an input artifact, a value to return, a child workflow of another shard, or edits that a script can do at the open, at a step, or at the end of the session, add `workflows/dev-wkfl-<sh>-<name>.invocation.json` beside it. One invocation file serves both modes. Use the format `shard-invocation/0.3`, and copy each `stage` from the exact heading of the stage. A step only for a person gets `"modes": ["interactive"]`, and a step whose hint differs in a headless session gets a `next` object for each mode. Add a `# Invocation` section to the Markdown workflow. A skill and a short workflow with no steps get no invocation file. Read [[dev-knw-knap-invocations]] first.
 
 8. **Create install payloads** (**no `dev-` prefix** inside `install/`):
-   - General payloads: `install/inst-<sh>-<name>.md` (dashboards, system files) — declare under `install:` in `shard.yaml`
+   - General payloads: `install/inst-<sh>-<name>.md` (system files, folder anchors; never a dashboard) — declare under `install:` in `shard.yaml`
    - Note templates: `install/otmp-<sh>-<name>.md` — declare under `install:` with dest `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` and `mode: force`. Use Templater syntax (`<% crypto.randomUUID() %>`, `<% tp.date.now("YYYY-MM-DD") %>`), not `{{uuid}}` or `{{date}}`
    - Type definitions: `install/type-<sh>-<type>[_<subtype>].md` per [[dev-tmp-knap-type-v0.1]] — auto-resolved via `types:`, do **not** add an `install:` entry
 

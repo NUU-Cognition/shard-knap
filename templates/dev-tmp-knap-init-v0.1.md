@@ -21,7 +21,7 @@ The init file provides:
 - Required-reading list (YAML frontmatter, Obsidian wikilinks).
 - Core domain concepts and models.
 - Lifecycle / state diagrams (if applicable).
-- Dashboard, script, and CLI references (if applicable).
+- Script and CLI references (if applicable). A shard installs no dashboard, so the init names none.
 - Any domain-specific rules or conventions.
 - A `# Headless` section (only when the shard runs in headless Orbh sessions): the interface keys, the phase values, and the result delivery.
 
@@ -60,15 +60,6 @@ required-reading:
 | Status | Meaning |
 |--------|---------|
 | `[status]` | [what this status means] |
-| (continue) |
-
-## Dashboards
-
-/* If the shard provides dashboards */
-
-| Dashboard | Purpose | Maintained By |
-|-----------|---------|---------------|
-| `(Dashboard) [Name].md` | [what it shows] | [DataviewJS|Manual|Agent] |
 | (continue) |
 
 ## Scripts

@@ -2,6 +2,7 @@
 
 ## Release 1.5.0
 
+- A shard installs no dashboard (NUU Flint Task 1375). The init, the manifest and architecture knowledge, the init template, the `shard.yaml` template, the workflows `create_shard`, `iterate`, and `migrate_headless_to_modes`, and the skill `validate` teach no dashboard. An `install:` entry holds a system file, a folder anchor, or a note template, and `validate` gives an error for a `(Dashboard)` destination. `knw-knap-cli` says that `flint shard type add --dashboard` refuses with `dashboard-removed`. The manifest knowledge says that the install of a new version deletes a dropped payload that has no change (NUU Flint Task 1371).
 - No archive folder (NUU Flint Task 1362). The manifest knowledge, the init, the `shard.yaml` template, and the workflow `create_shard` tell an author not to declare an archive folder: an archived artifact stays in its folder with the status `archived`. The examples of `folders:` have no `Mesh/Archive/` entry, and the type file of the type Shard has no `Archive` row.
 - The manifest field `repos:` clones into `Workspace/Repos/<Name>/`, not into `Shards/(Shards) Repos/` (`knw-knap-manifest` § `repos`, `knw-knap-architecture` § Workspace System Folders).
 

@@ -197,7 +197,7 @@ Files in a source (`(Source Remote)` and `(Source Local)` folders) are prefixed 
 | `assets/` | `dev-` (as `dev-ast-<sh>-<name>.<ext>`) | Source assets, stripped by the build |
 | `scripts/` | `dev-` (as `dev-<name>.js`) | Source scripts, stripped by the build |
 | `migrations/` | `dev-` | Migrations ship in the shard and could be overwritten on update — the prefix keeps the source distinct |
-| `install/` | **no prefix** | Files under `install/` are literal payloads copied verbatim to a destination (dashboards, system files, type definitions, note templates). They are not shard sources — they are user-facing artifacts that happen to ship with the shard. |
+| `install/` | **no prefix** | Files under `install/` are literal payloads copied verbatim to a destination (system files, folder anchors, type definitions, note templates; never a dashboard). They are not shard sources — they are user-facing artifacts that happen to ship with the shard. |
 
 The build refuses `install/dev-*` files (error). The health check flags a file with no `dev-` prefix in every other location of a source. The root documents `README.md`, `RELEASE.md`, and `MIGRATIONS.md` stay in the source: the build has none of them, and no package hash covers them. `flint shard release` sends `README.md` to the registry.
 
@@ -264,7 +264,7 @@ The shard's interactive context file — what agents load when they need this sh
 **Purpose:**
 - Explain the shard's domain and core concepts
 - Declare required reading via YAML frontmatter
-- Document lifecycle, state management, dashboards
+- Document lifecycle and state management
 - Provide enough context to use the shard without reading other files
 
 **YAML Frontmatter** (in the source — the build strips `dev-`):
@@ -556,11 +556,11 @@ Non-markdown files that support the shard — images, SVGs, data files, configs.
 
 ### Install Files (`install/`)
 
-Files placed into the Flint workspace during installation, declared in `shard.yaml` under `install:`. The `source` filename uses a shard-namespaced convention; the literal target name (e.g. `(Dashboard) Backlog.md`, `(System) Flint Init.md`) only appears in `dest`.
+Files placed into the Flint workspace during installation, declared in `shard.yaml` under `install:`. The `source` filename uses a shard-namespaced convention; the literal target name (e.g. `(System) Flint Init.md`, `(Memory) INDEX.md`) only appears in `dest`. A shard installs no `(Dashboard)` file (NUU Flint Task 1375): a dashboard is a note that a person makes.
 
 | Source pattern | Purpose | Example dest |
 |----------------|---------|--------------|
-| `inst-<sh>-<name>.md` | General install payload (dashboards, system files, folder anchors, etc.) | `Mesh/(Dashboard) Backlog.md`, `Mesh/(System) Flint Init.md` |
+| `inst-<sh>-<name>.md` | General install payload (system files, folder anchors, etc.; never a dashboard) | `Mesh/(System) Flint Init.md`, `Mesh/Memories/(Memory) INDEX.md` |
 | `type-<sh>-<type>[_<subtype>].md` | Type definition — auto-installed via `types:` declaration, not `install:` | `Mesh/Metadata/Types/(Type) Task (Projects Shard).md` |
 | `otmp-<sh>-<name>.md` | Note template (human-facing, Templater syntax) | `Shards/(Shards) Obsidian Templates/otmp-<sh>-<name>.md` |
 
