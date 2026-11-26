@@ -1,5 +1,7 @@
 ---
 description: "Shard script file structure"
+orb:
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 ---
 
 # Naming and Placement
@@ -33,7 +35,7 @@ const fs = require('fs');
 const path = require('path');
 
 const flintRoot = process.env.FLINT_ROOT || process.cwd();
-const targetDir = path.join(flintRoot, '[path to target directory, e.g. "Mesh/Types/Tasks (Task)"]');
+const targetDir = path.join(flintRoot, '[path to target directory, e.g. "Mesh/Types/Tasks"]');
 
 function main() {
   // [Implementation]

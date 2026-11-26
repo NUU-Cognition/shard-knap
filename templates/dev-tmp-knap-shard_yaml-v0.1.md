@@ -5,6 +5,7 @@ orbh-sessions:
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 orb:
   - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 orbh-fleet:
   - flint-cleanup-1122
 ---
@@ -27,7 +28,7 @@ source:
 version: "[semver version, e.g. 1.0.0]"
 name: [Shard name: the Display Name law; Proper Case is the convention]
 shorthand: [lowercase-letters-only identifier, any length]
-description: [Brief description of what the shard does, one sentence]
+description: [One sentence that says when to use the shard, about 20 words, for example: Use when a task plans or tracks the tasks of a project. Quote the value when it has a colon and a space]
 
 /* Optional: written by `flint shard rename <alias> --name`. One line per rename of the name, oldest first. Do not write it by hand. */
 formerNames:
@@ -80,7 +81,7 @@ types:
    Used for artifact storage folders and any other directories the shard needs.
    Never an archive folder: an archived artifact stays in its folder with the status archived. */
 folders:
-  - ["Mesh/Types/Tasks (Task)"]
+  - [Mesh/Types/Tasks/]
   - (continue)
 
 /* Optional: files to install outside the shard folder.
@@ -114,6 +115,7 @@ install:
 - `version`: Semver `major.minor.patch`. Start at `"1.0.0"` for release, `"0.1.0"` for development.
 - `name`: the Display Name law (letters, digits, spaces, `-`, and `' , . ! & + ; @`; no `/ # ( ) [ ] : ?`; no trailing dot). Proper Case is the convention; the health check warns, never refuses. The slug is `slugKey(name)`, so a rename of the name moves the address and edits `shard` (the id stays). The build folder is the name when the alias is the slug, else the alias as a Title.
 - `shorthand`: lowercase letters only, any length. The prefix of every file name. It must be unique in one Flint: an install whose shorthand is taken is refused.
+- `description`: one sentence that says when to use the shard (`Use when a task …`); about 20 words is the recommendation. The shard index (`.flint/shard-index.md`) shows it, and an agent reads the index to decide which shards to load. See [[dev-knw-knap-manifest]] § `description`.
 - `dependencies`: a map from package name to range. Almost always include `"@nuucognition/flint"`. A shard record of this Flint with that address and a version inside the range satisfies it. The install refuses a present dependency outside the range.
 - `setup`: `full`, `flint`, or `local`. **Requires** a companion `dev-setup-<sh>.md` file — install refuses without it. Mark setup complete with `flint shard setup <alias> --complete`.
 - `types[]`: `Type` or `Type.Subtype`, each word with a capital letter. Auto-installs the type definition from `install/type-<sh>-<snake>.md` to `Mesh/Metadata/Types/(Type) <Name> (<Shard> Shard).md` — do NOT write a separate `install:` entry. See [[dev-knw-knap-architecture]] § Type Installation.

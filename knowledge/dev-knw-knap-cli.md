@@ -1,11 +1,13 @@
 ---
 name: Knap CLI Reference
-description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (create, build, dev, clone, release, install, update, fork, rename, id, uninstall, invoke, step, invocations, ready, assumed), the retired and removed inputs, and the --json shapes
+description: Full flint shard CLI surface — the ref and its one resolver, the package spec and the walk, the row, each command (browse, create, build, broadcast, dev, clone, release, install, update, fork, rename, id, uninstall, invoke, step, invocations, ready, assumed), the retired and removed inputs, and the --json shapes
 type: knowledge
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[947c6566-a653-4887-8ff6-b3f35ac99628]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 ---
 
 # Knap CLI Reference
@@ -72,6 +74,7 @@ Every inspect surface prints one row with one set of labels in one order: `Id`, 
 | Command | Purpose |
 |---------|---------|
 | `flint shard list` (alias `ls`) `[--json]` | One line per shard: `ID PACKAGE SHORTHAND VERSION STATE` (the id in 8 characters; the column `ALIAS` shows when an alias differs from its slug). |
+| `flint shard browse [<query>] [--installed] [--available] [--json]` (alias `search`) | The shards that this Flint can install: the shard registry and the shard sources of the Flints of this machine, each with its state here and the spec that installs it. The query matches the name, the slug, the shorthand, the address, or the description. It writes nothing. Run it before you create a shard and before you install one. |
 | `flint shard status <ref> [--json] [--health]` | The row, then the Git state of the source, the reference path, `stale`, the dependencies, and the pending migrations. `--health` also runs the health check and exits 1 on an error finding. |
 | `flint shard info <ref>` | An alias of `status`: the same text and the same `--json`. |
 | `flint shard <ref>` | Runs `status`. |
@@ -183,6 +186,7 @@ meeting-notes = { source = "@nuucognition/meeting-notes@0.1.0", git = "nuu-cogni
 | `flint shard install <input> --alias <alias>` | Install under another alias (kebab-case). Needed for a second shard with the same slug. The build folder is the alias as a Title. |
 | `flint shard install <input> --no-deps` | Install the shard alone. The missing dependencies are printed with their install commands. |
 | `flint shard install --all-dev` | Build the shard of every source of this Flint. A record with `use = "none"` is skipped with one line. |
+| `flint shard install --core [--json]` | Install each core shard (Flint, Orbh, Mesh) and Invironments that this Flint does not have. The present ones stay. It takes no other source: with a spec, `--from-git`, `--from-path`, or `--all-dev` it refuses. |
 | `flint shard reinstall [<ref>] [--replace-note-templates]` | Install the shard again from its record. A `from = "source"` record calls `build`. `--replace-note-templates` replaces each changed note template with the note template of the shard, after a backup of the changed copy. |
 | `flint shard update [<ref>] [--json]` | Resolve each spec again inside its range and move the lock to the highest version, like `pnpm update`. It is the one command that moves a version that the lock satisfies. A spec with an exact version does not move. A build of a source is skipped: `built from its source: run flint shard build <alias>`. A rename that the new version carries heals at once (`moved: …`). |
 | `flint shard uninstall <ref> [--json]` | Remove the build, the lock record, the local entry, and the unchanged payloads. A changed or shared payload stays. For a `from = "source"` record the source and the record stay, and the record gets `use = "none"`. |
@@ -211,6 +215,7 @@ The transitive plan prints one line per missing package before any write, then i
 |---------|---------|
 | `flint shard create "<Name>" [-s <sh>] [-d "<desc>"] [--setup [full\|flint\|local]] [--no-install] [--json]` | Make a local source `Shards/(Source Local) <Name>/` with `shard.yaml` (`shard-spec: "0.4.0"`, the shard id, the source id, and `shard: "@<org>/<slug>"` with the org of the Flint, or `"@/<slug>"` with no org), `dev-init-<sh>.md`, `README.md`, and a setup file with `--setup`. Writes the record `<alias> = { source = "@org/<slug>", from = "source" }` and builds the shard. `--no-install` writes `use = "none"` and builds nothing. The name follows the Display Name law ([[dev-knw-knap-manifest]] § name). **Always start here.** |
 | `flint shard build <ref> [--force] [--json]` | Make the build from the source of the record and write the lock state: `snapshot` with the sha (a clean Git source) or `edited`. A build of a `use = "none"` record removes `use = "none"`. |
+| `flint shard broadcast <ref> [--dry-run] [--only <flint...>] [--json]` | Run it in the Flint that holds the source, after a change to the source. It updates each direct consumer on this machine: a Flint with a record `@org/<slug>#<this Flint>`, or `#<this machine>` when its walk selects this Flint. A consumer whose lock holds the hash of the package is `current` and does not change. The broadcast installs no missing dependency, runs no migration, and makes no commit. A consumer that cannot take the package gets a `refused` or `skipped` row with the reason. `--dry-run` shows the rows and writes nothing. A Flint that is not a consumer takes a released version with `flint shard update <ref>`. |
 | `flint shard dev <ref> <url>` | Promote a local source to a remote source: `git init`, set the remote, commit, push. The folder becomes `(Source Remote) <Name>`, the source id stays, and the record gets `git = "owner/repo"`. |
 | `flint shard clone <spec> [--from-git <owner/repo>] [--alias <alias>] [--no-build] [--json]` | Clone the source of a published shard into `Shards/(Source Remote) <Name>/`. The registry says where the repository is. Writes `{ source = "@org/<slug>", from = "source" }` (with `git` for a location that you gave) and builds the shard. |
 | `flint shard fork <spec> --name "<Name>" [--shorthand <sh>] [--no-install] [--json]` | Make a new local source with a new shard id and a new source id, and `of` on each. Its `shard` gets the org of the Flint and the slug of the new name. The origin does not change. A fork in the same Flint needs a new shorthand. |
@@ -424,6 +429,8 @@ The row:
 
 ## When to Use What — Authoring Flow
 
+Look before you build: run `flint shard browse <word>` first. When a shard already gives the capability, install it or change it, and do not create a duplicate shard.
+
 1. `flint shard create "<Name>" -s <sh>` — scaffold the source, mint the two ids, build the shard.
 2. Edit `dev-init-<sh>.md`, write skills, workflows, templates, and knowledge by hand.
 3. `flint shard type add <Name> --shard <alias>` for each artifact type.
@@ -432,6 +439,7 @@ The row:
 6. `flint shard build <alias>` after you edit the source. `start` tells you when the build is stale.
 7. `flint shard dev <alias> <github-url>` once the source is ready for a repository.
 8. `flint shard release <alias>` to tag, push, and register a version.
+9. `flint shard broadcast <alias>` after a later change to the source, to update each Flint of this machine that installs the shard from this Flint.
 
 To edit a published shard in another Flint: `flint shard clone @org/name`, edit, `flint shard build <alias>`, then `flint shard push <alias>` and `flint shard release <alias>`.
 

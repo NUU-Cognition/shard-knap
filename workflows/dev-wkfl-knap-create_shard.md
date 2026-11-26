@@ -6,6 +6,7 @@ orbh-sessions:
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 orb:
   - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 orbh-fleet:
   - flint-cleanup-1122
 ---
@@ -32,9 +33,11 @@ Scaffold a new shard: a local source and its build.
 
 Confirm the shard design with the user:
 
-1. **Validate the shorthand** — must be lowercase letters only (any length) and not conflict with existing shards (check `flint shard list`; `flint shard create` refuses a taken shorthand with `shorthand-taken`)
-2. **Define the domain** — what one thing does this shard do? A shard should have single responsibility.
-3. **List capabilities:**
+1. **Look before you build** — run `flint shard browse <word>` for each main word of the purpose (what exists: the shard registry and the shard sources of this machine), and `flint shard list` (what this Flint has). When a shard already gives the capability, install it with the spec of its row, or change it with [[dev-wkfl-knap-iterate]]. Do not create a duplicate shard.
+2. **Validate the shorthand** — must be lowercase letters only (any length) and not conflict with existing shards (check `flint shard list`; `flint shard create` refuses a taken shorthand with `shorthand-taken`)
+3. **Define the domain** — what one thing does this shard do? A shard should have single responsibility.
+4. **Write the description** — one sentence that says when to use the shard (`Use when a task …`), about 20 words. The shard index shows it, and an agent reads it to decide if it loads the shard ([[dev-knw-knap-manifest]] § `description`).
+5. **List capabilities:**
    - What artifacts does it manage? (What `(Type)` name, what subtypes, what template)
    - What skills does it provide? (Atomic tasks)
    - What workflows does it provide? (Multi-stage tasks)
@@ -43,7 +46,7 @@ Confirm the shard design with the user:
    - Does it need scripts? (Deterministic CLI operations)
    - Does it need folders created? (Artifact storage — declared in `folders:`; never an archive folder)
    - Does it need one-time setup? (Credentials, repo clones, builds — declared via `setup:` + `dev-setup-<sh>.md`)
-4. **Identify dependencies** — which other shards must be installed first: a package name and a range for each (`"@nuucognition/notepad": "^1.0"`)
+6. **Identify dependencies** — which other shards must be installed first: a package name and a range for each (`"@nuucognition/notepad": "^1.0"`)
 
 Present the design to the user for confirmation. Once confirmed, progress to the next stage.
 
@@ -55,6 +58,7 @@ Use `flint shard create` to make a new local source at `Shards/(Source Local) [N
    ```bash
    flint shard create "<Title>" -s <sh> -d "<description>" [--setup [full|flint|local]] [--no-install]
    ```
+   - `-d` gives the description: the one sentence of Stage 1 that says when to use the shard
    - `--setup` adds `dev-setup-<sh>.md` and declares `setup:` in `shard.yaml` (default scope `full`)
    - `--no-install` writes the source only (the record gets `use = "none"`); build it later with `flint shard build <alias>`
    - Without `-s`, a free shorthand is derived from the name — pass it explicitly when you want control

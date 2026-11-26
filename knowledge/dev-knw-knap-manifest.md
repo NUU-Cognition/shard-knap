@@ -6,6 +6,7 @@ orbh-sessions:
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 orb:
   - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 orbh-fleet:
   - flint-cleanup-1122
 ---
@@ -28,7 +29,7 @@ source:                              # The source block
 version: "1.0.0"                     # Semantic versioning (major.minor.patch)
 name: Shard Name                     # The Display Name law; Proper Case is the convention
 shorthand: sh                        # lowercase-letters-only identifier (any length)
-description: What the shard does     # Brief description (one sentence)
+description: Use when a task does X  # One sentence that says when to use the shard
 
 # Optional fields — written by the CLI, never by hand
 formerNames:                         # One line per rename of the name (flint shard rename --name)
@@ -52,7 +53,7 @@ types:                               # Artifact types managed by the shard
   - Note.Concept                     # Subtype with dot separator
 
 folders:                             # Directories to create in flint root
-  - "Mesh/Types/Tasks (Task)"       # Artifact storage folder
+  - Mesh/Types/Tasks/               # Artifact storage folder
 
 install:                                      # Files to install into the workspace (never a dashboard)
   - source: inst-proj-guide.md                # inst-<sh>-<name>.md in install/
@@ -186,7 +187,17 @@ Pick the shortest unambiguous form: short shorthands compose well into long file
 
 ### `description` (required)
 
-Brief, single-sentence description of what the shard provides. Used in CLI output and discovery.
+One sentence that says when to use the shard. About 20 words is the recommendation; no command checks the length.
+
+The shard index (`.flint/shard-index.md`) shows the description of each shard of a Flint, beside its shorthand and its name. An agent reads the index before a task and loads only the shards whose line matches the task. Thus the description decides if an agent loads the shard. `flint shard start` also prints it, and `flint shard browse <query>` searches it.
+
+- Say when to use the shard, not what its files are: `Use when a task …`. For a shard that each session loads: `Load at the start of each session: …`.
+- Name the things that the task touches (the artifacts, the commands, the tools).
+- Write one line, with no line break. Quote the value when it has a colon and a space.
+
+```yaml
+description: "Use when a task creates, changes, checks, or releases a shard or a module: the templates, the manifest rules, the module contract, and the commands."
+```
 
 ### `dependencies` (optional)
 
@@ -282,7 +293,7 @@ Do not declare an archive folder (NUU Flint Task 1362). An archived artifact sta
 
 ```yaml
 folders:
-  - "Mesh/Types/Tasks (Task)"     # Artifact storage
+  - Mesh/Types/Tasks/             # Artifact storage
 ```
 
 Since `types:` only installs type definition files, shards that need artifact storage folders must declare them explicitly here.
@@ -393,8 +404,8 @@ Only things with no filesystem signature of their own need explicit declaration:
 YAML is permissive about unquoted strings. Leaving strings unquoted keeps manifests clean. Quote only when needed:
 
 **Do NOT need quotes:**
-- Plain strings with spaces: `name: My Shard`, `description: Task management with lifecycle tracking`
-- Paths with parentheses: `- Mesh/Types/Tasks (Task)`, `dest: Mesh/Metadata/Types/(Type) Task (Projects Shard).md`
+- Plain strings with spaces: `name: My Shard`, `description: Use when a task creates, plans, or tracks the tasks of a project`
+- Paths with parentheses: `dest: Mesh/(System) Projects Guide.md`, `dest: Mesh/Metadata/Types/(Type) Task (Projects Shard).md`
 - Enum-like values: `setup: full`, `mode: once`, `state: active`
 - Plain identifiers: `shorthand: proj`
 
@@ -405,7 +416,7 @@ YAML is permissive about unquoted strings. Leaving strings unquoted keeps manife
 - Strings that look like booleans or keywords: `"yes"`, `"no"`, `"true"`, `"false"`, `"null"`, `"on"`, `"off"`
 - Strings starting with YAML metacharacters: `{`, `}`, `[`, `]`, `,`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``, `#`
 - Strings starting or ending with whitespace (rare)
-- Anything containing a colon followed by a space (`: `)
+- Anything containing a colon followed by a space (`: `), for example a description `"Use when a task …: the rules and the templates"`
 
 **Convention:** use double quotes when quoting is needed. Single quotes are allowed but mix poorly with apostrophes in descriptions.
 
@@ -413,17 +424,17 @@ Examples:
 
 ```yaml
 name: Projects                                  # no quotes
-description: Task management with lifecycle     # no quotes
+description: Use when a task tracks a project   # no quotes
 shorthand: proj                                 # no quotes
 shard-spec: "0.4.0"                             # quoted (version string)
 shard: "@nuucognition/projects"                 # quoted (starts with @)
 version: "1.0.0"                                # quoted (version string)
 setup: full                                     # no quotes (enum)
 folders:
-  - Mesh/Types/Tasks (Task)                     # no quotes (parens are fine)
+  - Mesh/Types/Tasks/                           # no quotes
 install:
   - source: inst-proj-guide.md                  # inst-<sh>-<name> source
-    dest: Mesh/(System) Projects Guide.md       # literal target name
+    dest: Mesh/(System) Projects Guide.md       # literal target name; no quotes (parens are fine)
     mode: once                                  # no quotes
 ```
 
@@ -464,7 +475,7 @@ source:
 version: "1.0.0"
 name: Projects
 shorthand: proj
-description: Task management with lifecycle tracking
+description: Use when a task creates, plans, or tracks the tasks of a project
 dependencies:
   "@nuucognition/flint": "^0.2"
   "@nuucognition/notepad": "^1.0"
@@ -485,7 +496,7 @@ source:
 version: "1.0.0"
 name: Living Documents
 shorthand: ld
-description: Track document lifecycle (living vs dead)
+description: Use when a task marks a document as living or dead, or reads that state
 dependencies:
   "@nuucognition/flint": "^0.2"
 ```
@@ -501,7 +512,7 @@ source:
 version: "1.0.0"
 name: Projects
 shorthand: proj
-description: Task management with lifecycle tracking
+description: Use when a task creates, plans, or tracks the tasks of a project
 dependencies:
   "@nuucognition/flint": "^0.2"
   "@nuucognition/notepad": "^1.0"
@@ -524,7 +535,7 @@ source:
 version: "1.0.0"
 name: My Integration
 shorthand: mi
-description: Integrates with an external service
+description: Use when a task reads or writes the records of the external service
 dependencies:
   "@nuucognition/flint": "^0.2"
 setup: full
@@ -542,7 +553,7 @@ A valid `shard.yaml` must have:
 - [ ] `version` — valid semver string (`major.minor.patch`)
 - [ ] `name` — passes the Display Name law (a warning if it is not Proper Case)
 - [ ] `shorthand` — non-empty lowercase-letters-only string (any length; pattern `^[a-z]+$`)
-- [ ] `description` — non-empty single-line string
+- [ ] `description` — non-empty single-line string (the convention: one sentence that says when to use the shard)
 - [ ] Every `dependencies` key is a package name (`@org/name` or `@org/shard/name`) with no range and no place
 - [ ] Every `dependencies` value is an exact version, a caret range, a tilde range, or `""`
 - [ ] All `types[]` entries match `Type` or `Type.Subtype`, each word with a capital letter

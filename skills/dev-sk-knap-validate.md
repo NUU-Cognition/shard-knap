@@ -3,6 +3,8 @@ description: "Validate shard structure and manifest integrity"
 orbh-sessions:
   - "[[1fe72314-c531-4439-81fd-b8f136b7e2cc]]"
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
+orb:
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 ---
 
 > [!important] THIS FILE IS AN INSTRUCTION. WHEN REFERENCED IT IS MEANT TO BE TAKEN AS AN ACTION.
@@ -28,7 +30,7 @@ Validate that a shard follows Flint conventions and is structurally complete.
    - [ ] `version` — valid semver string (`major.minor.patch`)
    - [ ] `name` — the Display Name law (error otherwise: an empty name, a forbidden character such as `/`, a trailing dot); a name that is not Proper Case is a warning (the convention)
    - [ ] `shorthand` — lowercase-letters-only string (any length, pattern `^[a-z]+$`)
-   - [ ] `description` — non-empty single-line string
+   - [ ] `description` — non-empty single-line string. A warning when it is not one sentence that says when to use the shard (the convention: `Use when a task …`, about 20 words; the shard index shows it: [[dev-knw-knap-manifest]] § `description`)
    - [ ] `dependencies` — if present, a map: each key is a package name (`@org/name` or `@org/shard/name`, no range, no place) and each value is an exact version, a caret range, a tilde range, or `""` (the list form is legacy input: a warning)
    - [ ] `setup` — if present, value is `full`, `flint`, or `local`
    - [ ] `types` — if present, each entry is `Type` or `Type.Subtype`, each word with a capital letter (multi-word names allowed)

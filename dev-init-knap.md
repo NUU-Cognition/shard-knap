@@ -9,6 +9,7 @@ orbh-sessions:
   - "[[ec13c5bf-9eab-4982-b35a-cffc13d48950]]"
 orb:
   - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 orbh-fleet:
   - flint-cleanup-1122
 ---
@@ -123,7 +124,7 @@ source:
 version: "1.0.0"
 name: Shard Name
 shorthand: sh
-description: What this shard does
+description: Use when a task does X         # One sentence that says when to use the shard
 dependencies:
   "@nuucognition/flint": "^0.2"            # Always depend on Flint (core)
   "@nuucognition/notepad": "^1.0"          # A package name and a range
@@ -142,7 +143,7 @@ A source at `shard-spec: "0.3.0"` has `org:` in place of `shard:`, and it still 
 
 ## Authoring a Source
 
-`flint shard create "<Name>"` makes a local source at `Shards/(Source Local) <Name>/`, mints the two ids, and builds the shard. Edit the source, then run `flint shard build <alias>` to make the shard again. `flint shard start` loads the build and prints a notice with `flint shard build <alias>` when the source changed after the build. `flint shard dev <alias> <url>` promotes the local source to a remote source; `flint shard release <alias>` tags a version and registers it. To edit a published shard, `flint shard clone @org/name` clones its source.
+Before you create a shard, look for one that exists: `flint shard browse <word>` shows the shard registry and the shard sources of this machine. `flint shard create "<Name>"` makes a local source at `Shards/(Source Local) <Name>/`, mints the two ids, and builds the shard. Edit the source, then run `flint shard build <alias>` to make the shard again. `flint shard start` loads the build and prints a notice with `flint shard build <alias>` when the source changed after the build. `flint shard dev <alias> <url>` promotes the local source to a remote source; `flint shard release <alias>` tags a version and registers it. To edit a published shard, `flint shard clone @org/name` clones its source. After a change to a source, `flint shard broadcast <alias>` updates the shard in each Flint of this machine that installs it from this Flint.
 
 To create a shard, use [[dev-wkfl-knap-create_shard]]. Run `flint shard start-dev knap` to see all available workflows and skills.
 

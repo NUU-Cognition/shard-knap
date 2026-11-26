@@ -6,6 +6,6 @@ source:
 version: "1.5.0"
 name: Knap
 shorthand: knap
-description: Package authoring toolkit for shards and modules. Templates for all shard file types and for modules, the shard manifest schema, the module contract, CLI commands, and workflows for creating, iterating, and publishing shards and modules.
+description: "Use when a task creates, changes, checks, or releases a shard or a module: the templates, the manifest rules, the module contract, and the commands."
 dependencies:
   "@nuucognition/flint": ""

@@ -7,6 +7,7 @@ orbh-sessions:
 orb:
   - "@v1/nuucognition/session/9f552ce0-0455-44ed-b8ec-d749c3ae9b2f#flint/nuu-orbh"
   - "@v1/nuucognition/session/d1a30a4f-ff21-490b-b8b0-7e7d93daf93b#flint/nuu-flint"
+  - "@v1/nuucognition/session/6c761530-e5c4-4863-a99e-95eb3e373085#flint/nuu-flint"
 orbh-fleet:
   - flint-cleanup-1122
 ---
@@ -594,7 +595,7 @@ The `types:` field declares the artifact types a shard manages. Each declared ty
 types:
   - Task                              # Installs type definition file
 folders:
-  - "Mesh/Types/Tasks (Task)"        # Creates artifact storage folder
+  - Mesh/Types/Tasks/                # Creates artifact storage folder
 ```
 
 See [[knw-f-types]] for the artifact-side conventions of types in the Mesh.
